@@ -1,0 +1,8 @@
+{
+  "engine": "cocos-creator-js",
+  "packages": "packages",
+  "name": "MapEditor",
+  "id": "97ddb21f-db63-4d3b-aac5-3cdea4ab4eda",
+  "version": "2.4.15",
+  "isNew": false
+}

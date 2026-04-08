@@ -1,0 +1,8 @@
+export enum MapEditorEvent {
+    //拖拽节点
+    DragItem = "DragItem",
+    //刷新属性面板
+    RefreshAttrPanel = "RefreshAttrPanel",
+    //属性面板同步
+    UpdateFromAttrPanel = "UpdateFromAttrPanel",
+}
