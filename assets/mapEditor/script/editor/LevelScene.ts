@@ -363,6 +363,8 @@ export default class LevelScene extends cc.Component {
                             if (targetParent && /^Layer\d+$/.test(targetParent.name)) {
                                 mapLoaderComp.refreshLayerBoundsByNode(targetParent);
                             }
+                            // 房间迁移后，旧层可能被搬空，统一清理空 layer
+                            mapLoaderComp.cleanupEmptyLayersAfterMove();
                         }
                     }
                     this._dragDat = null;

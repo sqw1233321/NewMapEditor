@@ -565,6 +565,28 @@ export default class MapLoader extends cc.Component {
         }
     }
 
+    /** 房间移动后，清理空 Layer（childrenCount==0），并在下一帧重排层级编号 */
+    public cleanupEmptyLayersAfterMove() {
+        if (!this._layerCont) return;
+        let hasDelete = false;
+        this._layerCont.children.forEach((layerNd) => {
+            if (!layerNd || !cc.isValid(layerNd)) return;
+            if (!/^Layer\d+$/.test(layerNd.name || "")) return;
+            if (layerNd.childrenCount > 0) return;
+            const m = /^Layer(\d+)$/.exec(layerNd.name || "");
+            if (m) this._layerNodeMap.delete(Number(m[1]));
+            layerNd.removeFromParent();
+            layerNd.destroy();
+            hasDelete = true;
+        });
+
+        if (hasDelete) {
+            this.scheduleOnce(() => {
+                this.compactLayersAfterDelete();
+            }, 0);
+        }
+    }
+
 
     //数据操作
 
