@@ -9,10 +9,6 @@ const { ccclass, property } = cc._decorator;
 export default class MapDrawUnitBase extends cc.Component {
     protected _roomId: number = 0;
 
-    /** 左侧素材栏：选 PathPoint / SearchItem，在房间区域内松手会生成带 roomId 的实体；Default 表示地图内已有物件的普通拖动 */
-    @property({ type: cc.Enum(UnitType) })
-    paletteSpawnType: UnitType = UnitType.Default;
-
     protected onLoad(): void {
         this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
     }
@@ -47,17 +43,11 @@ export default class MapDrawUnitBase extends cc.Component {
             const dragOffset = this.node.position.sub(
                 this.node.parent.convertToNodeSpaceAR(mousePos)
             );
-            const isPalette =
-                this.paletteSpawnType !== UnitType.Default &&
-                this.paletteSpawnType !== UnitType.Room;
             const dragDat: DragType = {
                 parent: this.node.parent,
                 dragOffset: dragOffset,
                 itemNode: this.node,
-                mousePos: event.getLocation(),
-                fromPalette: isPalette,
-                paletteUnitType: isPalette ? this.paletteSpawnType : undefined,
-                paletteHomeLocalPos: isPalette ? this.node.getPosition().clone() : undefined,
+                mousePos: event.getLocation()
             }
             EventManager.instance.emit(MapEditorEvent.DragItem, dragDat);
         }

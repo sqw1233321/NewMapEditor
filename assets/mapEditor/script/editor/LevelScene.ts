@@ -1,6 +1,5 @@
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapLoader from "../item/MapLoader";
 import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import { MapEditorMapData } from "../map/LevelMapDat";
@@ -55,6 +54,8 @@ export default class LevelScene extends cc.Component {
         width: 0,
         height: 0
     }
+    //拖拽时命中的房间（用于高亮）
+    private _dragHoverRoomName: string = "";
     //属性面板追踪的节点(注意删除节点时的问题)
     private _trackNd: cc.Node;
 
@@ -102,11 +103,114 @@ export default class LevelScene extends cc.Component {
         for (let i = rooms.length - 1; i >= 0; i--) {
             const room = rooms[i];
             const box = room.node.getBoundingBoxToWorld();
-            if (box.contains(wp)) {
-                return room;
-            }
+            if (box.contains(wp)) return room;
         }
         return null;
+    }
+
+    /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
+    private findLayerAtWorldPos(worldPos: cc.Vec2): cc.Node | null {
+        if (!this.mapLoader) return null;
+        const wp = cc.v2(worldPos.x, worldPos.y);
+
+        // mapLoader.buildBaseNd() 里会创建名为 "LayerCont" 的容器，实际的层节点命名为 "Layer{n}"
+        const layerCont = this.mapLoader.getChildByName("LayerCont");
+        if (!layerCont) return null;
+
+        for (const layerNd of layerCont.children) {
+            // 避免把 LayerCont 自己/其它非 Layer{n} 节点误判
+            if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) continue;
+            const box = layerNd.getBoundingBoxToWorld();
+            if (box.contains(wp)) return layerNd;
+        }
+        return null;
+    }
+
+    private clearDragRoomHover() {
+        this._dragHoverRoomName = "";
+        if (this._dragDat) {
+            this._dragDat.hoverRoomId = undefined;
+            this._dragDat.hoverRoomName = undefined;
+            this._dragDat.hoverLayerNode = undefined;
+            this._dragDat.hoverLayerName = undefined;
+        }
+        this.clearHoverDat();
+        this.hoverDrawer?.clear();
+    }
+
+    private updateDragRoomHover(worldMousePos: cc.Vec2) {
+        if (!this._dragDat) return;
+        // 如果当前拖拽的是“房间”，则根据鼠标命中的 layer 容器高亮整个 layer
+        const draggedRoom = this._dragDat.itemNode.getComponent(MapDrawRoom);
+        if (draggedRoom) {
+            // 没有命中其它房间时，也需要让 dragDat 里有当前拖拽房间的信息
+            this._dragDat.hoverRoomId = draggedRoom.getId();
+            this._dragDat.hoverRoomName = draggedRoom.node.name;
+
+            const layerNd = this.findLayerAtWorldPos(worldMousePos);
+            if (!layerNd) {
+                this._dragDat.hoverLayerNode = undefined;
+                this._dragDat.hoverLayerName = undefined;
+                // 只清空 hover 框，不清空 hoverRoomId/hoverRoomName
+                this._dragHoverRoomName = "";
+                this.clearHoverDat();
+                this.hoverDrawer?.clear();
+                return;
+            }
+            
+            this._dragDat.hoverLayerNode = layerNd;
+            this._dragDat.hoverLayerName = layerNd.name;
+            if (layerNd.name === this._dragHoverRoomName) return;
+            this._dragHoverRoomName = layerNd.name;
+
+            this._hoverDat.name = layerNd.name;
+            const mapScale = EditorSetting.Instance.getMapScale();
+            const size = layerNd.getContentSize();
+            const offset = cc.v2(
+                layerNd.anchorX * size.width * mapScale,
+                layerNd.anchorY * size.height * mapScale
+            );
+            this._hoverDat.worldPos = layerNd
+                .convertToWorldSpaceAR(cc.Vec2.ZERO)
+                .clone()
+                .subtract(offset);
+            this._hoverDat.width = size.width * mapScale;
+            this._hoverDat.height = size.height * mapScale;
+            this.hoverDrawer?.draw(this._hoverDat);
+            return;
+        }
+
+        // 非房间拖拽：按房间命中判断 hover 框
+        this._dragDat.hoverLayerNode = undefined;
+        this._dragDat.hoverLayerName = undefined;
+
+        const room = this.findRoomAtWorldPos(worldMousePos);
+        if (!room) {
+            this.clearDragRoomHover();
+            return;
+        }
+
+        const roomNd = room.node;
+        if (roomNd.name === this._dragHoverRoomName) return;
+        this._dragHoverRoomName = roomNd.name;
+
+        this._dragDat.hoverRoomId = room.getId();
+        this._dragDat.hoverRoomName = roomNd.name;
+
+        this._hoverDat.name = roomNd.name;
+        const mapScale = EditorSetting.Instance.getMapScale();
+        const size = roomNd.getContentSize();
+        const offset = cc.v2(
+            roomNd.anchorX * size.width * mapScale,
+            roomNd.anchorY * size.height * mapScale
+        );
+        this._hoverDat.worldPos = roomNd
+            .convertToWorldSpaceAR(cc.Vec2.ZERO)
+            .clone()
+            .subtract(offset);
+        this._hoverDat.width = size.width * mapScale;
+        this._hoverDat.height = size.height * mapScale;
+        this.hoverDrawer?.draw(this._hoverDat);
     }
 
     //操作事件
@@ -122,6 +226,7 @@ export default class LevelScene extends cc.Component {
         const localPos = this.dragLayer.convertToNodeSpaceAR(this._dragDat.mousePos);
         const dragOffset = this._dragDat.dragOffset;
         itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+        this.clearDragRoomHover();
         //刷新属性面板
         this.refreshAttrPanel();
     }
@@ -160,6 +265,8 @@ export default class LevelScene extends cc.Component {
                 if (itemDat && cc.isValid(itemDat)) {
                     const localPos = this.dragLayer.convertToNodeSpaceAR(event.getLocation());
                     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+                    //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
+                    this.updateDragRoomHover(event.getLocation());
                     //刷新属性面板
                     this.refreshAttrPanel();
                 }
@@ -204,45 +311,28 @@ export default class LevelScene extends cc.Component {
                 const itemDat = this._dragDat.itemNode;
                 const itemParent = this._dragDat.parent;
                 const dragOffset = this._dragDat.dragOffset;
-                const fromPalette = this._dragDat.fromPalette;
-                const paletteUnitType = this._dragDat.paletteUnitType;
-                const paletteHomeLocalPos = this._dragDat.paletteHomeLocalPos;
-
-                if (fromPalette) {
-                    const worldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
-                    const room = this.findRoomAtWorldPos(worldPos);
-                    if (
-                        MapLoader.ins &&
-                        room &&
-                        (paletteUnitType === UnitType.PathPoint || paletteUnitType === UnitType.SearchItem)
-                    ) {
-                        if (paletteUnitType === UnitType.PathPoint) {
-                            MapLoader.ins.spawnPathPointInRoom(room, worldPos);
-                        } else {
-                            MapLoader.ins.spawnSearchItemInRoom(room, worldPos);
-                        }
-                    }
-                    if (itemDat && cc.isValid(itemDat) && itemParent && cc.isValid(itemParent)) {
-                        itemDat.parent = itemParent;
-                        if (paletteHomeLocalPos) {
-                            itemDat.setPosition(paletteHomeLocalPos);
-                        } else {
-                            const localPos = itemParent.convertToNodeSpaceAR(event.getLocation());
-                            itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
-                        }
-                    }
-                    this._dragDat = null;
-                    return;
-                }
-
-                // 地图内已有节点：拖放回原父节点
+                //放回原位
                 if (itemDat && cc.isValid(itemDat) && itemParent && cc.isValid(itemParent)) {
-                    itemDat.parent = itemParent;
-                    const localPos = itemParent.convertToNodeSpaceAR(event.getLocation());
-                    itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+                    const draggedRoom = itemDat.getComponent(MapDrawRoom);
+                    const targetParent = (draggedRoom && this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode))
+                        ? this._dragDat.hoverLayerNode
+                        : itemParent;
+
+                    if (targetParent !== itemParent) {
+                        // 更换父节点（从 panel/旧 layer 到当前 layer）时，使用“世界坐标->新父节点局部坐标”定位，避免 dragOffset 失效
+                        const worldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                        itemDat.parent = targetParent;
+                        const localPos = targetParent.convertToNodeSpaceAR(worldPos);
+                        itemDat.setPosition(localPos);
+                    } else {
+                        itemDat.parent = itemParent;
+                        const localPos = itemParent.convertToNodeSpaceAR(event.getLocation());
+                        itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+                    }
                     this._dragDat = null;
                 }
             }
+            this.clearDragRoomHover();
         }
     }
 
@@ -252,7 +342,6 @@ export default class LevelScene extends cc.Component {
         this._trackNd = this._dragDat.itemNode;
         const itemDat = this._dragDat.itemNode;
         const controller = itemDat.getComponent(MapDrawUnitBase);
-        if (!controller) return;
         const type = controller.getType();
 
         //基础属性的同步
@@ -270,7 +359,7 @@ export default class LevelScene extends cc.Component {
         if (type == UnitType.Default) return;
 
         //特殊属性的同步
-        let dat = {};
+        let dat: any = {};
         switch (type) {
             case UnitType.Room:
                 (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();

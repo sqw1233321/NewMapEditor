@@ -301,7 +301,7 @@
       },
       "size": {
         "width": 105,
-        "height": 2890
+        "height": 320
       },
       "pathPointIds": [
         "P0_0"
@@ -553,7 +553,7 @@
       },
       "size": {
         "width": 315,
-        "height": 2527
+        "height": 320
       },
       "pathPointIds": [],
       "unlockPointIds": [],
@@ -777,7 +777,7 @@
       },
       "size": {
         "width": 345,
-        "height": 2169
+        "height": 320
       },
       "pathPointIds": [],
       "unlockPointIds": [],

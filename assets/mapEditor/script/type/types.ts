@@ -11,10 +11,12 @@ export interface DragType {
     mousePos: cc.Vec2
     //鼠标与anchor的偏移
     dragOffset: cc.Vec3
-    /** 从左侧素材栏拖出：在房间内松手时生成地图物件，素材节点回到 paletteHomeLocalPos */
-    fromPalette?: boolean
-    paletteUnitType?: UnitType
-    paletteHomeLocalPos?: cc.Vec2
+    /** 拖拽过程中鼠标命中的房间（可选；由 LevelScene 实时写入） */
+    hoverRoomId?: number
+    hoverRoomName?: string
+    /** 拖拽过程中鼠标命中的 layer 容器（仅拖拽房间时使用） */
+    hoverLayerNode?: cc.Node
+    hoverLayerName?: string
 }
 
 //鼠标移动到节点

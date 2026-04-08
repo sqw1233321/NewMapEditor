@@ -158,6 +158,16 @@ export default class MapLoader extends cc.Component {
             mapDrawRoom.init(room, this.ROOM_COLORS[index % this.ROOM_COLORS.length]);
             mapDrawRoom.unLockPoints = room.unlockPointIds.map(id => this._pointMap.get(id));
         })
+
+        // 此时 room 的 contentSize 已由 MapDrawRoom.init 设置完成，重新计算每个 Layer 的 bounds
+        this.updateAllLayerBounds();
+    }
+
+    private updateAllLayerBounds() {
+        if (!this._layerCont) return;
+        this._layerCont.children.forEach((layerNd) => {
+            this.updateLayerBounds(layerNd);
+        });
     }
 
     private buildPathPoints() {
@@ -385,8 +395,59 @@ export default class MapLoader extends cc.Component {
             layerNd.parent = this._layerCont;
             this._layerNodeMap.set(layer, layerNd);
         }
+
+        // 换父节点前先缓存世界坐标，避免因为 layer 自身 transform 改变导致 room 漂移
+        const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
         roomNd.parent = layerNd;
+        roomNd.setPosition(layerNd.convertToNodeSpaceAR(worldAnchor));
     }
+
+    //刷新layer的bounds
+    private updateLayerBounds(layerNd: cc.Node) {
+        if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) return;
+
+        const roomNds = layerNd.children;
+        if (!roomNds || roomNds.length === 0) return;
+
+        let xMin = Number.POSITIVE_INFINITY;
+        let yMin = Number.POSITIVE_INFINITY;
+        let xMax = Number.NEGATIVE_INFINITY;
+        let yMax = Number.NEGATIVE_INFINITY;
+
+        // 先缓存每个子节点的世界锚点位置，避免调整 layer 后子节点整体漂移
+        const childWorldPosMap = new Map<cc.Node, cc.Vec2>();
+
+        roomNds.forEach((roomNd) => {
+            if (!roomNd) return;
+
+            // 仅用 room 自身 contentSize 计算 bounds，避免 room 子节点（点/门/单位等）超出背景导致 layer 高度不一致
+            const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO); // room 左下角世界坐标（room anchor=0,0）
+            const size = roomNd.getContentSize();
+            xMin = Math.min(xMin, worldAnchor.x);
+            yMin = Math.min(yMin, worldAnchor.y);
+            xMax = Math.max(xMax, worldAnchor.x + size.width);
+            yMax = Math.max(yMax, worldAnchor.y + size.height);
+
+            childWorldPosMap.set(roomNd, worldAnchor);
+        });
+
+        const width = Math.max(1, xMax - xMin);
+        const height = Math.max(1, yMax - yMin);
+
+        // 让 layer 的本地原点(0,0) 对齐到 children bounds 的最小角
+        layerNd.setAnchorPoint(0, 0);
+        layerNd.setContentSize(width, height);
+        const newLayerWorldAnchor = cc.v2(xMin, yMin);
+        const newLayerLocalPos = this._layerCont.convertToNodeSpaceAR(newLayerWorldAnchor);
+        layerNd.setPosition(newLayerLocalPos);
+
+        // 把子节点本地坐标重新算回去，保证世界位置不变
+        childWorldPosMap.forEach((worldAnchorPos, childNd) => {
+            const newLocal = layerNd.convertToNodeSpaceAR(worldAnchorPos);
+            childNd.setPosition(newLocal);
+        });
+    }
+
 
     public addPathPointToRoom(pData: MapDrawDatPathPoint, pointNd: cc.Node) {
         this._pointMap.set(pData.id, pointNd);
@@ -419,70 +480,6 @@ export default class MapLoader extends cc.Component {
             fs.writeFileSync(filePath, json, 'utf8');
             console.log('JSON 导出完成：', filePath);
         }
-    }
-
-    /** 从素材栏拖入：在指定房间放置路径点，并写入 roomId / 点位数据 */
-    public spawnPathPointInRoom(room: MapDrawRoom, worldPos: cc.Vec2): MapDrawP | null {
-        if (!this.pathPointPrefab) {
-            cc.error("MapLoader: 请在 Inspector 中绑定 pathPointPrefab");
-            return null;
-        }
-        const pointCont = room.node.getChildByName("pointCont");
-        if (!pointCont) return null;
-
-        const id = this.generateNewPathPointId();
-        const pointNd = cc.instantiate(this.pathPointPrefab);
-        pointNd.name = id;
-        const localPos = pointCont.convertToNodeSpaceAR(worldPos);
-        pointNd.parent = pointCont;
-        pointNd.setPosition(localPos);
-
-        const pData: MapDrawDatPathPoint = {
-            id,
-            roomId: room.getId(),
-            pos: { x: worldPos.x, y: worldPos.y },
-            links: [],
-        };
-        const pointCom = pointNd.addComponentSafe(MapDrawP);
-        pointCom.init(pData);
-        this.updatePointMap(id, pointNd);
-        room.refreshDat();
-        return pointCom;
-    }
-
-    /** 从素材栏拖入：在房间 unitCont 下创建搜寻点 */
-    public spawnSearchItemInRoom(room: MapDrawRoom, worldPos: cc.Vec2): MapDrawSearchItem | null {
-        const unitCont = room.node.getChildByName("unitCont");
-        if (!unitCont) return null;
-
-        const itemNd = new cc.Node(`SearchItem_${Date.now()}`);
-        itemNd.parent = unitCont;
-        itemNd.setAnchorPoint(0.5, 0.5);
-        const localPos = unitCont.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
-        itemNd.setContentSize(50, 50);
-        const sp = itemNd.addComponentSafe(cc.Sprite);
-        sp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        sp.spriteFrame = this.defaultSp;
-        itemNd.color = cc.Color.YELLOW;
-
-        const control = itemNd.addComponentSafe(MapDrawSearchItem);
-        control.init(room.getId());
-        room.refreshDat();
-        return control;
-    }
-
-    private generateNewPathPointId(): string {
-        let maxNum = 0;
-        this._pointMap.forEach((_, id) => {
-            const n = parseInt(id, 10);
-            if (!isNaN(n)) maxNum = Math.max(maxNum, n);
-        });
-        let candidate = maxNum + 1;
-        while (this._pointMap.has(String(candidate))) {
-            candidate++;
-        }
-        return String(candidate);
     }
 
 
