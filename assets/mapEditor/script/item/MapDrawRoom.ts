@@ -56,7 +56,12 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this._unitCont = this.node.getChildByName("unitCont");
         this.initUI();
         this.setDat();
-        //this.refreshSize();
+    }
+
+    public changeLayer(roomId: number, newLayer: number) {
+        this._roomId = roomId;
+        this._layer = newLayer;
+        this.initUI();
     }
 
     private initUI() {
@@ -86,24 +91,28 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private setDoorDat() {
         const allDoors = this._unitCont.getComponentsInChildren(MapDrawDoor);
         this._roomItemDat.doorDat = allDoors;
+        if (allDoors.length == 0) return;
         this._doorDat = allDoors.map((door: MapDrawDoor) => door.getDat());
     }
 
     private setLadderDat() {
         const allLadders = this._unitCont.getComponentsInChildren(MapDrawLadder);
         this._roomItemDat.ladderDat = allLadders;
-        this._ladderDat = allLadders.map((ladder: MapDrawLadder) => ladder.getDat());
+        if (allLadders.length == 0) return;
+        this._ladderDat = allLadders?.map((ladder: MapDrawLadder) => ladder.getDat());
     }
 
     private setEnemyDat() {
         const allEnemies = this._unitCont.getComponentsInChildren(MapDrawEnemyRefresh);
         this._roomItemDat.enemyRefreshDat = allEnemies;
+        if (allEnemies.length == 0) return;
         this._enemyRefreshDat = allEnemies.map((enemy: MapDrawEnemyRefresh) => enemy.getDat());
     }
 
     private setSearchItemDatas() {
         const allSearchItems = this._unitCont.getComponentsInChildren(MapDrawSearchItem);
         this._roomItemDat.searchItemDat = allSearchItems;
+        if (allSearchItems.length == 0) return;
         this._searchItemDat = allSearchItems.map((searchItem: MapDrawSearchItem) => searchItem.getDat());
     }
 
@@ -130,7 +139,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         });
         this._points = this._pointCont.children.map((child: cc.Node) => child.getComponent(MapDrawP));
         this._points.forEach((point: MapDrawP) => {
-            // point.init(this._roomId);
+            //point.init(this._roomId);
             MapLoader.ins.updatePointMap(point.getId(), point.node);
         })
         this.setDat();

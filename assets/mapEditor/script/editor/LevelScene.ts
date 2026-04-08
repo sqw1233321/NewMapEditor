@@ -49,6 +49,7 @@ export default class LevelScene extends cc.Component {
     private _isRightDown: boolean = false;
     private _isLeftDown: boolean = false;
     private _mapData: MapEditorMapData;
+    private _isDrag: boolean = false;
     private _dragDat: DragType = null;
     private _hoverDat: HoverType = {
         name: "",
@@ -159,12 +160,10 @@ export default class LevelScene extends cc.Component {
                 this.hoverDrawer?.clear();
                 return;
             }
-
             this._dragDat.hoverLayerNode = layerNd;
             this._dragDat.hoverLayerName = layerNd.name;
             if (layerNd.name === this._dragHoverRoomName) return;
             this._dragHoverRoomName = layerNd.name;
-
             this._hoverDat.name = layerNd.name;
             const mapScale = EditorSetting.Instance.getMapScale();
             const size = layerNd.getContentSize();
@@ -244,6 +243,7 @@ export default class LevelScene extends cc.Component {
     }
 
     private onMouseDown(event: cc.Event.EventMouse) {
+        this._isDrag = false;
         if (event.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
             this._isLeftDown = true;
             this.clearHoverDat();
@@ -259,6 +259,7 @@ export default class LevelScene extends cc.Component {
 
 
     private onMouseMove(event: cc.Event.EventMouse) {
+        this._isDrag = true;
         //点击了左键
         if (this._isLeftDown) {
             if (this._dragDat) {
@@ -316,7 +317,20 @@ export default class LevelScene extends cc.Component {
                 //放回原位
                 if (itemDat && cc.isValid(itemDat) && itemParent && cc.isValid(itemParent)) {
                     const draggedRoom = itemDat.getComponent(MapDrawRoom);
-                    const targetParent = (draggedRoom && this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) ? this._dragDat.hoverLayerNode : itemParent;
+                    let targetParent = itemParent;
+                    if (this._isDrag && draggedRoom) {
+                        if (this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) {
+                            targetParent = this._dragDat.hoverLayerNode;
+                        } else {
+                            // 拖到非 layer 区域：按相对 y 位置先创建新 layer，再放入房间
+                            const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                            if (mapLoaderComp) {
+                                const roomWorldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                                const newLayer = mapLoaderComp.createLayerForRoomDrop(roomWorldPos.y);
+                                if (newLayer) targetParent = newLayer;
+                            }
+                        }
+                    }
                     if (targetParent !== itemParent) {
                         // 更换父节点（从 panel/旧 layer 到当前 layer）时，使用“世界坐标->新父节点局部坐标”定位，避免 dragOffset 失效
                         const worldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
@@ -514,6 +528,13 @@ export default class LevelScene extends cc.Component {
         }
         this._trackNd = null;
         EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
+    }
+
+    //增加layer
+    public addLayer() {
+        const loader = this.mapLoader?.getComponent(MapLoader);
+        if (!loader) return;
+        loader.addLayer();
     }
 
 

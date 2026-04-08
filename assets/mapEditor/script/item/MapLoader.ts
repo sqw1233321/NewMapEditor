@@ -405,6 +405,124 @@ export default class MapLoader extends cc.Component {
         this.updateLayerBounds(layerNd);
     }
 
+    /** 新增空 Layer：宽度=整图宽度，高度=默认高度；返回新建的 layer 节点 */
+    public addLayer(defaultHeight: number = 320): cc.Node {
+        if (!this._layerCont) return null;
+
+        // 找到当前最大层号，新增 max+1
+        let maxLayerNo = 0;
+        this._layerNodeMap.forEach((_, layerNo) => {
+            maxLayerNo = Math.max(maxLayerNo, layerNo);
+        });
+        const newLayerNo = maxLayerNo + 1;
+
+        const layerNd = new cc.Node(`Layer${newLayerNo}`);
+        layerNd.parent = this._layerCont;
+        layerNd.setAnchorPoint(0, 0);
+        this._layerNodeMap.set(newLayerNo, layerNd);
+
+        // 宽度固定为整图宽度
+        const jsonWidth = Number(this._data?.size?.width || 0);
+        const inspectorWidth = Number(this.size?.x || 0);
+        const mapWidth = jsonWidth > 0 ? jsonWidth : inspectorWidth;
+        const width = Math.max(1, mapWidth);
+        const height = Math.max(1, defaultHeight);
+        layerNd.setContentSize(width, height);
+
+        // 新层放在当前最高层的上方
+        let maxTopY = Number.NEGATIVE_INFINITY;
+        this._layerNodeMap.forEach((nd, layerNo) => {
+            if (!nd || nd === layerNd || !cc.isValid(nd)) return;
+            const worldAnchor = nd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+            const topY = worldAnchor.y + nd.getContentSize().height;
+            maxTopY = Math.max(maxTopY, topY);
+        });
+        const targetBottomY = isFinite(maxTopY) ? maxTopY : 0;
+        const mapLeftWorld = mapWidth > 0
+            ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
+            : 0;
+        const layerWorldAnchor = cc.v2(mapLeftWorld, targetBottomY);
+        const layerLocalPos = this._layerCont.convertToNodeSpaceAR(layerWorldAnchor);
+        layerNd.setPosition(layerLocalPos);
+        return layerNd;
+    }
+
+    /**
+     * 拖拽房间落点不在现有 layer 上时，按 worldY 相对位置插入新 layer
+     * - 会把插入位置及其上方层号顺延（LayerN -> LayerN+1）
+     * - 会同步更新这些层中房间的 roomId/layer
+     */
+    public createLayerForRoomDrop(worldY: number, defaultHeight: number = 320): cc.Node {
+        if (!this._layerCont) return null;
+
+        const existing = Array.from(this._layerNodeMap.entries())
+            .map(([no, node]) => ({ no, node }))
+            .filter((it) => it.node && cc.isValid(it.node));
+
+        // 根据当前层的底边 worldY 计算插入层号（越上层号越大）
+        let insertNo = 1;
+        if (existing.length > 0) {
+            const byBottom = existing
+                .map((it) => ({ ...it, bottomY: it.node.convertToWorldSpaceAR(cc.Vec2.ZERO).y }))
+                .sort((a, b) => a.bottomY - b.bottomY);
+
+            insertNo = byBottom.length + 1;
+            for (let i = 0; i < byBottom.length; i++) {
+                if (worldY < byBottom[i].bottomY) {
+                    insertNo = i + 1;
+                    break;
+                }
+            }
+        }
+
+        // 先把 >= insertNo 的层号整体上移一位（倒序避免覆盖）
+        existing
+            .sort((a, b) => b.no - a.no)
+            .forEach(({ no, node }) => {
+                if (no < insertNo) return;
+                const newNo = no + 1;
+                node.name = `Layer${newNo}`;
+                this._layerNodeMap.delete(no);
+                this._layerNodeMap.set(newNo, node);
+
+                // 同步该层房间的 roomId/layer
+                node.children.forEach((roomNd) => {
+                    if (!roomNd) return;
+                    const roomCom = roomNd.getComponent(MapDrawRoom);
+                    if (!roomCom) return;
+                    const oldId = roomCom.getId();
+                    const oldMapNo = Math.floor(oldId / 100);
+                    const roomNo = oldId - oldMapNo * 100 - (no - 1) * 10;
+                    const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + roomNo;
+                    roomCom.changeLayer(newCfgId, newNo);
+                    roomCom.refreshDat();
+                    this.renameRoomNode(oldId, newCfgId, roomNd);
+                });
+            });
+
+        // 创建新 layer 并放到对应 y 位置
+        const layerNd = new cc.Node(`Layer${insertNo}`);
+        layerNd.parent = this._layerCont;
+        layerNd.setAnchorPoint(0, 0);
+        this._layerNodeMap.set(insertNo, layerNd);
+
+        const jsonWidth = Number(this._data?.size?.width || 0);
+        const inspectorWidth = Number(this.size?.x || 0);
+        const mapWidth = jsonWidth > 0 ? jsonWidth : inspectorWidth;
+        const width = Math.max(1, mapWidth);
+        const height = Math.max(1, defaultHeight);
+        layerNd.setContentSize(width, height);
+
+        const mapLeftWorld = mapWidth > 0
+            ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
+            : layerNd.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+        const targetBottomY = worldY - height * 0.5;
+        const worldAnchor = cc.v2(mapLeftWorld, targetBottomY);
+        const localPos = this._layerCont.convertToNodeSpaceAR(worldAnchor);
+        layerNd.setPosition(localPos);
+        return layerNd;
+    }
+
     /** 删除一个房间节点（以及其下所有内容），同时维护内部 room / point 映射与 layer 大小 */
     public deleteRoom(roomNode: cc.Node) {
         if (!roomNode) return;
@@ -426,11 +544,24 @@ export default class MapLoader extends cc.Component {
         }
 
         const parentLayer = roomNode.parent;
+        // 先从层级树摘除，再销毁；后续逻辑统一放到下一帧执行
+        roomNode.removeFromParent();
         roomNode.destroy();
 
-        // 更新所属 layer 的 bounds
-        if (parentLayer) {
-            this.updateLayerBounds(parentLayer);
+        if (parentLayer && cc.isValid(parentLayer)) {
+            if (!cc.isValid(parentLayer)) return;
+            if (parentLayer.childrenCount === 0) {
+                const m = /^Layer(\d+)$/.exec(parentLayer.name || "");
+                if (m) this._layerNodeMap.delete(Number(m[1]));
+                parentLayer.removeFromParent();
+                parentLayer.destroy();
+                // layer 销毁同样是延迟生效，层级重排再延后一帧
+                this.scheduleOnce(() => {
+                    this.compactLayersAfterDelete();
+                }, 0);
+            } else {
+                this.updateLayerBounds(parentLayer);
+            }
         }
     }
 
@@ -451,6 +582,55 @@ export default class MapLoader extends cc.Component {
         roomNd.setPosition(layerNd.convertToNodeSpaceAR(worldAnchor));
     }
 
+    /** 删除某个 layer 后，把上层顺次下移并重建 layer 编号映射 */
+    private compactLayersAfterDelete() {
+        if (!this._layerCont) return;
+
+        // 收集现有 Layer{n}
+        const layerList: Array<{ no: number; node: cc.Node }> = [];
+        this._layerCont.children.forEach((nd) => {
+            if (!nd || !cc.isValid(nd)) return;
+            const m = /^Layer(\d+)$/.exec(nd.name || "");
+            if (!m) return;
+            const no = Number(m[1]);
+            if (isNaN(no)) return;
+            layerList.push({ no, node: nd });
+        });
+        if (layerList.length === 0) {
+            this._layerNodeMap.clear();
+            return;
+        }
+
+        // 按旧层号排序，重命名为连续层号 Layer1..LayerN
+        layerList.sort((a, b) => a.no - b.no);
+        this._layerNodeMap.clear();
+        layerList.forEach((item, idx) => {
+            const newNo = idx + 1;
+            item.node.name = `Layer${newNo}`;
+            this._layerNodeMap.set(newNo, item.node);
+
+            // 同步房间内 layer 字段与显示（避免导出 layer 号不一致）
+            item.node.children.forEach((roomNd) => {
+                if (!roomNd) return;
+                const roomCom = roomNd.getComponent(MapDrawRoom);
+                if (!roomCom) return;
+                const oldId = roomCom.getId();
+                const oldMapNo = Math.floor(oldId / 100);
+                const oldRoomNo = oldId - oldMapNo * 100 - (item.no - 1) * 10;
+                const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + oldRoomNo;
+                const newLayer = newNo;
+                roomCom.changeLayer(newCfgId, newLayer);
+                roomCom.refreshDat();
+                this.renameRoomNode(oldId, newCfgId, roomNd);
+            });
+        });
+
+        // 重新按内容计算每个 layer 的 bounds
+        this._layerNodeMap.forEach((layerNd) => {
+            this.updateLayerBounds(layerNd);
+        });
+    }
+
     //刷新layer的bounds
     private updateLayerBounds(layerNd: cc.Node) {
         if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) return;
@@ -458,9 +638,7 @@ export default class MapLoader extends cc.Component {
         const roomNds = layerNd.children;
         if (!roomNds || roomNds.length === 0) return;
 
-        let xMin = Number.POSITIVE_INFINITY;
         let yMin = Number.POSITIVE_INFINITY;
-        let xMax = Number.NEGATIVE_INFINITY;
         let yMax = Number.NEGATIVE_INFINITY;
 
         // 先缓存每个子节点的世界锚点位置，避免调整 layer 后子节点整体漂移
@@ -472,21 +650,30 @@ export default class MapLoader extends cc.Component {
             // 仅用 room 自身 contentSize 计算 bounds，避免 room 子节点（点/门/单位等）超出背景导致 layer 高度不一致
             const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO); // room 左下角世界坐标（room anchor=0,0）
             const size = roomNd.getContentSize();
-            xMin = Math.min(xMin, worldAnchor.x);
             yMin = Math.min(yMin, worldAnchor.y);
-            xMax = Math.max(xMax, worldAnchor.x + size.width);
             yMax = Math.max(yMax, worldAnchor.y + size.height);
 
             childWorldPosMap.set(roomNd, worldAnchor);
         });
 
-        const width = Math.max(1, xMax - xMin);
+        // 宽度固定为整张地图宽度（不随子节点变化）
+        // 取值优先级：json.size.width > inspector.size.x > 当前layer宽度（兜底）
+        const jsonWidth = Number(this._data?.size?.width || 0);
+        const inspectorWidth = Number(this.size?.x || 0);
+        const prevWidth = Number(layerNd.getContentSize()?.width || 0);
+        const mapWidth = jsonWidth > 0 ? jsonWidth : (inspectorWidth > 0 ? inspectorWidth : prevWidth);
+        const width = Math.max(1, mapWidth);
         const height = Math.max(1, yMax - yMin);
 
         // 让 layer 的本地原点(0,0) 对齐到 children bounds 的最小角
         layerNd.setAnchorPoint(0, 0);
         layerNd.setContentSize(width, height);
-        const newLayerWorldAnchor = cc.v2(xMin, yMin);
+        // 地图坐标系以中心为原点，左边界 = -mapWidth/2（先转世界坐标，避免与 yMin 的世界坐标混用）
+        const prevWorldAnchor = layerNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const mapLeftWorld = mapWidth > 0
+            ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
+            : prevWorldAnchor.x;
+        const newLayerWorldAnchor = cc.v2(mapLeftWorld, yMin);
         const newLayerLocalPos = this._layerCont.convertToNodeSpaceAR(newLayerWorldAnchor);
         layerNd.setPosition(newLayerLocalPos);
 

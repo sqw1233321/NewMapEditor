@@ -14,7 +14,7 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawLadder extends MapDrawUnitBase {
-     protected _type: UnitType.Ladder;
+    protected _type: UnitType.Ladder;
 
     @property([cc.Node])
     bindPoints: cc.Node[] = [];
@@ -25,10 +25,16 @@ export default class MapDrawLadder extends MapDrawUnitBase {
     }
 
     getDat(): MapDrawDatLadder {
+        const bindPointIds = (this.bindPoints || [])
+            .filter((bindPoint) => bindPoint && cc.isValid(bindPoint))
+            .map((bindPoint) => bindPoint.getComponent(MapDrawP))
+            .filter((pointCom) => pointCom && pointCom.getId())
+            .map((pointCom) => pointCom.getId());
+
         const dat: MapDrawDatLadder = {
             roomId: this._roomId,
             pos: this.getPos(),
-            bindPointIds: this.bindPoints.map((bindPoint) => bindPoint.getComponent(MapDrawP).getId()),
+            bindPointIds: bindPointIds,
             unlockMethod: 0,
             unlockCost: 0,
             showType: 0,
