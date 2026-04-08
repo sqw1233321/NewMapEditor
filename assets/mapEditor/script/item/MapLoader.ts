@@ -385,6 +385,21 @@ export default class MapLoader extends cc.Component {
         this._pointMap.set(pointId, pointNd);
     }
 
+    /** 新建房间时，注册到 _roomNodeMap，确保导出 getJson() 包含该房间 */
+    public registerRoomNode(cfgId: number, roomNd: cc.Node) {
+        if (!roomNd) return;
+        this._roomNodeMap.set(cfgId, roomNd);
+    }
+
+    /** 房间 cfgId 变更时：更新 _roomNodeMap 键，避免导出重复/旧房间残留 */
+    public renameRoomNode(oldCfgId: number, newCfgId: number, roomNd: cc.Node) {
+        if (!roomNd) return;
+        if (oldCfgId !== newCfgId) {
+            this._roomNodeMap.delete(oldCfgId);
+        }
+        this._roomNodeMap.set(newCfgId, roomNd);
+    }
+
 
     //数据操作
 

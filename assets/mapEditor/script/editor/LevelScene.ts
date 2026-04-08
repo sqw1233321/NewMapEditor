@@ -9,6 +9,8 @@ import { UnitType } from "../type/mapTypes";
 import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
+import MapLoader from "../item/MapLoader";
+import { MapDrawDatRoom } from "../item/MapDrawDat";
 
 
 const { ccclass, property } = cc._decorator;
@@ -157,7 +159,7 @@ export default class LevelScene extends cc.Component {
                 this.hoverDrawer?.clear();
                 return;
             }
-            
+
             this._dragDat.hoverLayerNode = layerNd;
             this._dragDat.hoverLayerName = layerNd.name;
             if (layerNd.name === this._dragHoverRoomName) return;
@@ -329,10 +331,84 @@ export default class LevelScene extends cc.Component {
                         const localPos = itemParent.convertToNodeSpaceAR(event.getLocation());
                         itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
                     }
+
+                    // Room 只要落到某个 Layer{n} 上，就按命名规则重新计算（包括从其它 layer 拖入）
+                    if (draggedRoom && targetParent && /^Layer\d+$/.test(targetParent.name)) {
+                        this.syncRoomNameAndIdForLayer(draggedRoom, targetParent);
+                    }
                     this._dragDat = null;
                 }
             }
             this.clearDragRoomHover();
+        }
+    }
+
+    /** 拖拽后把 Room 落到 Layer{n}：命名规则：地图编号_layer-1_房间号 */
+    private syncRoomNameAndIdForLayer(roomCom: MapDrawRoom, layerNd: cc.Node) {
+        if (!roomCom || !layerNd) return;
+        const layerMatch = /^Layer(\d+)$/.exec(layerNd.name);
+        if (!layerMatch) return;
+        const layer = Number(layerMatch[1]);
+        if (!isFinite(layer)) return;
+
+        // 地图编号：从 levelJson.name 末尾提取数字（如 Level1 => 1）
+        const mapName = this.levelJson?.name ?? "";
+        const mapNoMatch = /(\d+)$/.exec(mapName);
+        const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
+        const oldCfgId = roomCom.getId();
+
+        // 计算目标 layer 下的最大房间号（按 cfgId 推导：cfgId = mapNo*100 + (layer-1)*10 + roomNo）
+        let maxRoomNo = 0;
+        layerNd.children.forEach((child) => {
+            if (!child) return;
+            if (child === roomCom.node) return; // 排除自身（无论是否新建）
+            const r = child.getComponent(MapDrawRoom);
+            if (!r) return;
+            const cfgId = r.getId();
+            const roomNo = cfgId - mapNo * 100 - (layer - 1) * 10;
+            if (roomNo > maxRoomNo) maxRoomNo = roomNo;
+        });
+        const newRoomNo = maxRoomNo + 1;
+        const newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
+
+        // 当前拖拽后的世界坐标/尺寸
+        const worldPos = roomCom.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const size = roomCom.node.getContentSize();
+
+        const roomDat: MapDrawDatRoom = {
+            cfgId: newCfgId,
+            layer: layer,
+            pos: { x: worldPos.x, y: worldPos.y },
+            size: { width: size.width, height: size.height },
+            pathPointIds: [],
+            unlockPointIds: [],
+            doors: [],
+            ladders: [],
+            enemyRefreshDatas: [],
+            enemyCreateDatas: [],
+            baseItemDatas: [],
+            searchItemDatas: [],
+            survivorDatas: [],
+        };
+
+        // 如果是“未初始化/占位”的新房间（cfgId=0 常见），清理 prefab 里可能残留的解锁点
+        if (oldCfgId === 0) {
+            roomCom.unLockPoints = [];
+        }
+
+        // 保留当前 bg 颜色（初始化时会用到）
+        let color = cc.Color.WHITE;
+        const bgNd = roomCom.node.getChildByName("bg");
+        if (bgNd) color = bgNd.color;
+
+        // 重新 init + refresh，确保内部 roomId（给 door/ladder/点等）也同步
+        roomCom.init(roomDat, color);
+        roomCom.refreshDat();
+
+        // 更新到 MapLoader（避免导出时同时存在旧 cfgId）
+        const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+        if (mapLoaderComp) {
+            mapLoaderComp.renameRoomNode(oldCfgId, newCfgId, roomCom.node);
         }
     }
 
