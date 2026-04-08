@@ -27,11 +27,14 @@ export default class EditPanel extends cc.Component {
     private _dat: attrPanelType;
 
     protected onLoad(): void {
+        this.clear();
         EventManager.instance.on(MapEditorEvent.RefreshAttrPanel, this.refreshAttr, this);
+        EventManager.instance.on(MapEditorEvent.ClearEditPanel, this.clear, this);
     }
 
     protected onDestroy(): void {
         EventManager.instance.off(MapEditorEvent.RefreshAttrPanel, this.refreshAttr, this);
+        EventManager.instance.off(MapEditorEvent.ClearEditPanel, this.clear, this);
     }
 
 
@@ -92,5 +95,10 @@ export default class EditPanel extends cc.Component {
             dat: dat
         }
         EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, attrDat);
+    }
+
+    public clear() {
+        this.baseAttr.active = false;
+        this.roomAttr.active = false;
     }
 }

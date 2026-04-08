@@ -316,10 +316,7 @@ export default class LevelScene extends cc.Component {
                 //放回原位
                 if (itemDat && cc.isValid(itemDat) && itemParent && cc.isValid(itemParent)) {
                     const draggedRoom = itemDat.getComponent(MapDrawRoom);
-                    const targetParent = (draggedRoom && this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode))
-                        ? this._dragDat.hoverLayerNode
-                        : itemParent;
-
+                    const targetParent = (draggedRoom && this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) ? this._dragDat.hoverLayerNode : itemParent;
                     if (targetParent !== itemParent) {
                         // 更换父节点（从 panel/旧 layer 到当前 layer）时，使用“世界坐标->新父节点局部坐标”定位，避免 dragOffset 失效
                         const worldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
@@ -331,10 +328,28 @@ export default class LevelScene extends cc.Component {
                         const localPos = itemParent.convertToNodeSpaceAR(event.getLocation());
                         itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
                     }
-
                     // Room 只要落到某个 Layer{n} 上，就按命名规则重新计算（包括从其它 layer 拖入）
                     if (draggedRoom && targetParent && /^Layer\d+$/.test(targetParent.name)) {
-                        this.syncRoomNameAndIdForLayer(draggedRoom, targetParent);
+                        const oldLayerMatch = /^Layer(\d+)$/.exec(itemParent.name);
+                        const newLayerMatch = /^Layer(\d+)$/.exec(targetParent.name);
+                        const oldLayerNo = oldLayerMatch ? Number(oldLayerMatch[1]) : null;
+                        const newLayerNo = newLayerMatch ? Number(newLayerMatch[1]) : null;
+
+                        // layer 不变时不执行切换/改名/cfgId
+                        if (oldLayerNo === null || newLayerNo === null || oldLayerNo !== newLayerNo) {
+                            this.syncRoomNameAndIdForLayer(draggedRoom, targetParent);
+                        }
+
+                        // 父节点发生变化（从旧 layer 到新 layer）后，需要重新计算两个 layer 的尺寸
+                        const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                        if (mapLoaderComp) {
+                            if (itemParent && /^Layer\d+$/.test(itemParent.name)) {
+                                mapLoaderComp.refreshLayerBoundsByNode(itemParent);
+                            }
+                            if (targetParent && /^Layer\d+$/.test(targetParent.name)) {
+                                mapLoaderComp.refreshLayerBoundsByNode(targetParent);
+                            }
+                        }
                     }
                     this._dragDat = null;
                 }
@@ -470,6 +485,10 @@ export default class LevelScene extends cc.Component {
                 dat = attrDat.dat as attrPanelTypeRoom;
                 const size = dat.size;
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
+                const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                if (mapLoaderComp) {
+                    mapLoaderComp.refreshLayerBoundsByNode(this._trackNd.parent);
+                }
                 break;
             case UnitType.PathPoint:
             case UnitType.Door:
@@ -478,6 +497,23 @@ export default class LevelScene extends cc.Component {
             case UnitType.SearchItem:
             case UnitType.Portal:
         }
+    }
+
+    //删除节点
+    public deleteNd(nd: cc.Node) {
+        if (!this._trackNd || !cc.isValid(this._trackNd)) return;
+        const type = this._trackNd.getComponent(MapDrawUnitBase).getType();
+        switch (type) {
+            case UnitType.Room:
+                this.mapLoader.getComponent(MapLoader).deleteRoom(this._trackNd);
+                break;
+            case UnitType.PathPoint:
+            case UnitType.Door:
+            case UnitType.Ladder:
+            case UnitType.EnemyRefresh:
+        }
+        this._trackNd = null;
+        EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
     }
 
 

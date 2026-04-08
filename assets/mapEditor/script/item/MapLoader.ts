@@ -400,6 +400,40 @@ export default class MapLoader extends cc.Component {
         this._roomNodeMap.set(newCfgId, roomNd);
     }
 
+    /** 外部刷新某个 Layer{n} 的 bounds（contentSize/position） */
+    public refreshLayerBoundsByNode(layerNd: cc.Node) {
+        this.updateLayerBounds(layerNd);
+    }
+
+    /** 删除一个房间节点（以及其下所有内容），同时维护内部 room / point 映射与 layer 大小 */
+    public deleteRoom(roomNode: cc.Node) {
+        if (!roomNode) return;
+        const roomComp = roomNode.getComponent(MapDrawRoom);
+        if (!roomComp) return;
+
+        const cfgId = roomComp.getId();
+        this._roomNodeMap.delete(cfgId);
+
+        // 清理该房间下的路径点映射
+        const pointCont = roomNode.getChildByName("pointCont");
+        if (pointCont) {
+            pointCont.children.forEach((pNd) => {
+                const pComp = pNd.getComponent(MapDrawP);
+                if (!pComp) return;
+                const pid = pComp.getId();
+                this._pointMap.delete(pid);
+            });
+        }
+
+        const parentLayer = roomNode.parent;
+        roomNode.destroy();
+
+        // 更新所属 layer 的 bounds
+        if (parentLayer) {
+            this.updateLayerBounds(parentLayer);
+        }
+    }
+
 
     //数据操作
 

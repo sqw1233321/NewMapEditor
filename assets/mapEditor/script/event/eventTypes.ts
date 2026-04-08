@@ -5,4 +5,6 @@ export enum MapEditorEvent {
     RefreshAttrPanel = "RefreshAttrPanel",
     //属性面板同步
     UpdateFromAttrPanel = "UpdateFromAttrPanel",
+    //清除属性面板
+    ClearEditPanel = "ClearEditPanel",
 }
