@@ -5,8 +5,9 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
-import PrefabPanelBase from "./PrefabPanelBase";
+
 import { UnitType } from "../../type/mapTypes";
+import PrefabPanelBase from "./prefabPanelBase";
 
 const { ccclass, property } = cc._decorator;
 

@@ -5,6 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import EditorSetting from "../editor/EditorSetting";
 import { MapDrawDat, MapDrawDatEnemyRefreshData, MapDrawDatPathPoint, MapDrawDatPortalData as MapDrawDatPortal, MapDrawDatRoom, MapDrawDatSize } from "./MapDrawDat";
 import MapDrawDoor from "./MapDrawDoor";
 import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
@@ -665,7 +666,7 @@ export default class MapLoader extends cc.Component {
 
         // 先缓存每个子节点的世界锚点位置，避免调整 layer 后子节点整体漂移
         const childWorldPosMap = new Map<cc.Node, cc.Vec2>();
-
+        const mapScale = EditorSetting.Instance.getMapScale();
         roomNds.forEach((roomNd) => {
             if (!roomNd) return;
 
@@ -673,7 +674,7 @@ export default class MapLoader extends cc.Component {
             const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO); // room 左下角世界坐标（room anchor=0,0）
             const size = roomNd.getContentSize();
             yMin = Math.min(yMin, worldAnchor.y);
-            yMax = Math.max(yMax, worldAnchor.y + size.height);
+            yMax = Math.max(yMax, worldAnchor.y + size.height * mapScale);
 
             childWorldPosMap.set(roomNd, worldAnchor);
         });
@@ -685,7 +686,7 @@ export default class MapLoader extends cc.Component {
         const prevWidth = Number(layerNd.getContentSize()?.width || 0);
         const mapWidth = jsonWidth > 0 ? jsonWidth : (inspectorWidth > 0 ? inspectorWidth : prevWidth);
         const width = Math.max(1, mapWidth);
-        const height = Math.max(1, yMax - yMin);
+        const height = Math.max(1, (yMax - yMin) / mapScale);
 
         // 让 layer 的本地原点(0,0) 对齐到 children bounds 的最小角
         layerNd.setAnchorPoint(0, 0);

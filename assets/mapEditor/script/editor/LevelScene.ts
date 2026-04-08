@@ -360,7 +360,7 @@ export default class LevelScene extends cc.Component {
                             if (itemParent && /^Layer\d+$/.test(itemParent.name)) {
                                 mapLoaderComp.refreshLayerBoundsByNode(itemParent);
                             }
-                            if (targetParent && /^Layer\d+$/.test(targetParent.name)) {
+                            if (targetParent && /^Layer\d+$/.test(targetParent.name) && itemParent.name !== targetParent.name) {
                                 mapLoaderComp.refreshLayerBoundsByNode(targetParent);
                             }
                             // 房间迁移后，旧层可能被搬空，统一清理空 layer
