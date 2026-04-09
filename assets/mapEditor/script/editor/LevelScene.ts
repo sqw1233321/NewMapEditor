@@ -111,6 +111,40 @@ export default class LevelScene extends cc.Component {
         return null;
     }
 
+    /** 拖拽结束时，根据 hover 信息找到目标房间 */
+    private findHoverRoomForDrag(): MapDrawRoom | null {
+        if (!this.mapLoader || !this._dragDat) return null;
+        const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
+        const hoverRoomId = this._dragDat.hoverRoomId;
+        const hoverRoomName = this._dragDat.hoverRoomName;
+        for (let i = rooms.length - 1; i >= 0; i--) {
+            const room = rooms[i];
+            if (hoverRoomId !== undefined && room.getId() === hoverRoomId) return room;
+            if (hoverRoomName && room.node.name === hoverRoomName) return room;
+        }
+        return null;
+    }
+
+    /** 非房间节点落到房间时，选择合适的容器（点进 pointCont，其它进 unitCont） */
+    private getNonRoomDropParent(itemNd: cc.Node, hoverRoom: MapDrawRoom): cc.Node {
+        if (!itemNd || !hoverRoom) return null;
+        if (itemNd.getComponent("MapDrawP")) {
+            return hoverRoom.node.getChildByName("pointCont") || hoverRoom.node;
+        }
+        return hoverRoom.node.getChildByName("unitCont") || hoverRoom.node;
+    }
+
+    /** 根据任意子节点找到其所属房间 */
+    private findOwnerRoomByNode(nd: cc.Node): MapDrawRoom | null {
+        let cur = nd;
+        while (cur) {
+            const room = cur.getComponent(MapDrawRoom);
+            if (room) return room;
+            cur = cur.parent;
+        }
+        return null;
+    }
+
     /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
     private findLayerAtWorldPos(worldPos: cc.Vec2): cc.Node | null {
         if (!this.mapLoader) return null;
@@ -317,6 +351,7 @@ export default class LevelScene extends cc.Component {
                 //放回原位
                 if (itemDat && cc.isValid(itemDat) && itemParent && cc.isValid(itemParent)) {
                     const draggedRoom = itemDat.getComponent(MapDrawRoom);
+                    const oldOwnerRoom = this.findOwnerRoomByNode(itemParent);
                     let targetParent = itemParent;
                     if (this._isDrag && draggedRoom) {
                         if (this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) {
@@ -328,6 +363,14 @@ export default class LevelScene extends cc.Component {
                                 const roomWorldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
                                 const newLayer = mapLoaderComp.createLayerForRoomDrop(roomWorldPos.y);
                                 if (newLayer) targetParent = newLayer;
+                            }
+                        }
+                    } else if (this._isDrag && !draggedRoom) {
+                        const hoverRoom = this.findHoverRoomForDrag();
+                        if (hoverRoom && cc.isValid(hoverRoom.node)) {
+                            const nonRoomParent = this.getNonRoomDropParent(itemDat, hoverRoom);
+                            if (nonRoomParent && cc.isValid(nonRoomParent)) {
+                                targetParent = nonRoomParent;
                             }
                         }
                     }
@@ -348,12 +391,10 @@ export default class LevelScene extends cc.Component {
                         const newLayerMatch = /^Layer(\d+)$/.exec(targetParent.name);
                         const oldLayerNo = oldLayerMatch ? Number(oldLayerMatch[1]) : null;
                         const newLayerNo = newLayerMatch ? Number(newLayerMatch[1]) : null;
-
                         // layer 不变时不执行切换/改名/cfgId
                         if (oldLayerNo === null || newLayerNo === null || oldLayerNo !== newLayerNo) {
                             this.syncRoomNameAndIdForLayer(draggedRoom, targetParent);
                         }
-
                         // 父节点发生变化（从旧 layer 到新 layer）后，需要重新计算两个 layer 的尺寸
                         const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
                         if (mapLoaderComp) {
@@ -365,6 +406,22 @@ export default class LevelScene extends cc.Component {
                             }
                             // 房间迁移后，旧层可能被搬空，统一清理空 layer
                             mapLoaderComp.cleanupEmptyLayersAfterMove();
+                            // layer 变化后，路径点命名需要按规则重排
+                            mapLoaderComp.rebuildPointIdsByLayer();
+                        }
+                    }
+                    // 非房间节点迁移后，刷新来源/目标房间，确保 roomId 与导出数据同步
+                    if (!draggedRoom) {
+                        const newOwnerRoom = this.findOwnerRoomByNode(targetParent);
+                        if (oldOwnerRoom && cc.isValid(oldOwnerRoom.node)) {
+                            oldOwnerRoom.refreshDat();
+                        }
+                        if (newOwnerRoom && cc.isValid(newOwnerRoom.node) && newOwnerRoom !== oldOwnerRoom) {
+                            newOwnerRoom.refreshDat();
+                        }
+                        const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                        if (mapLoaderComp) {
+                            mapLoaderComp.rebuildPointIdsByLayer();
                         }
                     }
                     this._dragDat = null;

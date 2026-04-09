@@ -52,5 +52,11 @@ export default class MapDrawP extends MapDrawUnitBase {
         return this._pid;
     }
 
+    public setId(newId: string) {
+        this._pid = newId;
+        this.node.name = `${newId}`;
+        this.initUI();
+    }
+
 
 }

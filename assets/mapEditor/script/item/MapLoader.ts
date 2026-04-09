@@ -406,6 +406,44 @@ export default class MapLoader extends cc.Component {
         this.updateLayerBounds(layerNd);
     }
 
+    /**
+     * 按层号重排路径点ID：
+     * 规则：P(layer-1)_id，每个layer内id从0递增
+     */
+    public rebuildPointIdsByLayer() {
+        if (!this._layerCont) return;
+        const layerItems: Array<{ no: number; node: cc.Node }> = [];
+        this._layerCont.children.forEach((layerNd) => {
+            if (!layerNd || !cc.isValid(layerNd)) return;
+            const m = /^Layer(\d+)$/.exec(layerNd.name || "");
+            if (!m) return;
+            const no = Number(m[1]);
+            if (!isFinite(no)) return;
+            layerItems.push({ no, node: layerNd });
+        });
+        layerItems.sort((a, b) => a.no - b.no);
+
+        const nextPointMap = new Map<string, cc.Node>();
+        layerItems.forEach(({ no, node: layerNd }) => {
+            const layerIndex = Math.max(0, no - 1);
+            let localId = 0;
+            layerNd.children.forEach((roomNd) => {
+                if (!roomNd || !cc.isValid(roomNd)) return;
+                const roomCom = roomNd.getComponent(MapDrawRoom);
+                if (!roomCom) return;
+                const points = roomCom.getPoints() || [];
+                points.forEach((pointCom) => {
+                    if (!pointCom || !cc.isValid(pointCom.node)) return;
+                    const newPid = `P${layerIndex}_${localId++}`;
+                    pointCom.setId(newPid);
+                    nextPointMap.set(newPid, pointCom.node);
+                });
+                roomCom.refreshDat();
+            });
+        });
+        this._pointMap = nextPointMap;
+    }
+
     /** 新增空 Layer：宽度=整图宽度，高度=默认高度；返回新建的 layer 节点 */
     public addLayer(defaultHeight: number = 320): cc.Node {
         if (!this._layerCont) return null;
@@ -521,6 +559,7 @@ export default class MapLoader extends cc.Component {
         const worldAnchor = cc.v2(mapLeftWorld, targetBottomY);
         const localPos = this._layerCont.convertToNodeSpaceAR(worldAnchor);
         layerNd.setPosition(localPos);
+        this.rebuildPointIdsByLayer();
         return layerNd;
     }
 
@@ -652,6 +691,7 @@ export default class MapLoader extends cc.Component {
         this._layerNodeMap.forEach((layerNd) => {
             this.updateLayerBounds(layerNd);
         });
+        this.rebuildPointIdsByLayer();
     }
 
     //刷新layer的bounds
