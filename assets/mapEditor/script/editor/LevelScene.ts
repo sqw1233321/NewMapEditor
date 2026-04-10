@@ -1,12 +1,13 @@
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import MapDrawP from "../item/MapDrawP";
 import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import { MapEditorMapData } from "../map/LevelMapDat";
 import MapDrawer from "../map/MapDrawer";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypePoint, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
 import MapLoader from "../item/MapLoader";
@@ -68,7 +69,9 @@ export default class LevelScene extends cc.Component {
         this.node.on(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
         this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
         EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
+        EventManager.instance.on(MapEditorEvent.PathPointLinkClick, this.onPathPointLinkClick, this);
         EventManager.instance.on(MapEditorEvent.UpdateFromAttrPanel, this.refreshNdAttr, this);
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
         MapTool.init(this.mapLoader);
         this.createLevel();
@@ -76,7 +79,80 @@ export default class LevelScene extends cc.Component {
 
     protected onDestroy(): void {
         EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
+        EventManager.instance.off(MapEditorEvent.PathPointLinkClick, this.onPathPointLinkClick, this);
         EventManager.instance.off(MapEditorEvent.UpdateFromAttrPanel, this.refreshNdAttr, this);
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    }
+
+    /** 供 UI 按钮绑定：开启/关闭路径点连线模式 */
+    public setPathPointLinkMode(enabled: boolean) {
+        if (!enabled) {
+            const n = EditorSetting.Instance.getPathPointLinkStart();
+            if (n && cc.isValid(n)) {
+                n.getComponent(MapDrawP)?.setLinkHighlight(false);
+            }
+        }
+        EditorSetting.Instance.setPathPointLinkMode(enabled);
+    }
+
+    public togglePathPointLinkMode() {
+        this.setPathPointLinkMode(!EditorSetting.Instance.isPathPointLinkMode());
+    }
+
+    private cancelPathPointLinkPick() {
+        const n = EditorSetting.Instance.getPathPointLinkStart();
+        if (n && cc.isValid(n)) {
+            n.getComponent(MapDrawP)?.setLinkHighlight(false);
+        }
+        EditorSetting.Instance.setPathPointLinkStart(null);
+    }
+
+    private onPathPointLinkClick(node: cc.Node) {
+        if (!EditorSetting.Instance.isPathPointLinkMode()) return;
+        if (!node || !cc.isValid(node)) return;
+        const target = node.getComponent(MapDrawP);
+        if (!target) return;
+
+        const startNd = EditorSetting.Instance.getPathPointLinkStart();
+        if (!startNd || !cc.isValid(startNd)) {
+            EditorSetting.Instance.setPathPointLinkStart(node);
+            target.setLinkHighlight(true);
+            return;
+        }
+
+        const startCom = startNd.getComponent(MapDrawP);
+        if (!startCom) {
+            EditorSetting.Instance.setPathPointLinkStart(null);
+            return;
+        }
+
+        if (startNd === node) {
+            startCom.setLinkHighlight(false);
+            EditorSetting.Instance.setPathPointLinkStart(null);
+            return;
+        }
+
+        if (startCom.hasLinkTo(node)) {
+            startCom.removeLink(node);
+            target.removeLink(startNd);
+        } else {
+            startCom.addLink(node);
+            target.addLink(startNd);
+        }
+
+        startCom.setLinkHighlight(false);
+        EditorSetting.Instance.setPathPointLinkStart(null);
+    }
+
+    private onKeyDown(event: cc.Event.EventKeyboard) {
+        if (event.keyCode === cc.macro.KEY.escape) {
+            if (EditorSetting.Instance.isPathPointLinkMode()) {
+                this.cancelPathPointLinkPick();
+                this.setPathPointLinkMode(false);
+            }
+        } else if (event.keyCode === cc.macro.KEY.l) {
+            this.togglePathPointLinkMode();
+        }
     }
 
     private async createLevel() {
@@ -143,6 +219,23 @@ export default class LevelScene extends cc.Component {
             cur = cur.parent;
         }
         return null;
+    }
+
+    /** 悬停框：与 MapDrawUnitBase 的命中盒一致 */
+    private buildHoverBoxForNode(hoverNd: cc.Node): HoverType | null {
+        const controller = hoverNd.getComponent(MapDrawUnitBase);
+        if (!controller) return null;
+        const mapScale = EditorSetting.Instance.getMapScale();
+        const offset = cc.v2(
+            hoverNd.anchorX * hoverNd.getContentSize().width * mapScale,
+            hoverNd.anchorY * hoverNd.getContentSize().height * mapScale
+        );
+        return {
+            name: hoverNd.name,
+            worldPos: hoverNd.convertToWorldSpaceAR(cc.Vec2.ZERO).clone().subtract(offset),
+            width: controller.getHoverBoxSize().width,
+            height: controller.getHoverBoxSize().height,
+        };
     }
 
     /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
@@ -320,20 +413,44 @@ export default class LevelScene extends cc.Component {
             if (event.target instanceof cc.Node) {
                 const hoverNd = event.target;
                 if (hoverNd.name == this._hoverDat?.name) return;
-                this._hoverDat.name = hoverNd.name;
-                const controller = hoverNd.getComponent(MapDrawUnitBase);
-                if (!controller) {
-                    this.clearHoverDat();
-                    this.hoverDrawer.clear();
-                    return;
+                const room = hoverNd.getComponent(MapDrawRoom);
+                let boxes: HoverType[];
+                if (room) {
+                    const main = this.buildHoverBoxForNode(hoverNd);
+                    if (!main) {
+                        this.clearHoverDat();
+                        this.hoverDrawer.clear();
+                        return;
+                    }
+                    boxes = [main];
+                    const units = room.node.getComponentsInChildren(MapDrawUnitBase);
+                    for (let i = 0; i < units.length; i++) {
+                        const u = units[i];
+                        if (!u || !u.node || u.node === room.node) continue;
+                        const h = this.buildHoverBoxForNode(u.node);
+                        if (h) boxes.push(h);
+                    }
+                } else {
+                    const h = this.buildHoverBoxForNode(hoverNd);
+                    if (!h) {
+                        this.clearHoverDat();
+                        this.hoverDrawer.clear();
+                        return;
+                    }
+                    boxes = [h];
                 }
                 this._hoverDat.name = hoverNd.name;
-                const mapScale = EditorSetting.Instance.getMapScale();
-                const offset = cc.v2(hoverNd.anchorX * hoverNd.getContentSize().width * mapScale, hoverNd.anchorY * hoverNd.getContentSize().height * mapScale);
-                this._hoverDat.worldPos = hoverNd.convertToWorldSpaceAR(cc.Vec2.ZERO).clone().subtract(offset);
-                this._hoverDat.height = controller.getHoverBoxSize().height;
-                this._hoverDat.width = controller.getHoverBoxSize().width;
-                this.hoverDrawer.draw(this._hoverDat);
+                this._hoverDat.worldPos = boxes[0].worldPos;
+                this._hoverDat.width = boxes[0].width;
+                this._hoverDat.height = boxes[0].height;
+                const loader = this.mapLoader?.getComponent(MapLoader) ?? null;
+                let linkSegs: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> | undefined;
+                if (room) {
+                    linkSegs = loader?.getPathLinkWorldSegmentsForRoomOwner(room.getId());
+                } else if (hoverNd.getComponent(MapDrawP)) {
+                    linkSegs = loader?.getPathLinkWorldSegmentsFromPoint(hoverNd);
+                }
+                this.hoverDrawer?.drawMulti(hoverNd.name, boxes, linkSegs);
             }
         }
     }
@@ -530,6 +647,13 @@ export default class LevelScene extends cc.Component {
                 (dat as attrPanelTypeRoom).unLockPoints = [];
                 break;
             case UnitType.PathPoint:
+                const pointCom = this._trackNd?.getComponent(MapDrawP);
+                const links = pointCom?.links ?? [];
+                (dat as attrPanelTypePoint).roomId = pointCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypePoint).links = links
+                    .filter((nd) => nd && cc.isValid(nd))
+                    .map((nd) => nd.name);
+                break;
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:

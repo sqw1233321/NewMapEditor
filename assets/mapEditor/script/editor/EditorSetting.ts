@@ -5,6 +5,10 @@ export default class EditorSetting extends cc.Component {
     private _maxScale: number = 1.5;
     private _minScale: number = 0;
 
+    /** 路径点连线模式：开启后点击两点建立/取消无向连接 */
+    private _pathPointLinkMode = false;
+    private _pathPointLinkStart: cc.Node = null;
+
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
             EditorSetting._ins = new EditorSetting();
@@ -22,6 +26,25 @@ export default class EditorSetting extends cc.Component {
 
     public setMapScale(scale: number) {
         this._scale = Math.max(this._minScale, Math.min(this._maxScale, scale));
+    }
+
+    public isPathPointLinkMode(): boolean {
+        return this._pathPointLinkMode;
+    }
+
+    public setPathPointLinkMode(enabled: boolean) {
+        this._pathPointLinkMode = enabled;
+        if (!enabled) {
+            this._pathPointLinkStart = null;
+        }
+    }
+
+    public getPathPointLinkStart(): cc.Node | null {
+        return this._pathPointLinkStart;
+    }
+
+    public setPathPointLinkStart(node: cc.Node | null) {
+        this._pathPointLinkStart = node;
     }
 
 }

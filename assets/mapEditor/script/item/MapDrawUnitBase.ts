@@ -32,12 +32,27 @@ export default class MapDrawUnitBase extends cc.Component {
         this._roomId = roomId;
     }
 
+    public getRoomId(): number {
+        return this._roomId;
+    }
+
+
+    /**
+     * 左键按下时优先处理（如路径点连线模式）。
+     * @returns true 表示已消费，不再发起拖拽
+     */
+    protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
+        return false;
+    }
 
     //事件操作
     private onMouseDown(event: cc.Event.EventMouse) {
         if (event.target !== this.node) return;
         event.stopPropagation();
         if (event.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
+            if (this.onUnitLeftMouseDownForLink(event)) {
+                return;
+            }
             // console.log("onMouseDown", this.node.name, event);
             const mousePos = cc.v3(event.getLocation()); // 屏幕坐标（世界UI坐标）
             const dragOffset = this.node.position.sub(

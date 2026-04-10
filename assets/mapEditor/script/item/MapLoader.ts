@@ -69,6 +69,8 @@ export default class MapLoader extends cc.Component {
     private _playerCreateNd: cc.Node;
     private _playerExitNd: cc.Node;
     private _portalCont: cc.Node;
+    private _pointLineCont: cc.Node;
+    private _pointLineDrawer: cc.Graphics;
 
     private _fileName = "";
 
@@ -119,6 +121,11 @@ export default class MapLoader extends cc.Component {
         this._playerCreateNd.parent = this.node;
         this._playerExitNd = new cc.Node("playerExit");
         this._playerExitNd.parent = this.node;
+        this._pointLineCont = new cc.Node("pointLineCont");
+        this._pointLineCont.parent = this.node;
+        this._pointLineDrawer = this._pointLineCont.addComponent(cc.Graphics);
+        this._pointLineDrawer.lineWidth = 5;
+        this._pointLineDrawer.strokeColor = new cc.Color(255, 220, 60, 220);
         [this._playerCreateNd, this._playerExitNd].forEach((nd, index) => {
             const isCreate = index == 0;
             nd.name = isCreate ? "playerCreate" : "playerExit";
@@ -187,6 +194,42 @@ export default class MapLoader extends cc.Component {
                 return this._pointMap.get(id);
             }))
         });
+        this.refreshPointLinkDrawer();
+    }
+
+    private refreshPointLinkDrawer() {
+        if (!this._pointLineDrawer || !cc.isValid(this._pointLineDrawer)) return;
+        this._pointLineDrawer.clear();
+        if (this._pointMap.size === 0) return;
+
+        const drawn = new Set<string>();
+        this._pointMap.forEach((pointNd) => {
+            if (!pointNd || !cc.isValid(pointNd)) return;
+            const pointCom = pointNd.getComponent(MapDrawP);
+            if (!pointCom) return;
+            const fromId = pointCom.getId();
+            const fromWorld = pointNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+            const fromLocal = this._pointLineCont.convertToNodeSpaceAR(fromWorld);
+            pointCom.links?.forEach((toNd) => {
+                if (!toNd || !cc.isValid(toNd)) return;
+                const toCom = toNd.getComponent(MapDrawP);
+                if (!toCom) return;
+                const toId = toCom.getId();
+                if (!fromId || !toId || fromId === toId) return;
+                const edgeKey = fromId < toId ? `${fromId}->${toId}` : `${toId}->${fromId}`;
+                if (drawn.has(edgeKey)) return;
+                drawn.add(edgeKey);
+                const toWorld = toNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                const toLocal = this._pointLineCont.convertToNodeSpaceAR(toWorld);
+                this._pointLineDrawer.moveTo(fromLocal.x, fromLocal.y);
+                this._pointLineDrawer.lineTo(toLocal.x, toLocal.y);
+            });
+        });
+        this._pointLineDrawer.stroke();
+    }
+
+    update() {
+        this.refreshPointLinkDrawer();
     }
 
     private buildLadders() {
@@ -384,6 +427,60 @@ export default class MapLoader extends cc.Component {
     public updatePointMap(pointId: string, pointNd: cc.Node) {
         if (this._pointMap.has(pointId)) return;
         this._pointMap.set(pointId, pointNd);
+    }
+
+    /**
+     * 路径边归属房间 = 两端点 roomId（cfgId）的较小值。
+     * 返回世界坐标线段（无向边去重），用于悬停高亮。
+     */
+    public getPathLinkWorldSegmentsForRoomOwner(ownerCfgId: number): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
+        const out: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> = [];
+        const seen = new Set<string>();
+        this._pointMap.forEach((nodeA) => {
+            if (!nodeA || !cc.isValid(nodeA)) return;
+            const compA = nodeA.getComponent(MapDrawP);
+            if (!compA) return;
+            const ra = compA.getRoomId();
+            const links = compA.links || [];
+            for (let i = 0; i < links.length; i++) {
+                const nodeB = links[i];
+                if (!nodeB || !cc.isValid(nodeB)) continue;
+                const compB = nodeB.getComponent(MapDrawP);
+                if (!compB) continue;
+                const rb = compB.getRoomId();
+                const owner = Math.min(ra, rb);
+                if (owner !== ownerCfgId) continue;
+                const ida = compA.getId();
+                const idb = compB.getId();
+                const key = ida < idb ? `${ida}_${idb}` : `${idb}_${ida}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                out.push({
+                    p0: nodeA.convertToWorldSpaceAR(cc.Vec2.ZERO),
+                    p1: nodeB.convertToWorldSpaceAR(cc.Vec2.ZERO),
+                });
+            }
+        });
+        return out;
+    }
+
+    /** 悬停单个路径点时，画出其所有连边（世界坐标） */
+    public getPathLinkWorldSegmentsFromPoint(pointNode: cc.Node): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
+        if (!pointNode || !cc.isValid(pointNode)) return [];
+        const comp = pointNode.getComponent(MapDrawP);
+        if (!comp) return [];
+        const w0 = pointNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const out: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> = [];
+        const links = comp.links || [];
+        for (let i = 0; i < links.length; i++) {
+            const nodeB = links[i];
+            if (!nodeB || !cc.isValid(nodeB)) continue;
+            out.push({
+                p0: w0.clone(),
+                p1: nodeB.convertToWorldSpaceAR(cc.Vec2.ZERO),
+            });
+        }
+        return out;
     }
 
     /** 新建房间时，注册到 _roomNodeMap，确保导出 getJson() 包含该房间 */

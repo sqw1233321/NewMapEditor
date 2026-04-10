@@ -46,5 +46,6 @@ export interface attrPanelTypeRoom {
 }
 
 export interface attrPanelTypePoint {
+    roomId: string;
     links: string[];
 }

@@ -9,8 +9,9 @@ import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapDrawRoom from "../item/MapDrawRoom";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelTypeRoom, attrPanelType, attrPanelTypeBase } from "../type/types";
+import { attrPanelTypeRoom, attrPanelType, attrPanelTypeBase, attrPanelTypePoint } from "../type/types";
 import AttrPanelBase from "./AttrPanelBase";
+import AttrPanelPoint from "./AttrPanelPoint";
 import AttrPanelRoom from "./AttrPanelRoom";
 
 const { ccclass, property } = cc._decorator;
@@ -23,6 +24,9 @@ export default class EditPanel extends cc.Component {
 
     @property(cc.Node)
     roomAttr: cc.Node;
+
+    @property(cc.Node)
+    pointAttr: cc.Node;
 
     private _dat: attrPanelType;
 
@@ -49,6 +53,8 @@ export default class EditPanel extends cc.Component {
                 this.showRoomAttrNd();
                 break;
             case UnitType.PathPoint:
+                this.showPointAttrNd();
+                break;
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
@@ -61,6 +67,7 @@ export default class EditPanel extends cc.Component {
         this.baseAttr.active = true;
         const type = this._dat.type;
         this.roomAttr.active = type == UnitType.Room;
+        this.pointAttr.active = type == UnitType.PathPoint;
     }
 
     private showBaseAttrNd() {
@@ -71,6 +78,11 @@ export default class EditPanel extends cc.Component {
     private showRoomAttrNd() {
         const dat = this._dat.dat as attrPanelTypeRoom;
         this.roomAttr.getComponent(AttrPanelRoom).setAttr(dat);
+    }
+
+    private showPointAttrNd() {
+        const dat = this._dat.dat as attrPanelTypePoint;
+        this.pointAttr.getComponent(AttrPanelPoint).setAttr(dat);
     }
 
     public onChangeAttr(event, type: string) {
@@ -84,6 +96,8 @@ export default class EditPanel extends cc.Component {
                 dat = this.roomAttr.getComponent(AttrPanelRoom).getDat();
                 break;
             case UnitType.PathPoint:
+                dat = this.pointAttr.getComponent(AttrPanelPoint).getDat();
+                break;
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
@@ -100,5 +114,6 @@ export default class EditPanel extends cc.Component {
     public clear() {
         this.baseAttr.active = false;
         this.roomAttr.active = false;
+        this.pointAttr.active = false;
     }
 }
