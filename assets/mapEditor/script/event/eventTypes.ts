@@ -3,6 +3,8 @@ export enum MapEditorEvent {
     DragItem = "DragItem",
     /** 连线模式：点击路径点（payload 为 cc.Node） */
     PathPointLinkClick = "PathPointLinkClick",
+    /** 梯子绑定模式：点击路径点（payload 为 cc.Node） */
+    LadderBindPointClick = "LadderBindPointClick",
     //刷新属性面板
     RefreshAttrPanel = "RefreshAttrPanel",
     //属性面板同步

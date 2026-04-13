@@ -69,6 +69,7 @@ export default class LevelScene extends cc.Component {
         this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
         EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
         EventManager.instance.on(MapEditorEvent.PathPointLinkClick, this.onPathPointLinkClick, this);
+        EventManager.instance.on(MapEditorEvent.LadderBindPointClick, this.onLadderBindPointClick, this);
         EventManager.instance.on(MapEditorEvent.UpdateFromAttrPanel, this.refreshNdAttr, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
@@ -79,6 +80,7 @@ export default class LevelScene extends cc.Component {
     protected onDestroy(): void {
         EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
         EventManager.instance.off(MapEditorEvent.PathPointLinkClick, this.onPathPointLinkClick, this);
+        EventManager.instance.off(MapEditorEvent.LadderBindPointClick, this.onLadderBindPointClick, this);
         EventManager.instance.off(MapEditorEvent.UpdateFromAttrPanel, this.refreshNdAttr, this);
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     }
@@ -320,6 +322,7 @@ export default class LevelScene extends cc.Component {
                 if (itemDat && cc.isValid(itemDat)) {
                     const localPos = this.dragLayer.convertToNodeSpaceAR(event.getLocation());
                     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+                    this.syncLadderWithDraggedNode(itemDat);
                     //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
                     this.updateDragRoomHover(event.getLocation());
                     //刷新属性面板
@@ -462,6 +465,7 @@ export default class LevelScene extends cc.Component {
                             mapLoaderComp.rebuildPointIdsByLayer();
                         }
                     }
+                    this.refreshAttrPanel();
                     this._dragDat = null;
                 }
             }
@@ -476,6 +480,10 @@ export default class LevelScene extends cc.Component {
                 this.cancelPathPointLinkPick();
                 this.setPathPointLinkMode(false);
             }
+            if (EditorSetting.Instance.isLadderBindMode()) {
+                this.cancelLadderBindPick();
+                this.setLadderBindMode(false);
+            }
         }
         //p键，进入连线模式
         else if (event.keyCode === cc.macro.KEY.p) {
@@ -483,12 +491,15 @@ export default class LevelScene extends cc.Component {
         }
         //l键，进入梯子绑定模式
         else if (event.keyCode === cc.macro.KEY.l) {
-
+            this.toggleLadderBindMode();
         }
     }
     //模式：
     //连线模式
     public setPathPointLinkMode(enabled: boolean) {
+        if (enabled && EditorSetting.Instance.isLadderBindMode()) {
+            this.setLadderBindMode(false);
+        }
         if (!enabled) {
             const n = EditorSetting.Instance.getPathPointLinkStart();
             if (n && cc.isValid(n)) {
@@ -508,6 +519,29 @@ export default class LevelScene extends cc.Component {
             n.getComponent(MapDrawP)?.setLinkHighlight(false);
         }
         EditorSetting.Instance.setPathPointLinkStart(null);
+    }
+
+    //梯子绑定模式
+    public setLadderBindMode(enabled: boolean) {
+        if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
+            this.setPathPointLinkMode(false);
+        }
+        if (!enabled) {
+            this.cancelLadderBindPick();
+        }
+        EditorSetting.Instance.setLadderBindMode(enabled);
+    }
+
+    public toggleLadderBindMode() {
+        this.setLadderBindMode(!EditorSetting.Instance.isLadderBindMode());
+    }
+
+    private cancelLadderBindPick() {
+        const n = EditorSetting.Instance.getLadderBindStart();
+        if (n && cc.isValid(n)) {
+            n.getComponent(MapDrawP)?.setLinkHighlight(false);
+        }
+        EditorSetting.Instance.setLadderBindStart(null);
     }
 
     private onPathPointLinkClick(node: cc.Node) {
@@ -545,6 +579,101 @@ export default class LevelScene extends cc.Component {
 
         startCom.setLinkHighlight(false);
         EditorSetting.Instance.setPathPointLinkStart(null);
+        this.refreshAttrPanel();
+    }
+
+    private onLadderBindPointClick(node: cc.Node) {
+        if (!EditorSetting.Instance.isLadderBindMode()) return;
+        if (!node || !cc.isValid(node)) return;
+        const targetPoint = node.getComponent(MapDrawP);
+        if (!targetPoint) return;
+        const ladderNode = this._trackNd;
+        const ladderCom = ladderNode?.getComponent(MapDrawLadder);
+        if (!ladderCom) return;
+
+        const startNd = EditorSetting.Instance.getLadderBindStart();
+        if (!startNd || !cc.isValid(startNd)) {
+            EditorSetting.Instance.setLadderBindStart(node);
+            targetPoint.setLinkHighlight(true);
+            return;
+        }
+
+        const startPoint = startNd.getComponent(MapDrawP);
+        if (!startPoint) {
+            EditorSetting.Instance.setLadderBindStart(null);
+            return;
+        }
+        if (startNd === node) {
+            startPoint.setLinkHighlight(false);
+            EditorSetting.Instance.setLadderBindStart(null);
+            return;
+        }
+
+        const startWorld = startNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const endWorld = node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const bindStart = startWorld.y <= endWorld.y ? startNd : node;
+        const bindEnd = bindStart === startNd ? node : startNd;
+        ladderCom.setBinds([bindStart, bindEnd]);
+        startPoint.setLinkHighlight(false);
+        EditorSetting.Instance.setLadderBindStart(null);
+        this.syncLadderToBindPoints(ladderCom);
+        this.refreshAttrPanel();
+    }
+
+    private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
+        if (!node || !node.parent) return;
+        node.setPosition(node.parent.convertToNodeSpaceAR(worldPos));
+    }
+
+    //根据梯子位置反推两个绑定点位置
+    private syncBindPointsByLadder(ladderCom: MapDrawLadder) {
+        if (!ladderCom || !cc.isValid(ladderCom.node)) return;
+        const binds = ladderCom.bindPoints || [];
+        if (binds.length < 2) return;
+        const p0 = binds[0];
+        const p1 = binds[1];
+        if (!p0 || !p1 || !cc.isValid(p0) || !cc.isValid(p1)) return;
+        const w0 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, 0));
+        const h = ladderCom.node.getContentSize().height;
+        const w1 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, h));
+        this.setNodeWorldPos(p0, w0);
+        this.setNodeWorldPos(p1, w1);
+        this.mapLoader.getComponent(MapLoader).rebuildPointIdsByLayer();
+    }
+
+    //根据两个绑定点反推梯子位置和高度
+    private syncLadderToBindPoints(ladderCom: MapDrawLadder) {
+        if (!ladderCom || !cc.isValid(ladderCom.node)) return;
+        const binds = ladderCom.bindPoints || [];
+        if (binds.length < 2) return;
+        const p0 = binds[0];
+        const p1 = binds[1];
+        if (!p0 || !p1 || !cc.isValid(p0) || !cc.isValid(p1)) return;
+        const w0 = p0.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const w1 = p1.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        this.setNodeWorldPos(ladderCom.node, w0);
+        const height = Math.max(1, w1.y - w0.y);
+        const curSize = ladderCom.node.getContentSize();
+        ladderCom.node.setContentSize(curSize.width, height);
+    }
+
+    //拖拽梯子/点时联动三者
+    private syncLadderWithDraggedNode(draggedNode: cc.Node) {
+        if (!draggedNode || !cc.isValid(draggedNode)) return;
+        const draggedLadder = draggedNode.getComponent(MapDrawLadder);
+        if (draggedLadder) {
+            this.syncBindPointsByLadder(draggedLadder);
+            return;
+        }
+        const draggedPoint = draggedNode.getComponent(MapDrawP);
+        if (!draggedPoint || !this.mapLoader) return;
+        const ladders = this.mapLoader.getComponentsInChildren(MapDrawLadder);
+        ladders.forEach((ladderCom) => {
+            const binds = ladderCom.bindPoints || [];
+            if (binds.indexOf(draggedNode) >= 0) {
+                this.syncLadderToBindPoints(ladderCom);
+            }
+        });
     }
 
 

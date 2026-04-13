@@ -30,9 +30,15 @@ export default class MapDrawP extends MapDrawUnitBase {
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (!EditorSetting.Instance.isPathPointLinkMode()) return false;
-        EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
-        return true;
+        if (EditorSetting.Instance.isPathPointLinkMode()) {
+            EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
+            return true;
+        }
+        if (EditorSetting.Instance.isLadderBindMode()) {
+            EventManager.instance.emit(MapEditorEvent.LadderBindPointClick, this.node);
+            return true;
+        }
+        return false;
     }
 
     /** 连线模式：高亮当前选中的起点 */

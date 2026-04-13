@@ -8,6 +8,9 @@ export default class EditorSetting extends cc.Component {
     /** 路径点连线模式：开启后点击两点建立/取消无向连接 */
     private _pathPointLinkMode = false;
     private _pathPointLinkStart: cc.Node = null;
+    /** 梯子绑定模式：先点 start 再点 end */
+    private _ladderBindMode = false;
+    private _ladderBindStart: cc.Node = null;
 
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
@@ -45,6 +48,25 @@ export default class EditorSetting extends cc.Component {
 
     public setPathPointLinkStart(node: cc.Node | null) {
         this._pathPointLinkStart = node;
+    }
+
+    public isLadderBindMode(): boolean {
+        return this._ladderBindMode;
+    }
+
+    public setLadderBindMode(enabled: boolean) {
+        this._ladderBindMode = enabled;
+        if (!enabled) {
+            this._ladderBindStart = null;
+        }
+    }
+
+    public getLadderBindStart(): cc.Node | null {
+        return this._ladderBindStart;
+    }
+
+    public setLadderBindStart(node: cc.Node | null) {
+        this._ladderBindStart = node;
     }
 
 }
