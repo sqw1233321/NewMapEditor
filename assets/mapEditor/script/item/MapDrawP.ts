@@ -109,7 +109,7 @@ export default class MapDrawP extends MapDrawUnitBase {
             id: this._pid,
             roomId: this._roomId,
             pos: this.getPos(),
-            links: this.links.map((link: cc.Node) => link.getComponent(MapDrawP).getId()),
+            links: this.links?.map((link: cc.Node) => link?.getComponent(MapDrawP).getId()) || [],
         }
         return dat;
     }

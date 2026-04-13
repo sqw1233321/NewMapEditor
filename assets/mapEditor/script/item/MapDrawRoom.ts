@@ -70,6 +70,10 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         const bg = this.node.getChildByName("bg");
         bg.setContentSize(this._roomDat.size.width, this._roomDat.size.height);
         bg.color = this._color;
+        this.setRoomNameLb();
+    }
+
+    private setRoomNameLb() {
         const roomName = this.node.getChildByName("name");
         roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
         const label = roomName.getComponent(cc.Label);
@@ -135,11 +139,13 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     public refreshDat() {
         this.node.getComponentsInChildren(MapDrawUnitBase).forEach((unit: MapDrawUnitBase) => {
+            if (unit.node == this.node) return;
             unit.updateRoomId(this._roomId);
         });
+
+        if(!this._pointCont) return;
         this._points = this._pointCont.children.map((child: cc.Node) => child.getComponent(MapDrawP));
         this._points.forEach((point: MapDrawP) => {
-            //point.init(this._roomId);
             MapLoader.ins.updatePointMap(point.getId(), point.node);
         })
         this.setDat();
@@ -164,6 +170,14 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         }
         return dat;
     }
+
+    public updateRoomId(roomId: number) {
+        this._roomId = roomId;
+        this.refreshDat();
+        this.setRoomNameLb();
+    }
+
+
 
 
     //操作

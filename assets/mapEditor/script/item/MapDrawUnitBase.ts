@@ -36,11 +36,6 @@ export default class MapDrawUnitBase extends cc.Component {
         return this._roomId;
     }
 
-    public setRoomId(roomId: number) {
-        this._roomId = roomId;
-    }
-
-
     /**
      * 左键按下时优先处理（如路径点连线模式）。
      * @returns true 表示已消费，不再发起拖拽

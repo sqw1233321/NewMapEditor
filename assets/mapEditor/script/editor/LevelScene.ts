@@ -81,76 +81,6 @@ export default class LevelScene extends cc.Component {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     }
 
-    /** 供 UI 按钮绑定：开启/关闭路径点连线模式 */
-    public setPathPointLinkMode(enabled: boolean) {
-        if (!enabled) {
-            const n = EditorSetting.Instance.getPathPointLinkStart();
-            if (n && cc.isValid(n)) {
-                n.getComponent(MapDrawP)?.setLinkHighlight(false);
-            }
-        }
-        EditorSetting.Instance.setPathPointLinkMode(enabled);
-    }
-
-    public togglePathPointLinkMode() {
-        this.setPathPointLinkMode(!EditorSetting.Instance.isPathPointLinkMode());
-    }
-
-    private cancelPathPointLinkPick() {
-        const n = EditorSetting.Instance.getPathPointLinkStart();
-        if (n && cc.isValid(n)) {
-            n.getComponent(MapDrawP)?.setLinkHighlight(false);
-        }
-        EditorSetting.Instance.setPathPointLinkStart(null);
-    }
-
-    private onPathPointLinkClick(node: cc.Node) {
-        if (!EditorSetting.Instance.isPathPointLinkMode()) return;
-        if (!node || !cc.isValid(node)) return;
-        const target = node.getComponent(MapDrawP);
-        if (!target) return;
-
-        const startNd = EditorSetting.Instance.getPathPointLinkStart();
-        if (!startNd || !cc.isValid(startNd)) {
-            EditorSetting.Instance.setPathPointLinkStart(node);
-            target.setLinkHighlight(true);
-            return;
-        }
-
-        const startCom = startNd.getComponent(MapDrawP);
-        if (!startCom) {
-            EditorSetting.Instance.setPathPointLinkStart(null);
-            return;
-        }
-
-        if (startNd === node) {
-            startCom.setLinkHighlight(false);
-            EditorSetting.Instance.setPathPointLinkStart(null);
-            return;
-        }
-
-        if (startCom.hasLinkTo(node)) {
-            startCom.removeLink(node);
-            target.removeLink(startNd);
-        } else {
-            startCom.addLink(node);
-            target.addLink(startNd);
-        }
-
-        startCom.setLinkHighlight(false);
-        EditorSetting.Instance.setPathPointLinkStart(null);
-    }
-
-    private onKeyDown(event: cc.Event.EventKeyboard) {
-        if (event.keyCode === cc.macro.KEY.escape) {
-            if (EditorSetting.Instance.isPathPointLinkMode()) {
-                this.cancelPathPointLinkPick();
-                this.setPathPointLinkMode(false);
-            }
-        } else if (event.keyCode === cc.macro.KEY.l) {
-            this.togglePathPointLinkMode();
-        }
-    }
 
     private async createLevel() {
         await this.getLevelJson()
@@ -247,6 +177,8 @@ export default class LevelScene extends cc.Component {
         return null;
     }
 
+
+    //清楚hover框
     private clearDragRoomHover() {
         this._dragHoverRoomName = "";
         if (this._dragDat) {
@@ -259,6 +191,7 @@ export default class LevelScene extends cc.Component {
         this.hoverDrawer?.clear();
     }
 
+    //更新hover框
     private updateDragRoomHover(worldMousePos: cc.Vec2) {
         if (!this._dragDat) return;
         // 如果当前拖拽的是“房间”，则根据鼠标命中的 layer 容器高亮整个 layer
@@ -375,7 +308,6 @@ export default class LevelScene extends cc.Component {
     }
 
 
-
     private onMouseMove(event: cc.Event.EventMouse) {
         this._isDrag = true;
         //点击了左键
@@ -462,10 +394,12 @@ export default class LevelScene extends cc.Component {
                     const oldOwnerRoom = this.findOwnerRoomByNode(itemParent);
                     let targetParent = itemParent;
                     if (this._isDrag && draggedRoom) {
+                        //拖拽到layer区域
                         if (this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) {
                             targetParent = this._dragDat.hoverLayerNode;
-                        } else {
-                            // 拖到非 layer 区域：按相对 y 位置先创建新 layer，再放入房间
+                        }
+                        // 拖到非 layer 区域：按相对 y 位置先创建新 layer，再放入房间
+                        else {
                             const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
                             if (mapLoaderComp) {
                                 const roomWorldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
@@ -495,14 +429,8 @@ export default class LevelScene extends cc.Component {
                     }
                     // Room 只要落到某个 Layer{n} 上，就按命名规则重新计算（包括从其它 layer 拖入）
                     if (draggedRoom && targetParent && /^Layer\d+$/.test(targetParent.name)) {
-                        const oldLayerMatch = /^Layer(\d+)$/.exec(itemParent.name);
-                        const newLayerMatch = /^Layer(\d+)$/.exec(targetParent.name);
-                        const oldLayerNo = oldLayerMatch ? Number(oldLayerMatch[1]) : null;
-                        const newLayerNo = newLayerMatch ? Number(newLayerMatch[1]) : null;
-                        // layer 不变时不执行切换/改名/cfgId
-                        if (oldLayerNo === null || newLayerNo === null || oldLayerNo !== newLayerNo) {
-                            this.syncRoomNameAndIdForLayer(draggedRoom, targetParent);
-                        }
+                        //刷新房间名字
+                        this.syncRoomNameAndIdForLayer(draggedRoom, targetParent, itemParent);
                         // 父节点发生变化（从旧 layer 到新 layer）后，需要重新计算两个 layer 的尺寸
                         const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
                         if (mapLoaderComp) {
@@ -539,13 +467,89 @@ export default class LevelScene extends cc.Component {
         }
     }
 
+    private onKeyDown(event: cc.Event.EventKeyboard) {
+        //退出按钮
+        if (event.keyCode === cc.macro.KEY.escape) {
+            if (EditorSetting.Instance.isPathPointLinkMode()) {
+                this.cancelPathPointLinkPick();
+                this.setPathPointLinkMode(false);
+            }
+        }
+        //p键，进入连线模式
+        else if (event.keyCode === cc.macro.KEY.p) {
+            this.togglePathPointLinkMode();
+        }
+        //l键，进入梯子绑定模式
+        else if (event.keyCode === cc.macro.KEY.l) {
+
+        }
+    }
+    //模式：
+    //连线模式
+    public setPathPointLinkMode(enabled: boolean) {
+        if (!enabled) {
+            const n = EditorSetting.Instance.getPathPointLinkStart();
+            if (n && cc.isValid(n)) {
+                n.getComponent(MapDrawP)?.setLinkHighlight(false);
+            }
+        }
+        EditorSetting.Instance.setPathPointLinkMode(enabled);
+    }
+
+    public togglePathPointLinkMode() {
+        this.setPathPointLinkMode(!EditorSetting.Instance.isPathPointLinkMode());
+    }
+
+    private cancelPathPointLinkPick() {
+        const n = EditorSetting.Instance.getPathPointLinkStart();
+        if (n && cc.isValid(n)) {
+            n.getComponent(MapDrawP)?.setLinkHighlight(false);
+        }
+        EditorSetting.Instance.setPathPointLinkStart(null);
+    }
+
+    private onPathPointLinkClick(node: cc.Node) {
+        if (!EditorSetting.Instance.isPathPointLinkMode()) return;
+        if (!node || !cc.isValid(node)) return;
+        const target = node.getComponent(MapDrawP);
+        if (!target) return;
+
+        const startNd = EditorSetting.Instance.getPathPointLinkStart();
+        if (!startNd || !cc.isValid(startNd)) {
+            EditorSetting.Instance.setPathPointLinkStart(node);
+            target.setLinkHighlight(true);
+            return;
+        }
+
+        const startCom = startNd.getComponent(MapDrawP);
+        if (!startCom) {
+            EditorSetting.Instance.setPathPointLinkStart(null);
+            return;
+        }
+
+        if (startNd === node) {
+            startCom.setLinkHighlight(false);
+            EditorSetting.Instance.setPathPointLinkStart(null);
+            return;
+        }
+
+        if (startCom.hasLinkTo(node)) {
+            startCom.removeLink(node);
+            target.removeLink(startNd);
+        } else {
+            startCom.addLink(node);
+            target.addLink(startNd);
+        }
+
+        startCom.setLinkHighlight(false);
+        EditorSetting.Instance.setPathPointLinkStart(null);
+    }
+
+
+
     /** 拖拽后把 Room 落到 Layer{n}：命名规则：地图编号_layer-1_房间号 */
-    private syncRoomNameAndIdForLayer(roomCom: MapDrawRoom, layerNd: cc.Node) {
-        if (!roomCom || !layerNd) return;
-        const layerMatch = /^Layer(\d+)$/.exec(layerNd.name);
-        if (!layerMatch) return;
-        const layer = Number(layerMatch[1]);
-        if (!isFinite(layer)) return;
+    private syncRoomNameAndIdForLayer(roomCom: MapDrawRoom, newLayerNd: cc.Node, oldLayerNd: cc.Node) {
+        if (!roomCom || !newLayerNd) return;
 
         // 地图编号：从 levelJson.name 末尾提取数字（如 Level1 => 1）
         const mapName = this.levelJson?.name ?? "";
@@ -553,18 +557,46 @@ export default class LevelScene extends cc.Component {
         const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
         const oldCfgId = roomCom.getId();
 
-        // 计算目标 layer 下的最大房间号（按 cfgId 推导：cfgId = mapNo*100 + (layer-1)*10 + roomNo）
-        let maxRoomNo = 0;
-        layerNd.children.forEach((child) => {
-            if (!child) return;
-            if (child === roomCom.node) return; // 排除自身（无论是否新建）
-            const r = child.getComponent(MapDrawRoom);
-            if (!r) return;
-            const cfgId = r.getId();
-            const roomNo = cfgId - mapNo * 100 - (layer - 1) * 10;
-            if (roomNo > maxRoomNo) maxRoomNo = roomNo;
-        });
-        const newRoomNo = maxRoomNo + 1;
+        const reorderLayerNames = (layerNd: cc.Node): MapDrawRoom[] => {
+            if (!layerNd || !cc.isValid(layerNd)) return [];
+            const m = /^Layer(\d+)$/.exec(layerNd.name);
+            if (!m) return [];
+            const layerNo = Number(m[1]);
+            if (!isFinite(layerNo)) return [];
+
+            const rooms = layerNd.children
+                .map((nd) => nd?.getComponent(MapDrawRoom))
+                .filter((r) => !!r && cc.isValid(r.node))
+                .sort((a, b) => {
+                    const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                    const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                    return ax - bx;
+                });
+
+            // 最后一位从 1 开始
+            rooms.forEach((r, index) => {
+                const roomNo = index + 1;
+                const renamedId = mapNo * 100 + (layerNo - 1) * 10 + roomNo;
+                r.node.name = `room_${renamedId}`;
+                const controller = r.node.getComponent(MapDrawRoom);
+                controller.updateRoomId(renamedId);
+            });
+            return rooms;
+        };
+
+        const newLayerRooms = reorderLayerNames(newLayerNd);
+        if (oldLayerNd && oldLayerNd !== newLayerNd) {
+            reorderLayerNames(oldLayerNd);
+        }
+
+        const layerMatch = /^Layer(\d+)$/.exec(newLayerNd.name);
+        if (!layerMatch) return;
+        const layer = Number(layerMatch[1]);
+        if (!isFinite(layer)) return;
+
+        const idx = newLayerRooms.findIndex((r) => r === roomCom);
+        if (idx < 0) return;
+        const newRoomNo = idx + 1;
         const newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
 
         // 当前拖拽后的世界坐标/尺寸
@@ -609,6 +641,7 @@ export default class LevelScene extends cc.Component {
     }
 
     //属性面板相关
+    //刷新属性面板
     private refreshAttrPanel() {
         if (!this._dragDat) return;
         this._trackNd = this._dragDat.itemNode;
@@ -658,6 +691,7 @@ export default class LevelScene extends cc.Component {
         EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat);
     }
 
+    //属性面板刷新节点
     private refreshNdAttr(attrDat: attrPanelType) {
         if (!this._trackNd) return;
         const type = attrDat.type;

@@ -487,11 +487,24 @@ export default class MapLoader extends cc.Component {
         layerItems.forEach(({ no, node: layerNd }) => {
             const layerIndex = Math.max(0, no - 1);
             let localId = 0;
-            layerNd.children.forEach((roomNd) => {
+            const sortedRooms = layerNd.children
+                .filter((roomNd) => !!roomNd && cc.isValid(roomNd))
+                .sort((a, b) => {
+                    const ax = a.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                    const bx = b.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                    return ax - bx;
+                });
+            sortedRooms.forEach((roomNd) => {
                 if (!roomNd || !cc.isValid(roomNd)) return;
                 const roomCom = roomNd.getComponent(MapDrawRoom);
                 if (!roomCom) return;
-                const points = roomCom.getPoints() || [];
+                const points = (roomCom.getPoints() || [])
+                    .filter((pointCom) => !!pointCom && cc.isValid(pointCom.node))
+                    .sort((a, b) => {
+                        const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                        const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+                        return ax - bx;
+                    });
                 points.forEach((pointCom) => {
                     if (!pointCom || !cc.isValid(pointCom.node)) return;
                     const newPid = `P${layerIndex}_${localId++}`;
@@ -503,7 +516,7 @@ export default class MapLoader extends cc.Component {
         });
         this._pointMap = nextPointMap;
     }
-    
+
     /**
      * 拖拽房间落点不在现有 layer 上时，按 worldY 相对位置插入新 layer
      * - 会把插入位置及其上方层号顺延（LayerN -> LayerN+1）
@@ -801,7 +814,7 @@ export default class MapLoader extends cc.Component {
         if (!targetPointCont || !cc.isValid(targetPointCont)) return false;
 
         const prevParent = pointNode.parent;
-        pointCom.setRoomId(targetRoomId);
+        pointCom.updateRoomId(targetRoomId);
         if (prevParent === targetPointCont) {
             const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
             targetRoomCom?.refreshDat();
@@ -827,6 +840,9 @@ export default class MapLoader extends cc.Component {
         }
         return null;
     }
+
+
+
 
     //编辑器操作
 
