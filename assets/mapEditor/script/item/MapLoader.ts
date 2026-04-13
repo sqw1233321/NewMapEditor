@@ -387,43 +387,6 @@ export default class MapLoader extends cc.Component {
         })
     }
 
-
-    private getJson() {
-        const mapDat = new MapDrawDat();
-        const size: MapDrawDatSize = {
-            width: this.size.x,
-            height: this.size.y,
-        }
-
-        console.log(`getJson`);
-        const pathPoints: MapDrawDatPathPoint[] = [];
-        this._pointMap.forEach((point) => {
-            pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
-        })
-
-        const rooms: MapDrawDatRoom[] = [];
-        this._roomNodeMap.forEach((room) => {
-            rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
-        })
-
-        const portals: MapDrawDatPortal[] = [];
-        this._portalCont.children.forEach((portal) => {
-            portals.push(portal.addComponentSafe(MapDrawPortal).getDat());
-        })
-
-        //TODO: 玩家创建位置和出口位置
-        const playerCreatePos = this._playerCreateNd.addComponentSafe(MapDrawUnitBase).getPos();
-        const exitPos = this._playerExitNd.addComponentSafe(MapDrawUnitBase).getPos();
-
-        const areaInfo: number[] = [];
-        this.areaInfo.forEach(info => {
-            areaInfo.push(Number(info));
-        })
-
-        mapDat.setDat(size, pathPoints, rooms, playerCreatePos, exitPos, portals, areaInfo);
-        return mapDat.createJson();
-    }
-
     public updatePointMap(pointId: string, pointNd: cc.Node) {
         if (this._pointMap.has(pointId)) return;
         this._pointMap.set(pointId, pointNd);
@@ -540,49 +503,7 @@ export default class MapLoader extends cc.Component {
         });
         this._pointMap = nextPointMap;
     }
-
-    /** 新增空 Layer：宽度=整图宽度，高度=默认高度；返回新建的 layer 节点 */
-    public addLayer(defaultHeight: number = 320): cc.Node {
-        if (!this._layerCont) return null;
-
-        // 找到当前最大层号，新增 max+1
-        let maxLayerNo = 0;
-        this._layerNodeMap.forEach((_, layerNo) => {
-            maxLayerNo = Math.max(maxLayerNo, layerNo);
-        });
-        const newLayerNo = maxLayerNo + 1;
-
-        const layerNd = new cc.Node(`Layer${newLayerNo}`);
-        layerNd.parent = this._layerCont;
-        layerNd.setAnchorPoint(0, 0);
-        this._layerNodeMap.set(newLayerNo, layerNd);
-
-        // 宽度固定为整图宽度
-        const jsonWidth = Number(this._data?.size?.width || 0);
-        const inspectorWidth = Number(this.size?.x || 0);
-        const mapWidth = jsonWidth > 0 ? jsonWidth : inspectorWidth;
-        const width = Math.max(1, mapWidth);
-        const height = Math.max(1, defaultHeight);
-        layerNd.setContentSize(width, height);
-
-        // 新层放在当前最高层的上方
-        let maxTopY = Number.NEGATIVE_INFINITY;
-        this._layerNodeMap.forEach((nd, layerNo) => {
-            if (!nd || nd === layerNd || !cc.isValid(nd)) return;
-            const worldAnchor = nd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-            const topY = worldAnchor.y + nd.getContentSize().height;
-            maxTopY = Math.max(maxTopY, topY);
-        });
-        const targetBottomY = isFinite(maxTopY) ? maxTopY : 0;
-        const mapLeftWorld = mapWidth > 0
-            ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
-            : 0;
-        const layerWorldAnchor = cc.v2(mapLeftWorld, targetBottomY);
-        const layerLocalPos = this._layerCont.convertToNodeSpaceAR(layerWorldAnchor);
-        layerNd.setPosition(layerLocalPos);
-        return layerNd;
-    }
-
+    
     /**
      * 拖拽房间落点不在现有 layer 上时，按 worldY 相对位置插入新 layer
      * - 会把插入位置及其上方层号顺延（LayerN -> LayerN+1）
@@ -858,26 +779,106 @@ export default class MapLoader extends cc.Component {
         pointNd.setPosition(localPos);
     }
 
+    /** 把路径点 ID 列表解析成节点（忽略不存在项） */
+    public resolvePathPointNodes(ids: string[]): cc.Node[] {
+        const list = ids || [];
+        return list
+            .map((id) => this._pointMap.get(id))
+            .filter((nd) => !!nd && cc.isValid(nd));
+    }
+
+    /**
+     * 路径点房间变更：切换到目标房间 pointCont，保持世界坐标不变，并刷新相关房间数据。
+     */
+    public movePathPointToRoom(pointNode: cc.Node, targetRoomId: number): boolean {
+        if (!pointNode || !cc.isValid(pointNode)) return false;
+        if (!isFinite(targetRoomId)) return false;
+        const pointCom = pointNode.getComponent(MapDrawUnitBase);
+        if (!pointCom) return false;
+        const targetRoomNd = this._roomNodeMap.get(targetRoomId);
+        if (!targetRoomNd || !cc.isValid(targetRoomNd)) return false;
+        const targetPointCont = targetRoomNd.getChildByName("pointCont");
+        if (!targetPointCont || !cc.isValid(targetPointCont)) return false;
+
+        const prevParent = pointNode.parent;
+        pointCom.setRoomId(targetRoomId);
+        if (prevParent === targetPointCont) {
+            const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
+            targetRoomCom?.refreshDat();
+            return true;
+        }
+
+        const prevWorldPos = pointNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const oldOwnerRoom = this.findOwnerRoomByNode(prevParent);
+        pointNode.parent = targetPointCont;
+        pointNode.setPosition(targetPointCont.convertToNodeSpaceAR(prevWorldPos));
+        oldOwnerRoom?.refreshDat();
+        targetRoomNd.getComponent(MapDrawRoom)?.refreshDat();
+        this.rebuildPointIdsByLayer();
+        return true;
+    }
+
+    private findOwnerRoomByNode(nd: cc.Node): MapDrawRoom | null {
+        let cur = nd;
+        while (cur) {
+            const room = cur.getComponent(MapDrawRoom);
+            if (room) return room;
+            cur = cur.parent;
+        }
+        return null;
+    }
+
     //编辑器操作
 
     public clear() {
-        const children = this.node.children.slice();
+        const children = this._layerCont.children.slice();
         children.forEach(n => n.destroy());
+        this._pointLineCont.getComponent(cc.Graphics).clear();
+    }
+
+
+    private getJson() {
+        const mapDat = new MapDrawDat();
+        const size: MapDrawDatSize = {
+            width: this.size.x,
+            height: this.size.y,
+        }
+
+        console.log(`getJson`);
+        const pathPoints: MapDrawDatPathPoint[] = [];
+        this._pointMap.forEach((point) => {
+            pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
+        })
+
+        const rooms: MapDrawDatRoom[] = [];
+        this._roomNodeMap.forEach((room) => {
+            rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
+        })
+
+        const portals: MapDrawDatPortal[] = [];
+        this._portalCont.children.forEach((portal) => {
+            portals.push(portal.addComponentSafe(MapDrawPortal).getDat());
+        })
+
+        //TODO: 玩家创建位置和出口位置
+        const playerCreatePos = this._playerCreateNd.addComponentSafe(MapDrawUnitBase).getPos();
+        const exitPos = this._playerExitNd.addComponentSafe(MapDrawUnitBase).getPos();
+
+        const areaInfo: number[] = [];
+        this.areaInfo.forEach(info => {
+            areaInfo.push(Number(info));
+        })
+
+        mapDat.setDat(size, pathPoints, rooms, playerCreatePos, exitPos, portals, areaInfo);
+        return mapDat.createJson();
     }
 
 
     public saveDat() {
         this.refreshDat();
         const json = this.getJson();
-        if (CC_EDITOR) {
-            const fs = require('fs');
-            const path = require('path');
-            const filePath = path.join(Editor.projectInfo.path, `${this._fileName}.json`);
-            fs.writeFileSync(filePath, json, 'utf8');
-            console.log('JSON 导出完成：', filePath);
-        }
+        return json;
     }
-
 
 }
 

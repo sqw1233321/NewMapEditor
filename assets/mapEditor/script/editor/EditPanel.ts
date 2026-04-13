@@ -58,7 +58,7 @@ export default class EditPanel extends cc.Component {
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
-            case UnitType.SearchItem:
+            case UnitType.SearchPoint:
             case UnitType.Portal:
         }
     }
@@ -101,7 +101,7 @@ export default class EditPanel extends cc.Component {
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
-            case UnitType.SearchItem:
+            case UnitType.SearchPoint:
             case UnitType.Portal:
         }
         const attrDat: attrPanelType = {

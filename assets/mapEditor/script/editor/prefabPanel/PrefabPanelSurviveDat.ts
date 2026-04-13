@@ -5,16 +5,15 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
-
 import { UnitType } from "../../type/mapTypes";
 import prefabPanelBase from "./prefabPanelBase";
-
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class PrefabPanelRoom extends prefabPanelBase {
+export default class PrefabPanelSurviveDat extends prefabPanelBase {
+
     public getType() {
-        return UnitType.Room;
+        return UnitType.SurviveDat;
     }
 }

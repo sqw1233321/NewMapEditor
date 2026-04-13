@@ -1,10 +1,3 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import { UnitType } from "../../type/mapTypes";
@@ -13,7 +6,7 @@ import { DragType } from "../../type/types";
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class PrefabPanelBase extends cc.Component {
+export default class prefabPanelBase extends cc.Component {
     /** 面板里代表的预制体（拖拽时会实例化一个临时节点） */
     @property(cc.Prefab)
     prefab: cc.Prefab = null;

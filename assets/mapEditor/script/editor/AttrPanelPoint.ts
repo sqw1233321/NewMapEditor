@@ -13,8 +13,8 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class AttrPanelPoint extends cc.Component {
 
-    @property(cc.Label)
-    roomLb: cc.Label;
+    @property(cc.EditBox)
+    roomLb: cc.EditBox;
 
     @property(cc.Node)
     pointCont: cc.Node;
@@ -36,7 +36,7 @@ export default class AttrPanelPoint extends cc.Component {
             return nd.children[0].children[0].getComponent(cc.Label).string;
         });
         return {
-            roomId: this._dat.roomId,
+            roomId: this.roomLb.string,
             links
         }
     }

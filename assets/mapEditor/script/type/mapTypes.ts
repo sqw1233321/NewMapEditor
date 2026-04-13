@@ -19,6 +19,7 @@ export enum UnitType {
     Door,
     Ladder,
     EnemyRefresh,
-    SearchItem,
+    SearchPoint,
     Portal,
+    SurviveDat,
 }

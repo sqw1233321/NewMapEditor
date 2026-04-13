@@ -13,7 +13,7 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawSearchItem extends MapDrawUnitBase {
-     protected _type: UnitType.SearchItem;
+     protected _type: UnitType.SearchPoint;
 
 
     public init(roomId: number) {

@@ -3,8 +3,6 @@ import { EventManager } from "../frameWork/EventManager";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
-import { MapEditorMapData } from "../map/LevelMapDat";
-import MapDrawer from "../map/MapDrawer";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import { attrPanelType, attrPanelTypeBase, attrPanelTypePoint, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
@@ -29,8 +27,8 @@ export default class LevelScene extends cc.Component {
     @property(cc.JsonAsset)
     levelJson: cc.JsonAsset = null;
 
-    @property(MapDrawer)
-    mapDrawer: MapDrawer = null;
+    @property(cc.Node)
+    mapGraph: cc.Node = null;
 
     @property(cc.Node)
     mapLoader: cc.Node;
@@ -49,7 +47,6 @@ export default class LevelScene extends cc.Component {
 
     private _isRightDown: boolean = false;
     private _isLeftDown: boolean = false;
-    private _mapData: MapEditorMapData;
     private _isDrag: boolean = false;
     private _dragDat: DragType = null;
     private _hoverDat: HoverType = {
@@ -157,9 +154,7 @@ export default class LevelScene extends cc.Component {
 
     private async createLevel() {
         await this.getLevelJson()
-        this.parseLevelJson();
-        this.mapDrawer.init(this._mapData);
-        const graphSize = this.mapDrawer.node.getContentSize();
+        const graphSize = this.mapGraph.getContentSize();
         const scaleX = graphSize.width / this.mapSize.x;
         const scaleY = graphSize.height / this.mapSize.y;
         EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
@@ -168,10 +163,6 @@ export default class LevelScene extends cc.Component {
     async getLevelJson() {
         const json = this.levelJson.json;
         return json;
-    }
-
-    parseLevelJson() {
-        this._mapData = new MapEditorMapData(this.levelJson);
     }
 
     /** 根据世界坐标命中房间（后遍历优先，尽量选上层叠放时更“靠上”的房间） */
@@ -657,7 +648,7 @@ export default class LevelScene extends cc.Component {
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
-            case UnitType.SearchItem:
+            case UnitType.SearchPoint:
             case UnitType.Portal:
         }
         const panelDat: attrPanelType = {
@@ -688,10 +679,25 @@ export default class LevelScene extends cc.Component {
                 }
                 break;
             case UnitType.PathPoint:
+                dat = attrDat.dat as attrPanelTypePoint;
+                const links = dat.links;
+                const roomId = dat.roomId;
+                const controller = this._trackNd.getComponent(MapDrawP);
+                if (controller) {
+                    const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                    const linkNodes = mapLoaderComp?.resolvePathPointNodes(links || []) ?? [];
+                    controller.setLinks(linkNodes);
+
+                    const nextRoomId = Number(roomId);
+                    if (isFinite(nextRoomId)) {
+                        mapLoaderComp?.movePathPointToRoom(this._trackNd, nextRoomId);
+                    }
+                }
+                break;
             case UnitType.Door:
             case UnitType.Ladder:
             case UnitType.EnemyRefresh:
-            case UnitType.SearchItem:
+            case UnitType.SearchPoint:
             case UnitType.Portal:
         }
     }
@@ -713,25 +719,26 @@ export default class LevelScene extends cc.Component {
         EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
     }
 
-    //增加layer
-    public addLayer() {
-        const loader = this.mapLoader?.getComponent(MapLoader);
-        if (!loader) return;
-        loader.addLayer();
+
+    //保存
+    public onClickSave() {
+        const json = this.mapLoader.getComponent(MapLoader).saveDat();
+        this.levelJson.json = JSON.parse(json);
+        this.persistLevelJsonToDisk(json);
     }
 
 
-
-    //保存，导出
-    public onClickSave() {
-        //TODO:现在只有pathPoint
-        this.mapDrawer.getPathPoints();
+    //导出
+    public onCLickExport() {
+        //先保存并同步到当前 levelJson
+        const json = this.mapLoader.getComponent(MapLoader).saveDat();
+        this.levelJson.json = JSON.parse(json);
+        this.persistLevelJsonToDisk(json);
         this.downloadJson();
     }
 
     public downloadJson(filename = "mapData.json") {
-        // 假设 json 是字符串
-        const json = this._mapData.parseToJson(); // 已经是 JSON 字符串
+        const json = JSON.stringify(this.levelJson?.json ?? {});
 
         // 1️⃣ 创建 Blob
         const blob = new Blob([json], { type: "application/json" });
@@ -749,6 +756,33 @@ export default class LevelScene extends cc.Component {
         URL.revokeObjectURL(url);
     }
 
+    /** 把当前 levelJson 覆盖写回 assets 下对应 json 文件 */
+    private persistLevelJsonToDisk(json: string) {
+        if (!CC_EDITOR) return;
+        if (!this.levelJson) return;
+        try {
+            const fs = require("fs");
+            const path = require("path");
+            const assetAny = this.levelJson as any;
+            const uuid = assetAny?._uuid;
+            if (!uuid) return;
+            const filePath = (Editor as any)?.assetdb?.uuidToFspath(uuid);
+            if (!filePath) return;
+            const normalizedPath = path.normalize(filePath);
+            fs.writeFileSync(normalizedPath, json, "utf8");
+            console.log("Level JSON 已保存：", normalizedPath);
+            (Editor as any)?.assetdb?.refresh("db://assets");
+        } catch (err) {
+            console.error("Level JSON 保存失败:", err);
+        }
+    }
+
+    public onClickClear() {
+        this.mapLoader.getComponent(MapLoader).clear();
+    }
+
+
+
     //设置相关
     private setMapScale(scale: number) {
         EditorSetting.Instance.setMapScale(scale);
@@ -760,3 +794,6 @@ export default class LevelScene extends cc.Component {
         this._hoverDat.name = ""
     }
 }
+
+declare var require: any;
+declare var Editor: any;
