@@ -18,10 +18,19 @@ export default class MapDrawDoor extends MapDrawUnitBase {
     @property
     hp: number = 0;
 
+    public getType() {
+        return UnitType.Door;
+    }
+
     public init(roomId: number, hp: number) {
         this.hp = hp;
         this._roomId = roomId;
     }
+
+    public setHp(hp: number) {
+        this.hp = hp;
+    }
+
     public getDat(): MapDrawDatDoor {
         const dat: MapDrawDatDoor = {
             hp: this.hp,

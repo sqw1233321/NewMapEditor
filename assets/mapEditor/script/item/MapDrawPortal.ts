@@ -22,6 +22,10 @@ export default class MapDrawPortal extends MapDrawUnitBase {
     @property
     offsetX: number = 0;
 
+    public getType() {
+        return UnitType.Portal;
+    }
+
     public init(...params: any[]): void {
 
     }

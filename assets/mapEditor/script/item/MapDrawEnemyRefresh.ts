@@ -21,6 +21,10 @@ export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
     @property
     param: string = "";
 
+    public getType() {
+        return UnitType.EnemyRefresh;
+    }
+
     public init(roomId: number, refreshId: number, param: string) {
         this.refreshId = refreshId;
         this.param = param;

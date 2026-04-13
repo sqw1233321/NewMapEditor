@@ -19,9 +19,17 @@ export default class MapDrawLadder extends MapDrawUnitBase {
     @property([cc.Node])
     bindPoints: cc.Node[] = [];
 
+    public getType() {
+        return UnitType.Ladder;
+    }
+
     public init(roomId: number, bindPoints: cc.Node[]): void {
         this._roomId = roomId;
         this.bindPoints = bindPoints;
+    }
+
+    public setBinds(nodeArr: cc.Node[]) {
+        this.bindPoints = nodeArr;
     }
 
     getDat(): MapDrawDatLadder {

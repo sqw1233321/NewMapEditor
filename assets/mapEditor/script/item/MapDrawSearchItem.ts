@@ -16,6 +16,10 @@ export default class MapDrawSearchItem extends MapDrawUnitBase {
      protected _type: UnitType.SearchPoint;
 
 
+    public getType() {
+        return UnitType.SearchPoint;
+    }
+
     public init(roomId: number) {
         this._roomId = roomId;
     }

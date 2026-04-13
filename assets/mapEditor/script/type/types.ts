@@ -32,7 +32,7 @@ export interface HoverType {
 //属性面板
 export interface attrPanelType {
     type: UnitType,
-    dat: attrPanelTypeBase | attrPanelTypeRoom | attrPanelTypePoint
+    dat: attrPanelTypeBase | attrPanelTypeRoom | attrPanelTypePoint | attrPanelTypeDoor | attrPanelTypeLadder
 }
 
 export interface attrPanelTypeBase {
@@ -41,11 +41,21 @@ export interface attrPanelTypeBase {
 }
 
 export interface attrPanelTypeRoom {
-    size: { width:number, height:number };
+    size: { width: number, height: number };
     unLockPoints: string[];
 }
 
 export interface attrPanelTypePoint {
     roomId: string;
     links: string[];
+}
+
+export interface attrPanelTypeDoor {
+    roomId: string;
+    hp: number;
+}
+
+export interface attrPanelTypeLadder {
+    roomId: string;
+    bindPointIds: string[];
 }

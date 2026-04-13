@@ -5,11 +5,13 @@ import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypePoint, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeDoor, attrPanelTypeLadder, attrPanelTypePoint, attrPanelTypeRoom, DragType, HoverType } from "../type/types";
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
 import MapLoader from "../item/MapLoader";
 import { MapDrawDatRoom } from "../item/MapDrawDat";
+import MapDrawDoor from "../item/MapDrawDoor";
+import MapDrawLadder from "../item/MapDrawLadder";
 
 
 const { ccclass, property } = cc._decorator;
@@ -679,7 +681,15 @@ export default class LevelScene extends cc.Component {
                     .map((nd) => nd.name);
                 break;
             case UnitType.Door:
+                const doorCom = this._trackNd?.getComponent(MapDrawDoor);
+                (dat as attrPanelTypeDoor).roomId = doorCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypeDoor).hp = doorCom?.getDat().hp ?? 0;
+                break;
             case UnitType.Ladder:
+                const ladderCom = this._trackNd?.getComponent(MapDrawLadder);
+                (dat as attrPanelTypeLadder).roomId = ladderCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypeLadder).bindPointIds = ladderCom?.getDat().bindPointIds ?? [];
+                break;
             case UnitType.EnemyRefresh:
             case UnitType.SearchPoint:
             case UnitType.Portal:
@@ -715,25 +725,37 @@ export default class LevelScene extends cc.Component {
             case UnitType.PathPoint:
                 dat = attrDat.dat as attrPanelTypePoint;
                 const links = dat.links;
-                const roomId = dat.roomId;
                 const controller = this._trackNd.getComponent(MapDrawP);
                 if (controller) {
                     const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
                     const linkNodes = mapLoaderComp?.resolvePathPointNodes(links || []) ?? [];
                     controller.setLinks(linkNodes);
-
-                    const nextRoomId = Number(roomId);
-                    if (isFinite(nextRoomId)) {
-                        mapLoaderComp?.movePathPointToRoom(this._trackNd, nextRoomId);
-                    }
                 }
                 break;
             case UnitType.Door:
+                dat = attrDat.dat as attrPanelTypeDoor;
+                const doorCom = this._trackNd.getComponent(MapDrawDoor);
+                if (doorCom) {
+                    doorCom.setHp(dat.hp);
+                }
+                break;
             case UnitType.Ladder:
+                //操作在l 梯子绑定模式中
+                break;
             case UnitType.EnemyRefresh:
             case UnitType.SearchPoint:
             case UnitType.Portal:
         }
+
+        //如果有房间信息，更新一手
+        if (dat.roomId) {
+            const nextRoomId = Number(dat.roomId);
+            if (isFinite(nextRoomId)) {
+                const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+                mapLoaderComp?.movePathPointToRoom(this._trackNd, nextRoomId);
+            }
+        }
+
     }
 
     //删除节点

@@ -841,6 +841,10 @@ export default class MapLoader extends cc.Component {
         return null;
     }
 
+    public getPathPointById(id:string){
+        return this._pointMap.get(id);
+    }
+
 
 
 
