@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "SearchItem0",
+    "_name": "survive",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -33,26 +33,26 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 235,
-      "b": 4,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 72,
-      "height": 69
+      "width": 88,
+      "height": 104
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0
     },
     "_trs": {
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        424.924,
-        98.40599999999995,
+        0,
+        0,
         0,
         0,
         0,
@@ -92,10 +92,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "66aaf148-e418-4c3e-abf6-2946e2469e39"
+      "__uuid__": "14e1418c-dafa-4d65-8ce7-db2bfae874f4"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -109,7 +109,7 @@
     "_id": ""
   },
   {
-    "__type__": "a6dafr25TtHXak/2e8bSPf7",
+    "__type__": "f0ad5vL9LxAKo9DAYsvfVSg",
     "_name": "",
     "_objFlags": 0,
     "node": {
