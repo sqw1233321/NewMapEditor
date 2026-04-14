@@ -62,10 +62,11 @@ export default class LevelScene extends cc.Component {
   hoverDrawer: HoverDrawer;
 
   @property(cc.Label)
-  curModeLb:cc.Label;
+  curModeLb: cc.Label;
 
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
+  private _isShiftDown: boolean = false;
   private _isDrag: boolean = false;
   private _dragDat: DragType = null;
   private _hoverDat: HoverType = {
@@ -134,6 +135,7 @@ export default class LevelScene extends cc.Component {
       this,
     );
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
     MapTool.init(this.mapLoader);
     this.createLevel();
   }
@@ -150,6 +152,7 @@ export default class LevelScene extends cc.Component {
       this,
     );
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
   }
 
   private async createLevel() {
@@ -332,6 +335,7 @@ export default class LevelScene extends cc.Component {
             event.getLocation(),
           );
           itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
+          this.trySnapDraggedPointY(itemDat);
           this.syncLadderWithDraggedNode(itemDat);
           //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
           this.updateDragRoomHover(event.getLocation());
@@ -472,8 +476,13 @@ export default class LevelScene extends cc.Component {
             );
             itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
           }
-          //没有实际拖拽，只是点击了拖拽节点，则直接返回
-          if (!this._isDrag) return;
+          // 抬起瞬间再执行一次 Shift 吸附
+          this.trySnapDraggedPointY(itemDat);
+          //没有实际拖拽，只是点击了拖拽节点，清除本次dragDat
+          if (!this._isDrag) {
+            this._dragDat = null;
+            return;
+          }
 
           //房间名字同步
           if (
@@ -534,6 +543,10 @@ export default class LevelScene extends cc.Component {
   }
 
   private onKeyDown(event: cc.Event.EventKeyboard) {
+    if (this.isShiftKey(event.keyCode)) {
+      this._isShiftDown = true;
+      return;
+    }
     //退出按钮
     if (event.keyCode === cc.macro.KEY.escape) {
       this._pathPointMode?.setEnabled(false);
@@ -559,6 +572,21 @@ export default class LevelScene extends cc.Component {
     }
   }
 
+  private onKeyUp(event: cc.Event.EventKeyboard) {
+    if (this.isShiftKey(event.keyCode)) {
+      this._isShiftDown = false;
+    }
+  }
+
+  private isShiftKey(keyCode: number): boolean {
+    return (
+      keyCode === cc.macro.KEY.shift ||
+      keyCode === (cc.macro.KEY as any).left_shift ||
+      keyCode === (cc.macro.KEY as any).right_shift ||
+      keyCode === 16
+    );
+  }
+
   //模式：
   public setMode(mode: ModeBase) {
     const enable = mode.isEnabled();
@@ -568,6 +596,75 @@ export default class LevelScene extends cc.Component {
   private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
     if (!node || !node.parent) return;
     node.setPosition(node.parent.convertToNodeSpaceAR(worldPos));
+  }
+
+  /** Shift 拖拽路径点：吸附同层左邻点 y；没有左邻则右邻；都没有则不吸附 */
+  private trySnapDraggedPointY(draggedNode: cc.Node) {
+    if (!this._isShiftDown) return;
+    if (!draggedNode || !cc.isValid(draggedNode)) return;
+    const draggedPointCom = draggedNode.getComponent(MapDrawP);
+    if (!draggedPointCom) return;
+    const layerNd = this.findLayerByRoomId(draggedPointCom.getRoomId());
+    if (!layerNd) return;
+
+    const pointNodes = layerNd
+      .getComponentsInChildren(MapDrawP)
+      .map((p) => p.node)
+      .filter((nd) => !!nd && cc.isValid(nd))
+      .sort(
+        (a, b) =>
+          a.convertToWorldSpaceAR(cc.Vec2.ZERO).x -
+          b.convertToWorldSpaceAR(cc.Vec2.ZERO).x,
+      );
+    const draggedName = draggedNode.name || "";
+    const m = /^P(\d+)_(\d+)$/.exec(draggedName);
+    if (!m) return;
+    const draggedNo = Number(m[2]);
+    if (!isFinite(draggedNo)) return;
+
+    let leftNd: cc.Node = null;
+    let rightNd: cc.Node = null;
+    let leftNo = Number.NEGATIVE_INFINITY;
+    let rightNo = Number.POSITIVE_INFINITY;
+    pointNodes.forEach((nd) => {
+      const name = nd?.name || "";
+      const mm = /^P(\d+)_(\d+)$/.exec(name);
+      if (!mm) return;
+      const no = Number(mm[2]);
+      if (!isFinite(no)) return;
+      if (no < draggedNo && no > leftNo) {
+        leftNo = no;
+        leftNd = nd;
+      }
+      if (no > draggedNo && no < rightNo) {
+        rightNo = no;
+        rightNd = nd;
+      }
+    });
+    const refNd = leftNd || rightNd;
+    if (!refNd) return;
+
+    const curWorld = draggedNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+    const refWorld = refNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+    this.setNodeWorldPos(draggedNode, cc.v2(curWorld.x, refWorld.y));
+  }
+
+  private findLayerByNode(node: cc.Node): cc.Node | null {
+    let cur = node;
+    while (cur) {
+      if (/^Layer\d+$/.test(cur.name || "")) return cur;
+      cur = cur.parent;
+    }
+    return null;
+  }
+
+  /** 拖拽点在 dragLayer 下时，按 point.roomId 反查所属 layer */
+  private findLayerByRoomId(roomId: number): cc.Node | null {
+    if (!isFinite(roomId) || !this.mapLoader) return null;
+    const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
+    const room = rooms.find((r) => r && r.getId() === roomId);
+    if (!room || !room.node) return null;
+    return this.findLayerByNode(room.node);
   }
 
   //根据梯子位置反推两个绑定点位置
