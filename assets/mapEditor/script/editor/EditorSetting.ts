@@ -69,4 +69,15 @@ export default class EditorSetting extends cc.Component {
         this._ladderBindStart = node;
     }
 
+    public isPortalBindMode(): boolean {
+        return this._ladderBindMode;
+    }
+
+    public setPortalBindMode(enabled: boolean) {
+        this._ladderBindMode = enabled;
+        if (!enabled) {
+            this._ladderBindStart = null;
+        }
+    }
+
 }

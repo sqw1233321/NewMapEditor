@@ -13,31 +13,34 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawPortal extends MapDrawUnitBase {
+  protected _type: UnitType.Portal;
 
-    protected _type: UnitType.Portal;
+  @property
+  linkId: string = "";
 
-    @property
-    linkId: string = "";
+  @property
+  offsetX: number = 0;
 
-    @property
-    offsetX: number = 0;
+  public getType() {
+    return UnitType.Portal;
+  }
 
-    public getType() {
-        return UnitType.Portal;
-    }
+  public init(...params: any[]): void {}
 
-    public init(...params: any[]): void {
+  setLinkId(id: string) {
+    this.linkId = id;
+  }
 
-    }
+  setOffsetX(offset: number) {
+    this.offsetX = offset;
+  }
 
-    public getDat(): MapDrawDatPortalData {
-        const dat: MapDrawDatPortalData = {
-            linkId: this.linkId,
-            pos: this.getPos(),
-            offsetX: this.offsetX,
-        }
-        return dat;
-    }
-
-
+  public getDat(): MapDrawDatPortalData {
+    const dat: MapDrawDatPortalData = {
+      linkId: this.linkId,
+      pos: this.getPos(),
+      offsetX: this.offsetX,
+    };
+    return dat;
+  }
 }
