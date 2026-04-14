@@ -41,15 +41,6 @@ export default class MapLoader extends cc.Component {
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
 
-  @property
-  generate = false;
-
-  @property
-  clearAll = false;
-
-  @property
-  save = false;
-
   @property(cc.Prefab)
   roomPrefab: cc.Prefab = null;
 

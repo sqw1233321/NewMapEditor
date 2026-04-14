@@ -88,6 +88,16 @@ export default class LevelScene extends cc.Component {
             this,
         );
         EventManager.instance.on(
+            MapEditorEvent.PortalBindPortalClick,
+            this.onPortalBindPortalClick,
+            this,
+        );
+        EventManager.instance.on(
+            MapEditorEvent.PortalBindPathPointClick,
+            this.onPortalBindPathPointClick,
+            this,
+        );
+        EventManager.instance.on(
             MapEditorEvent.UpdateFromAttrPanel,
             this.refreshNdAttr,
             this,
@@ -108,6 +118,16 @@ export default class LevelScene extends cc.Component {
         EventManager.instance.off(
             MapEditorEvent.LadderBindPointClick,
             this.onLadderBindPointClick,
+            this,
+        );
+        EventManager.instance.off(
+            MapEditorEvent.PortalBindPortalClick,
+            this.onPortalBindPortalClick,
+            this,
+        );
+        EventManager.instance.off(
+            MapEditorEvent.PortalBindPathPointClick,
+            this.onPortalBindPathPointClick,
             this,
         );
         EventManager.instance.off(
@@ -560,6 +580,10 @@ export default class LevelScene extends cc.Component {
                 this.cancelLadderBindPick();
                 this.setLadderBindMode(false);
             }
+            if (EditorSetting.Instance.isPortalBindMode()) {
+                this.cancelPortalBindPick();
+                this.setPortalBindMode(false);
+            }
         }
         //p键，进入连线模式
         else if (event.keyCode === cc.macro.KEY.p) {
@@ -570,7 +594,11 @@ export default class LevelScene extends cc.Component {
             this.toggleLadderBindMode();
         }
         //o键，进入传送门绑定模式
-        else if (event.keyCode === cc.macro.KEY.o) {
+        else if (
+            event.keyCode === (cc.macro.KEY as any).o ||
+            event.keyCode === (cc.macro.KEY as any).O ||
+            event.keyCode === 79
+        ) {
             this.togglePortalBindMode();
         }
     }
@@ -579,6 +607,9 @@ export default class LevelScene extends cc.Component {
     public setPathPointLinkMode(enabled: boolean) {
         if (enabled && EditorSetting.Instance.isLadderBindMode()) {
             this.setLadderBindMode(false);
+        }
+        if (enabled && EditorSetting.Instance.isPortalBindMode()) {
+            this.setPortalBindMode(false);
         }
         if (!enabled) {
             const n = EditorSetting.Instance.getPathPointLinkStart();
@@ -606,6 +637,9 @@ export default class LevelScene extends cc.Component {
         if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
             this.setPathPointLinkMode(false);
         }
+        if (enabled && EditorSetting.Instance.isPortalBindMode()) {
+            this.setPortalBindMode(false);
+        }
         if (!enabled) {
             this.cancelLadderBindPick();
         }
@@ -624,9 +658,12 @@ export default class LevelScene extends cc.Component {
         EditorSetting.Instance.setLadderBindStart(null);
     }
 
-    //传送门绑定模式
+    //传送门绑定模式（仿连线：先点传送门，再点一个路径点作为终点）
     public setPortalBindMode(enabled: boolean) {
-        if (enabled && EditorSetting.Instance.isPortalBindMode()) {
+        if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
+            this.setPathPointLinkMode(false);
+        }
+        if (enabled && EditorSetting.Instance.isLadderBindMode()) {
             this.setLadderBindMode(false);
         }
         if (!enabled) {
@@ -640,11 +677,50 @@ export default class LevelScene extends cc.Component {
     }
 
     private cancelPortalBindPick() {
-        const n = EditorSetting.Instance.getLadderBindStart();
+        const n = EditorSetting.Instance.getPortalBindPortal();
         if (n && cc.isValid(n)) {
-            n.getComponent(MapDrawP)?.setLinkHighlight(false);
+            n.getComponent(MapDrawPortal)?.setPortalBindHighlight(false);
         }
-        EditorSetting.Instance.setLadderBindStart(null);
+        EditorSetting.Instance.setPortalBindPortal(null);
+    }
+
+    private onPortalBindPortalClick(node: cc.Node) {
+        if (!EditorSetting.Instance.isPortalBindMode()) return;
+        if (!node || !cc.isValid(node)) return;
+        const portalCom = node.getComponent(MapDrawPortal);
+        if (!portalCom) return;
+
+        const prev = EditorSetting.Instance.getPortalBindPortal();
+        if (prev && cc.isValid(prev) && prev !== node) {
+            prev.getComponent(MapDrawPortal)?.setPortalBindHighlight(false);
+        }
+
+        if (prev === node) {
+            portalCom.setPortalBindHighlight(false);
+            EditorSetting.Instance.setPortalBindPortal(null);
+            return;
+        }
+
+        EditorSetting.Instance.setPortalBindPortal(node);
+        portalCom.setPortalBindHighlight(true);
+    }
+
+    private onPortalBindPathPointClick(node: cc.Node) {
+        if (!EditorSetting.Instance.isPortalBindMode()) return;
+        if (!node || !cc.isValid(node)) return;
+        const pointCom = node.getComponent(MapDrawP);
+        if (!pointCom) return;
+
+        const portalNd = EditorSetting.Instance.getPortalBindPortal();
+        if (!portalNd || !cc.isValid(portalNd)) return;
+
+        const portalCom = portalNd.getComponent(MapDrawPortal);
+        if (!portalCom) return;
+
+        portalCom.setLinkId(pointCom.getId());
+        portalCom.setPortalBindHighlight(false);
+        EditorSetting.Instance.setPortalBindPortal(null);
+        this.refreshAttrPanel();
     }
 
     private onPathPointLinkClick(node: cc.Node) {

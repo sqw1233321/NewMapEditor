@@ -34,6 +34,10 @@ export default class MapDrawP extends MapDrawUnitBase {
             EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
             return true;
         }
+        if (EditorSetting.Instance.isPortalBindMode()) {
+            EventManager.instance.emit(MapEditorEvent.PortalBindPathPointClick, this.node);
+            return true;
+        }
         if (EditorSetting.Instance.isLadderBindMode()) {
             EventManager.instance.emit(MapEditorEvent.LadderBindPointClick, this.node);
             return true;

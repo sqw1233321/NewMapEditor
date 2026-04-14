@@ -11,6 +11,9 @@ export default class EditorSetting extends cc.Component {
     /** 梯子绑定模式：先点 start 再点 end */
     private _ladderBindMode = false;
     private _ladderBindStart: cc.Node = null;
+    /** 传送门绑定终点模式：先选传送门，再点一个路径点 */
+    private _portalBindMode = false;
+    private _portalBindPortal: cc.Node = null;
 
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
@@ -70,14 +73,22 @@ export default class EditorSetting extends cc.Component {
     }
 
     public isPortalBindMode(): boolean {
-        return this._ladderBindMode;
+        return this._portalBindMode;
     }
 
     public setPortalBindMode(enabled: boolean) {
-        this._ladderBindMode = enabled;
+        this._portalBindMode = enabled;
         if (!enabled) {
-            this._ladderBindStart = null;
+            this._portalBindPortal = null;
         }
+    }
+
+    public getPortalBindPortal(): cc.Node | null {
+        return this._portalBindPortal;
+    }
+
+    public setPortalBindPortal(node: cc.Node | null) {
+        this._portalBindPortal = node;
     }
 
 }
