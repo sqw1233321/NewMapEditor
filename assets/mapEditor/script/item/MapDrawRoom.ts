@@ -139,14 +139,20 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private setDoorDat() {
         const allDoors = this._unitCont.getComponentsInChildren(MapDrawDoor);
         this._roomItemDat.doorDat = allDoors;
-        if (allDoors.length == 0) return;
+        if (allDoors.length == 0) {
+            this._doorDat = [];
+            return;
+        }
         this._doorDat = allDoors.map((door: MapDrawDoor) => door.getDat());
     }
 
     private setLadderDat() {
         const allLadders = this._unitCont.getComponentsInChildren(MapDrawLadder);
         this._roomItemDat.ladderDat = allLadders;
-        if (allLadders.length == 0) return;
+        if (allLadders.length == 0){
+            this._ladderDat = [];
+            return;
+        }
         this._ladderDat = allLadders?.map((ladder: MapDrawLadder) =>
             ladder.getDat(),
         );
@@ -156,7 +162,10 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         const allEnemies =
             this._unitCont.getComponentsInChildren(MapDrawEnemyRefresh);
         this._roomItemDat.enemyRefreshDat = allEnemies;
-        if (allEnemies.length == 0) return;
+        if (allEnemies.length == 0){
+            this._enemyRefreshDat = [];
+            return;
+        }
         this._enemyRefreshDat = allEnemies.map((enemy: MapDrawEnemyRefresh) =>
             enemy.getDat(),
         );
@@ -166,7 +175,10 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         const allSearchItems =
             this._unitCont.getComponentsInChildren(MapDrawSearchItem);
         this._roomItemDat.searchItemDat = allSearchItems;
-        if (allSearchItems.length == 0) return;
+        if (allSearchItems.length == 0){
+            this._searchItemDat = [];
+            return;
+        }
         this._searchItemDat = allSearchItems.map((searchItem: MapDrawSearchItem) =>
             searchItem.getDat(),
         );

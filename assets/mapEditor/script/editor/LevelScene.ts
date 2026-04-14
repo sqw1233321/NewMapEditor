@@ -952,9 +952,13 @@ export default class LevelScene extends cc.Component {
     const p0 = binds[0];
     const p1 = binds[1];
     if (!p0 || !p1 || !cc.isValid(p0) || !cc.isValid(p1)) return;
-    const w0 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, 0));
     const h = ladderCom.node.getContentSize().height;
-    const w1 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, h));
+    const anchorY = ladderCom.node.anchorY ?? 0;
+    // 以 AR 为原点：底端/顶端在局部坐标中的 y（兼容不同 anchorY）
+    const bottomLocalY = -anchorY * h;
+    const topLocalY = (1 - anchorY) * h;
+    const w0 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, bottomLocalY));
+    const w1 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, topLocalY));
     this.setNodeWorldPos(p0, w0);
     this.setNodeWorldPos(p1, w1);
     this.mapLoader.getComponent(MapLoader).rebuildPointIdsByLayer();
@@ -970,10 +974,16 @@ export default class LevelScene extends cc.Component {
     if (!p0 || !p1 || !cc.isValid(p0) || !cc.isValid(p1)) return;
     const w0 = p0.convertToWorldSpaceAR(cc.Vec2.ZERO);
     const w1 = p1.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    this.setNodeWorldPos(ladderCom.node, w0);
-    const height = Math.max(1, w1.y - w0.y);
+    const mapScale = EditorSetting.Instance.getMapScale();
+    const heightWorld = Math.max(1, w1.y - w0.y);
+    // contentSize 是本地尺寸，world 距离需要除以缩放
+    const heightLocal = Math.max(1, heightWorld / Math.max(0.0001, mapScale));
+    const anchorY = ladderCom.node.anchorY ?? 0;
+    // 让梯子“底端”贴合 w0：需要把节点 anchor 点移动到 w0 + anchorY*heightWorld
+    const anchorWorld = cc.v2(w0.x, w0.y + anchorY * heightWorld);
+    this.setNodeWorldPos(ladderCom.node, anchorWorld);
     const curSize = ladderCom.node.getContentSize();
-    ladderCom.node.setContentSize(curSize.width, height);
+    ladderCom.node.setContentSize(curSize.width, heightLocal);
   }
 
   //拖拽梯子/点时联动三者
@@ -1253,12 +1263,13 @@ export default class LevelScene extends cc.Component {
           const ownerLayer = ownerRoom?.node?.parent ?? null;
           this._trackNd.removeFromParent();
           this._trackNd.destroy();
-          ownerRoom?.refreshDat();
-          if (ownerLayer && mapLoaderComp) {
-            mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
-          }
-          // 如果删的是梯子，可能影响绑定点联动/显示，重排一次点名确保一致
-          mapLoaderComp?.rebuildPointIdsByLayer?.();
+          //删除完要过一帧
+          this.scheduleOnce(() => {
+            ownerRoom?.refreshDat();
+            if (ownerLayer && mapLoaderComp) {
+              mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
+            }
+          })
         }
         break;
       case UnitType.Portal:
