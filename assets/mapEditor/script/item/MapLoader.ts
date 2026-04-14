@@ -268,8 +268,11 @@ export default class MapLoader extends cc.Component {
         const endNd = this._pointMap
           .get(ladder.bindPointIds[1])
           ?.addComponentSafe(MapDrawP);
-        const height = endNd.getPos().y - startNd.getPos().y;
-        ladderNd.setContentSize(ladderNd.width, height);
+
+        if (endNd && startNd) {
+          const height = endNd.getPos().y - startNd.getPos().y;
+          ladderNd.setContentSize(ladderNd.width, height);
+        }
 
         const control = ladderNd.addComponentSafe(MapDrawLadder);
         const bindPoint: cc.Node[] = ladder.bindPointIds.map((id) =>
@@ -378,18 +381,12 @@ export default class MapLoader extends cc.Component {
     let nameId = 0;
     const portals = this._data.portalDatas;
     portals?.forEach((portal: MapDrawDatPortal) => {
-      const itemNd = new cc.Node(`Portal${nameId++}`);
+      const itemNd = cc.instantiate(this.portalPrefab);
+      itemNd.name = `Portal${nameId++}`;
       itemNd.parent = this._portalCont;
-      itemNd.setAnchorPoint(0.5, 0.5);
       const worldPos = cc.v2(portal.pos.x, portal.pos.y);
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
-      itemNd.setContentSize(100, 50);
-      const sp = itemNd.addComponentSafe(cc.Sprite);
-      sp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-      sp.spriteFrame = this.defaultSp;
-      itemNd.color = cc.Color.GREEN;
-
       const control = itemNd.addComponentSafe(MapDrawPortal);
       control.linkId = portal.linkId;
       console.log(`portal ${portal.linkId} offsetX ${portal.offsetX}`);
@@ -636,14 +633,12 @@ export default class MapLoader extends cc.Component {
     const cfgId = roomComp.getId();
     this._roomNodeMap.delete(cfgId);
 
-    // 清理该房间下的路径点映射
+    // 清理该房间下的路径点（含 links / bind / unlock 引用）
     const pointCont = roomNode.getChildByName("pointCont");
     if (pointCont) {
-      pointCont.children.forEach((pNd) => {
-        const pComp = pNd.getComponent(MapDrawP);
-        if (!pComp) return;
-        const pid = pComp.getId();
-        this._pointMap.delete(pid);
+      const points = pointCont.children.slice();
+      points.forEach((pNd) => {
+        this.deletePathPoint(pNd, false);
       });
     }
 
@@ -667,6 +662,9 @@ export default class MapLoader extends cc.Component {
         this.updateLayerBounds(parentLayer);
       }
     }
+
+    // 房间删除后，统一重排一次点ID（避免每删一个点都重排）
+    this.rebuildPointIdsByLayer();
   }
 
   /** 房间移动后，清理空 Layer（childrenCount==0），并在下一帧重排层级编号 */
@@ -890,6 +888,76 @@ export default class MapLoader extends cc.Component {
     return this._portalCont;
   }
 
+  /** 删除一个路径点，并维护 links / 梯子绑定 / unlockPoints / 点映射 */
+  public deletePathPoint(pointNd: cc.Node, rebuildIds: boolean = true) {
+    if (!pointNd || !cc.isValid(pointNd)) return;
+    const pointCom = pointNd.getComponent(MapDrawP);
+    if (!pointCom) return;
+
+    const oldId = pointCom.getId();
+
+    // 1) 清理被删除点所连接点的“反向 link”（双向一致）
+    const linked = (pointCom.links || []).slice();
+    linked.forEach((toNd) => {
+      if (!toNd || !cc.isValid(toNd)) return;
+      toNd.getComponent(MapDrawP)?.removeLink(pointNd);
+    });
+
+    // 2) 清理其它点的 links（兜底：确保所有点都不再引用该点）
+    this._pointMap.forEach((otherNd) => {
+      if (!otherNd || !cc.isValid(otherNd)) return;
+      if (otherNd === pointNd) return;
+      const otherCom = otherNd.getComponent(MapDrawP);
+      otherCom?.removeLink(pointNd);
+    });
+
+    // 3) 清理梯子绑定点
+    this._roomNodeMap.forEach((roomNd) => {
+      if (!roomNd || !cc.isValid(roomNd)) return;
+      const unitCont = roomNd.getChildByName("unitCont");
+      if (!unitCont) return;
+      const ladders = unitCont.getComponentsInChildren(MapDrawLadder);
+      ladders.forEach((ladder) => {
+        const binds = (ladder.bindPoints || []).filter(
+          (n) => n && cc.isValid(n) && n !== pointNd,
+        );
+        if (binds.length !== (ladder.bindPoints || []).length) {
+          ladder.setBinds(binds);
+        }
+      });
+    });
+
+    // 4) 清理房间 unlockPoints 引用
+    this._roomNodeMap.forEach((roomNd) => {
+      if (!roomNd || !cc.isValid(roomNd)) return;
+      const roomCom = roomNd.getComponent(MapDrawRoom);
+      if (!roomCom) return;
+      const prev = roomCom.unLockPoints || [];
+      const next = prev.filter((p) => p && cc.isValid(p) && p !== pointNd);
+      if (next.length !== prev.length) {
+        roomCom.unLockPoints = next;
+        roomCom.refreshDat();
+      }
+    });
+
+    // 5) 删除点映射 & 节点
+    if (oldId) this._pointMap.delete(oldId);
+    pointNd.removeFromParent();
+    pointNd.destroy();
+
+    // 6) 删除后重排 ID（也会重建 _pointMap / 刷新 roomDat）
+    if (rebuildIds) {
+      this.rebuildPointIdsByLayer();
+    }
+  }
+
+  /** 删除一个 Portal */
+  public deletePortal(portalNd: cc.Node) {
+    if (!portalNd || !cc.isValid(portalNd)) return;
+    portalNd.removeFromParent();
+    portalNd.destroy();
+  }
+
   //编辑器操作
 
   public clear() {
@@ -910,11 +978,27 @@ export default class MapLoader extends cc.Component {
     this._pointMap.forEach((point) => {
       pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
     });
+    // 稳定排序：优先按 P{layer}_{n} 解析，其次按字符串
+    pathPoints.sort((a, b) => {
+      const ma = /^P(\d+)_(\d+)$/.exec(a.id || "");
+      const mb = /^P(\d+)_(\d+)$/.exec(b.id || "");
+      if (ma && mb) {
+        const la = Number(ma[1]);
+        const lb = Number(mb[1]);
+        if (la !== lb) return la - lb;
+        const na = Number(ma[2]);
+        const nb = Number(mb[2]);
+        return na - nb;
+      }
+      return String(a.id || "").localeCompare(String(b.id || ""));
+    });
 
     const rooms: MapDrawDatRoom[] = [];
     this._roomNodeMap.forEach((room) => {
       rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
     });
+    // 稳定排序：房间按 cfgId
+    rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));
 
     const portals: MapDrawDatPortal[] = [];
     this._portalCont.children.forEach((portal) => {
