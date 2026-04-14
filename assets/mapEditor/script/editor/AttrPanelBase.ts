@@ -1,4 +1,3 @@
-import { EventManager } from "../frameWork/EventManager";
 import { attrPanelTypeBase } from "../type/types";
 
 const { ccclass, property } = cc._decorator;

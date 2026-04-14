@@ -23,6 +23,11 @@ import { MapDrawDatRoom } from "../item/MapDrawDat";
 import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawPortal from "../item/MapDrawPortal";
+import PathPointLinkMode from "./modes/PathPointLinkMode";
+import LadderBindMode from "./modes/LadderBindMode";
+import PortalBindMode from "./modes/PortalBindMode";
+import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
+import ModeBase from "./modes/ModeBase";
 
 const { ccclass, property } = cc._decorator;
 
@@ -56,6 +61,9 @@ export default class LevelScene extends cc.Component {
   @property(HoverDrawer)
   hoverDrawer: HoverDrawer;
 
+  @property(cc.Label)
+  curModeLb:cc.Label;
+
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
   private _isDrag: boolean = false;
@@ -70,106 +78,72 @@ export default class LevelScene extends cc.Component {
   private _dragHoverRoomName: string = "";
   //属性面板追踪的节点(注意删除节点时的问题)
   private _trackNd: cc.Node;
+  //模式
+  private _pathPointMode: PathPointLinkMode;
+  private _ladderMode: LadderBindMode;
+  private _portalMode: PortalBindMode;
+  private _roomUnlockMode: RoomUnlockBindMode;
 
-  /** 世界坐标是否落在指定节点的 world rect 内（节点为空则视为不命中） */
-  private isWorldPosInNodeRect(
-    worldPos: cc.Vec2,
-    node: cc.Node | null,
-  ): boolean {
-    if (!node || !cc.isValid(node)) return false;
-    const box = node.getBoundingBoxToWorld();
-    return box.contains(worldPos);
-  }
 
   /**
    * 是否允许地图交互：
-   * - 鼠标在 editorRoot 的 world rect 内
-   * - 且不在 itemPanelNd 的 world rect 内（避免 UI 面板误触）
+   * - 鼠标在 mapGraph 或 itemPanelNd 的 world rect 内可交互
    */
   private isWorldPosInEditorArea(worldPos: cc.Vec2): boolean {
-    if (this.isWorldPosInNodeRect(worldPos, this.mapGraph) || this.isWorldPosInNodeRect(worldPos, this.itemPanelNd)) return true;
+    const validNodes = [this.mapGraph, this.itemPanelNd];
+    for (const node of validNodes) {
+      if (MapTool.isWorldPosInNodeRect(worldPos, node)) return true;
+    }
     return false;
   }
 
   protected onLoad(): void {
+    const deactivateOthers = () => {
+      this._pathPointMode?.setEnabled(false);
+      this._ladderMode?.setEnabled(false);
+      this._portalMode?.setEnabled(false);
+      this._roomUnlockMode?.setEnabled(false);
+    };
+    this._pathPointMode = new PathPointLinkMode(deactivateOthers, {
+      onChanged: () => this.refreshAttrPanel(),
+    });
+    this._ladderMode = new LadderBindMode(deactivateOthers, {
+      getTrackedNode: () => this._trackNd,
+      syncLadderToBindPoints: (ladder) => this.syncLadderToBindPoints(ladder),
+      onChanged: () => this.refreshAttrPanel(),
+    });
+    this._portalMode = new PortalBindMode(deactivateOthers, {
+      onChanged: () => this.refreshAttrPanel(),
+    });
+    this._roomUnlockMode = new RoomUnlockBindMode(deactivateOthers, {
+      onChanged: () => this.refreshAttrPanel(),
+    });
+    this._pathPointMode.mount();
+    this._ladderMode.mount();
+    this._portalMode.mount();
+    this._roomUnlockMode.mount();
+
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this, true);
     this.node.on(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
     this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.on(
-      MapEditorEvent.PathPointLinkClick,
-      this.onPathPointLinkClick,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.LadderBindPointClick,
-      this.onLadderBindPointClick,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.PortalBindPortalClick,
-      this.onPortalBindPortalClick,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.PortalBindPathPointClick,
-      this.onPortalBindPathPointClick,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.RoomUnlockBindRoomClick,
-      this.onRoomUnlockBindRoomClick,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.RoomUnlockBindPointClick,
-      this.onRoomUnlockBindPointClick,
-      this,
-    );
-    EventManager.instance.on(
       MapEditorEvent.UpdateFromAttrPanel,
       this.refreshNdAttr,
       this,
     );
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-
     MapTool.init(this.mapLoader);
     this.createLevel();
   }
 
   protected onDestroy(): void {
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
-    EventManager.instance.off(
-      MapEditorEvent.PathPointLinkClick,
-      this.onPathPointLinkClick,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.LadderBindPointClick,
-      this.onLadderBindPointClick,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.PortalBindPortalClick,
-      this.onPortalBindPortalClick,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.PortalBindPathPointClick,
-      this.onPortalBindPathPointClick,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.RoomUnlockBindRoomClick,
-      this.onRoomUnlockBindRoomClick,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.RoomUnlockBindPointClick,
-      this.onRoomUnlockBindPointClick,
-      this,
-    );
+    this._pathPointMode?.unmount();
+    this._ladderMode?.unmount();
+    this._portalMode?.unmount();
+    this._roomUnlockMode?.unmount();
     EventManager.instance.off(
       MapEditorEvent.UpdateFromAttrPanel,
       this.refreshNdAttr,
@@ -191,58 +165,8 @@ export default class LevelScene extends cc.Component {
     return json;
   }
 
-  /** 根据世界坐标命中房间（后遍历优先，尽量选上层叠放时更“靠上”的房间） */
-  private findRoomAtWorldPos(worldPos: cc.Vec2): MapDrawRoom | null {
-    if (!this.mapLoader) return null;
-    const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
-    const wp = cc.v2(worldPos.x, worldPos.y);
-    for (let i = rooms.length - 1; i >= 0; i--) {
-      const room = rooms[i];
-      const box = room.node.getBoundingBoxToWorld();
-      if (box.contains(wp)) return room;
-    }
-    return null;
-  }
-
-  /** 拖拽结束时，根据 hover 信息找到目标房间 */
-  private findHoverRoomForDrag(): MapDrawRoom | null {
-    if (!this.mapLoader || !this._dragDat) return null;
-    const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
-    const hoverRoomId = this._dragDat.hoverRoomId;
-    const hoverRoomName = this._dragDat.hoverRoomName;
-    for (let i = rooms.length - 1; i >= 0; i--) {
-      const room = rooms[i];
-      if (hoverRoomId !== undefined && room.getId() === hoverRoomId)
-        return room;
-      if (hoverRoomName && room.node.name === hoverRoomName) return room;
-    }
-    return null;
-  }
-
-  /** 非房间节点落到房间时，选择合适的容器（点进 pointCont，其它进 unitCont） */
-  private getNonRoomDropParent(
-    itemNd: cc.Node,
-    hoverRoom: MapDrawRoom,
-  ): cc.Node {
-    if (!itemNd || !hoverRoom) return null;
-    if (itemNd.getComponent("MapDrawP")) {
-      return hoverRoom.node.getChildByName("pointCont") || hoverRoom.node;
-    }
-    return hoverRoom.node.getChildByName("unitCont") || hoverRoom.node;
-  }
-
-  /** 根据任意子节点找到其所属房间 */
-  private findOwnerRoomByNode(nd: cc.Node): MapDrawRoom | null {
-    let cur = nd;
-    while (cur) {
-      const room = cur.getComponent(MapDrawRoom);
-      if (room) return room;
-      cur = cur.parent;
-    }
-    return null;
-  }
-
-  /** 悬停框：与 MapDrawUnitBase 的命中盒一致 */
+  //hover框
+  //为一个节点构建hover框
   private buildHoverBoxForNode(hoverNd: cc.Node): HoverType | null {
     const controller = hoverNd.getComponent(MapDrawUnitBase);
     if (!controller) return null;
@@ -261,26 +185,7 @@ export default class LevelScene extends cc.Component {
       height: controller.getHoverBoxSize().height,
     };
   }
-
-  /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
-  private findLayerAtWorldPos(worldPos: cc.Vec2): cc.Node | null {
-    if (!this.mapLoader) return null;
-    const wp = cc.v2(worldPos.x, worldPos.y);
-
-    // mapLoader.buildBaseNd() 里会创建名为 "LayerCont" 的容器，实际的层节点命名为 "Layer{n}"
-    const layerCont = this.mapLoader.getChildByName("LayerCont");
-    if (!layerCont) return null;
-
-    for (const layerNd of layerCont.children) {
-      // 避免把 LayerCont 自己/其它非 Layer{n} 节点误判
-      if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) continue;
-      const box = layerNd.getBoundingBoxToWorld();
-      if (box.contains(wp)) return layerNd;
-    }
-    return null;
-  }
-
-  //清楚hover框
+  //清除hover框
   private clearDragRoomHover() {
     this._dragHoverRoomName = "";
     if (this._dragDat) {
@@ -303,11 +208,11 @@ export default class LevelScene extends cc.Component {
       this._dragDat.hoverRoomId = draggedRoom.getId();
       this._dragDat.hoverRoomName = draggedRoom.node.name;
 
-      const layerNd = this.findLayerAtWorldPos(worldMousePos);
+      const layerNd = MapTool.findLayerAtWorldPos(worldMousePos);
       if (!layerNd) {
+        // 只清空 hover 框，不清空 hoverRoomId/hoverRoomName
         this._dragDat.hoverLayerNode = undefined;
         this._dragDat.hoverLayerName = undefined;
-        // 只清空 hover 框，不清空 hoverRoomId/hoverRoomName
         this._dragHoverRoomName = "";
         this.clearHoverDat();
         this.hoverDrawer?.clear();
@@ -337,8 +242,8 @@ export default class LevelScene extends cc.Component {
     // 非房间拖拽：按房间命中判断 hover 框
     this._dragDat.hoverLayerNode = undefined;
     this._dragDat.hoverLayerName = undefined;
-
-    const room = this.findRoomAtWorldPos(worldMousePos);
+    const allRooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
+    const room = MapTool.findRoomAtWorldPos(worldMousePos, allRooms);
     if (!room) {
       this.clearDragRoomHover();
       return;
@@ -382,9 +287,9 @@ export default class LevelScene extends cc.Component {
     );
     const dragOffset = this._dragDat.dragOffset;
     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
-    //刷新属性面板
     //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
     this.updateDragRoomHover(this._dragDat.mousePos);
+    //刷新属性面板
     this.refreshAttrPanel();
   }
 
@@ -511,9 +416,9 @@ export default class LevelScene extends cc.Component {
         ) {
           //放回原位
           const draggedRoom = itemDat.getComponent(MapDrawRoom);
-          const oldOwnerRoom = this.findOwnerRoomByNode(itemParent);
+          const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
           let targetParent = itemParent;
-          //门
+          //房间
           if (draggedRoom) {
             //拖拽到layer区域
             if (
@@ -543,9 +448,9 @@ export default class LevelScene extends cc.Component {
               .getComponent(MapLoader)
               .getPortalParent();
           } else {
-            const hoverRoom = this.findHoverRoomForDrag();
+            const hoverRoom = MapTool.findHoverRoomForDrag(this._dragDat.hoverRoomId, this._dragDat.hoverRoomName);
             if (hoverRoom && cc.isValid(hoverRoom.node)) {
-              const nonRoomParent = this.getNonRoomDropParent(
+              const nonRoomParent = MapTool.getNonRoomDropParent(
                 itemDat,
                 hoverRoom,
               );
@@ -567,7 +472,7 @@ export default class LevelScene extends cc.Component {
             );
             itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
           }
-
+          //没有实际拖拽，只是点击了拖拽节点，则直接返回
           if (!this._isDrag) return;
 
           //房间名字同步
@@ -583,8 +488,7 @@ export default class LevelScene extends cc.Component {
               itemParent,
             );
             // 父节点发生变化（从旧 layer 到新 layer）后，需要重新计算两个 layer 的尺寸
-            const mapLoaderComp =
-              this.mapLoader?.getComponent(MapLoader) ?? null;
+            const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
             if (mapLoaderComp) {
               if (itemParent && /^Layer\d+$/.test(itemParent.name)) {
                 mapLoaderComp.refreshLayerBoundsByNode(itemParent);
@@ -604,7 +508,7 @@ export default class LevelScene extends cc.Component {
           }
           // 非房间节点迁移后，刷新来源/目标房间，确保 roomId 与导出数据同步
           if (!draggedRoom) {
-            const newOwnerRoom = this.findOwnerRoomByNode(targetParent);
+            const newOwnerRoom = MapTool.findOwnerRoomByNode(targetParent);
             if (oldOwnerRoom && cc.isValid(oldOwnerRoom.node)) {
               oldOwnerRoom.refreshDat();
             }
@@ -632,311 +536,33 @@ export default class LevelScene extends cc.Component {
   private onKeyDown(event: cc.Event.EventKeyboard) {
     //退出按钮
     if (event.keyCode === cc.macro.KEY.escape) {
-      if (EditorSetting.Instance.isPathPointLinkMode()) {
-        this.cancelPathPointLinkPick();
-        this.setPathPointLinkMode(false);
-      }
-      if (EditorSetting.Instance.isLadderBindMode()) {
-        this.cancelLadderBindPick();
-        this.setLadderBindMode(false);
-      }
-      if (EditorSetting.Instance.isPortalBindMode()) {
-        this.cancelPortalBindPick();
-        this.setPortalBindMode(false);
-      }
-      if (EditorSetting.Instance.isRoomUnlockBindMode()) {
-        this.cancelRoomUnlockBindPick();
-        this.setRoomUnlockBindMode(false);
-      }
+      this._pathPointMode?.setEnabled(false);
+      this._ladderMode?.setEnabled(false);
+      this._portalMode?.setEnabled(false);
+      this._roomUnlockMode?.setEnabled(false);
     }
     //p键，进入连线模式
     else if (event.keyCode === cc.macro.KEY.p) {
-      this.togglePathPointLinkMode();
+      this.setMode(this._pathPointMode);
     }
     //l键，进入梯子绑定模式
     else if (event.keyCode === cc.macro.KEY.l) {
-      this.toggleLadderBindMode();
+      this.setMode(this._ladderMode);
     }
     //o键，进入传送门绑定模式
-    else if (
-      event.keyCode === (cc.macro.KEY as any).o ||
-      event.keyCode === (cc.macro.KEY as any).O ||
-      event.keyCode === 79
-    ) {
-      this.togglePortalBindMode();
+    else if (event.keyCode === cc.macro.KEY.o) {
+      this.setMode(this._portalMode);
     }
     //r键，进入房间解锁点绑定模式
     else if (event.keyCode === cc.macro.KEY.r) {
-      this.toggleRoomUnlockBindMode();
+      this.setMode(this._roomUnlockMode);
     }
   }
+
   //模式：
-  //连线模式
-  public setPathPointLinkMode(enabled: boolean) {
-    if (enabled && EditorSetting.Instance.isLadderBindMode()) {
-      this.setLadderBindMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isPortalBindMode()) {
-      this.setPortalBindMode(false);
-    }
-    if (!enabled) {
-      const n = EditorSetting.Instance.getPathPointLinkStart();
-      if (n && cc.isValid(n)) {
-        n.getComponent(MapDrawP)?.setLinkHighlight(false);
-      }
-    }
-    EditorSetting.Instance.setPathPointLinkMode(enabled);
-  }
-
-  public togglePathPointLinkMode() {
-    this.setPathPointLinkMode(!EditorSetting.Instance.isPathPointLinkMode());
-  }
-
-  private cancelPathPointLinkPick() {
-    const n = EditorSetting.Instance.getPathPointLinkStart();
-    if (n && cc.isValid(n)) {
-      n.getComponent(MapDrawP)?.setLinkHighlight(false);
-    }
-    EditorSetting.Instance.setPathPointLinkStart(null);
-  }
-
-  //梯子绑定模式
-  public setLadderBindMode(enabled: boolean) {
-    if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
-      this.setPathPointLinkMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isPortalBindMode()) {
-      this.setPortalBindMode(false);
-    }
-    if (!enabled) {
-      this.cancelLadderBindPick();
-    }
-    EditorSetting.Instance.setLadderBindMode(enabled);
-  }
-
-  public toggleLadderBindMode() {
-    this.setLadderBindMode(!EditorSetting.Instance.isLadderBindMode());
-  }
-
-  private cancelLadderBindPick() {
-    const n = EditorSetting.Instance.getLadderBindStart();
-    if (n && cc.isValid(n)) {
-      n.getComponent(MapDrawP)?.setLinkHighlight(false);
-    }
-    EditorSetting.Instance.setLadderBindStart(null);
-  }
-
-  //传送门绑定模式（仿连线：先点传送门，再点一个路径点作为终点）
-  public setPortalBindMode(enabled: boolean) {
-    if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
-      this.setPathPointLinkMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isLadderBindMode()) {
-      this.setLadderBindMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isRoomUnlockBindMode()) {
-      this.setRoomUnlockBindMode(false);
-    }
-    if (!enabled) {
-      this.cancelPortalBindPick();
-    }
-    EditorSetting.Instance.setPortalBindMode(enabled);
-  }
-
-  public togglePortalBindMode() {
-    this.setPortalBindMode(!EditorSetting.Instance.isPortalBindMode());
-  }
-
-  private cancelPortalBindPick() {
-    const n = EditorSetting.Instance.getPortalBindPortal();
-    if (n && cc.isValid(n)) {
-      n.getComponent(MapDrawPortal)?.setPortalBindHighlight(false);
-    }
-    EditorSetting.Instance.setPortalBindPortal(null);
-  }
-
-  //房间解锁点绑定模式（先点房间，再点路径点切换）
-  public setRoomUnlockBindMode(enabled: boolean) {
-    if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
-      this.setPathPointLinkMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isLadderBindMode()) {
-      this.setLadderBindMode(false);
-    }
-    if (enabled && EditorSetting.Instance.isPortalBindMode()) {
-      this.setPortalBindMode(false);
-    }
-    if (!enabled) {
-      this.cancelRoomUnlockBindPick();
-    }
-    EditorSetting.Instance.setRoomUnlockBindMode(enabled);
-  }
-
-  public toggleRoomUnlockBindMode() {
-    this.setRoomUnlockBindMode(!EditorSetting.Instance.isRoomUnlockBindMode());
-  }
-
-  private cancelRoomUnlockBindPick() {
-    const n = EditorSetting.Instance.getRoomUnlockBindRoom();
-    if (n && cc.isValid(n)) {
-      n.getComponent(MapDrawRoom)?.setUnlockBindHighlight(false);
-    }
-    EditorSetting.Instance.setRoomUnlockBindRoom(null);
-  }
-
-  private onRoomUnlockBindRoomClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isRoomUnlockBindMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const roomCom = node.getComponent(MapDrawRoom);
-    if (!roomCom) return;
-
-    const prev = EditorSetting.Instance.getRoomUnlockBindRoom();
-    if (prev && cc.isValid(prev) && prev !== node) {
-      prev.getComponent(MapDrawRoom)?.setUnlockBindHighlight(false);
-    }
-    if (prev === node) {
-      roomCom.setUnlockBindHighlight(false);
-      EditorSetting.Instance.setRoomUnlockBindRoom(null);
-      return;
-    }
-
-    EditorSetting.Instance.setRoomUnlockBindRoom(node);
-    roomCom.setUnlockBindHighlight(true);
-  }
-
-  private onRoomUnlockBindPointClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isRoomUnlockBindMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const pointNd = node;
-    const pointCom = pointNd.getComponent(MapDrawP);
-    if (!pointCom) return;
-
-    const roomNd = EditorSetting.Instance.getRoomUnlockBindRoom();
-    if (!roomNd || !cc.isValid(roomNd)) return;
-    const roomCom = roomNd.getComponent(MapDrawRoom);
-    if (!roomCom) return;
-
-    const prev = roomCom.unLockPoints || [];
-    const exists = prev.indexOf(pointNd) >= 0;
-    const next = exists ? prev.filter((p) => p !== pointNd) : prev.concat([pointNd]);
-    roomCom.setUnLockPoints(next);
-    roomCom.refreshDat();
-    this.refreshAttrPanel();
-  }
-
-  private onPortalBindPortalClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isPortalBindMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const portalCom = node.getComponent(MapDrawPortal);
-    if (!portalCom) return;
-
-    const prev = EditorSetting.Instance.getPortalBindPortal();
-    if (prev && cc.isValid(prev) && prev !== node) {
-      prev.getComponent(MapDrawPortal)?.setPortalBindHighlight(false);
-    }
-
-    if (prev === node) {
-      portalCom.setPortalBindHighlight(false);
-      EditorSetting.Instance.setPortalBindPortal(null);
-      return;
-    }
-
-    EditorSetting.Instance.setPortalBindPortal(node);
-    portalCom.setPortalBindHighlight(true);
-  }
-
-  private onPortalBindPathPointClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isPortalBindMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const pointCom = node.getComponent(MapDrawP);
-    if (!pointCom) return;
-
-    const portalNd = EditorSetting.Instance.getPortalBindPortal();
-    if (!portalNd || !cc.isValid(portalNd)) return;
-
-    const portalCom = portalNd.getComponent(MapDrawPortal);
-    if (!portalCom) return;
-
-    portalCom.setLinkId(pointCom.getId());
-    portalCom.setPortalBindHighlight(false);
-    EditorSetting.Instance.setPortalBindPortal(null);
-    this.refreshAttrPanel();
-  }
-
-  private onPathPointLinkClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isPathPointLinkMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const target = node.getComponent(MapDrawP);
-    if (!target) return;
-
-    const startNd = EditorSetting.Instance.getPathPointLinkStart();
-    if (!startNd || !cc.isValid(startNd)) {
-      EditorSetting.Instance.setPathPointLinkStart(node);
-      target.setLinkHighlight(true);
-      return;
-    }
-
-    const startCom = startNd.getComponent(MapDrawP);
-    if (!startCom) {
-      EditorSetting.Instance.setPathPointLinkStart(null);
-      return;
-    }
-
-    if (startNd === node) {
-      startCom.setLinkHighlight(false);
-      EditorSetting.Instance.setPathPointLinkStart(null);
-      return;
-    }
-
-    if (startCom.hasLinkTo(node)) {
-      startCom.removeLink(node);
-      target.removeLink(startNd);
-    } else {
-      startCom.addLink(node);
-      target.addLink(startNd);
-    }
-
-    startCom.setLinkHighlight(false);
-    EditorSetting.Instance.setPathPointLinkStart(null);
-    this.refreshAttrPanel();
-  }
-
-  private onLadderBindPointClick(node: cc.Node) {
-    if (!EditorSetting.Instance.isLadderBindMode()) return;
-    if (!node || !cc.isValid(node)) return;
-    const targetPoint = node.getComponent(MapDrawP);
-    if (!targetPoint) return;
-    const ladderNode = this._trackNd;
-    const ladderCom = ladderNode?.getComponent(MapDrawLadder);
-    if (!ladderCom) return;
-
-    const startNd = EditorSetting.Instance.getLadderBindStart();
-    if (!startNd || !cc.isValid(startNd)) {
-      EditorSetting.Instance.setLadderBindStart(node);
-      targetPoint.setLinkHighlight(true);
-      return;
-    }
-
-    const startPoint = startNd.getComponent(MapDrawP);
-    if (!startPoint) {
-      EditorSetting.Instance.setLadderBindStart(null);
-      return;
-    }
-    if (startNd === node) {
-      startPoint.setLinkHighlight(false);
-      EditorSetting.Instance.setLadderBindStart(null);
-      return;
-    }
-
-    const startWorld = startNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    const endWorld = node.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    const bindStart = startWorld.y <= endWorld.y ? startNd : node;
-    const bindEnd = bindStart === startNd ? node : startNd;
-    ladderCom.setBinds([bindStart, bindEnd]);
-    startPoint.setLinkHighlight(false);
-    EditorSetting.Instance.setLadderBindStart(null);
-    this.syncLadderToBindPoints(ladderCom);
-    this.refreshAttrPanel();
+  public setMode(mode: ModeBase) {
+    const enable = mode.isEnabled();
+    mode?.setEnabled(!enable);
   }
 
   private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
@@ -961,7 +587,10 @@ export default class LevelScene extends cc.Component {
     const w1 = ladderCom.node.convertToWorldSpaceAR(cc.v2(0, topLocalY));
     this.setNodeWorldPos(p0, w0);
     this.setNodeWorldPos(p1, w1);
-    this.mapLoader.getComponent(MapLoader).rebuildPointIdsByLayer();
+    const loader = this.mapLoader?.getComponent(MapLoader);
+    loader?.movePathPointToRoomByWorldPos(p0, w0, false);
+    loader?.movePathPointToRoomByWorldPos(p1, w1, false);
+    loader?.rebuildPointIdsByLayer();
   }
 
   //根据两个绑定点反推梯子位置和高度
@@ -1236,7 +865,7 @@ export default class LevelScene extends cc.Component {
       const nextRoomId = Number(dat.roomId);
       if (isFinite(nextRoomId)) {
         const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-        mapLoaderComp?.movePathPointToRoom(this._trackNd, nextRoomId);
+        mapLoaderComp?.moveUnitToRoom(this._trackNd, nextRoomId);
       }
     }
   }
@@ -1259,7 +888,7 @@ export default class LevelScene extends cc.Component {
       case UnitType.SearchPoint:
         {
           // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
-          const ownerRoom = this.findOwnerRoomByNode(this._trackNd.parent);
+          const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
           const ownerLayer = ownerRoom?.node?.parent ?? null;
           this._trackNd.removeFromParent();
           this._trackNd.destroy();
@@ -1336,6 +965,7 @@ export default class LevelScene extends cc.Component {
     }
   }
 
+  //清除
   public onClickClear() {
     this.mapLoader.getComponent(MapLoader).clear();
   }

@@ -43,17 +43,6 @@ export default class EditorSetting extends cc.Component {
 
     public setPathPointLinkMode(enabled: boolean) {
         this._pathPointLinkMode = enabled;
-        if (!enabled) {
-            this._pathPointLinkStart = null;
-        }
-    }
-
-    public getPathPointLinkStart(): cc.Node | null {
-        return this._pathPointLinkStart;
-    }
-
-    public setPathPointLinkStart(node: cc.Node | null) {
-        this._pathPointLinkStart = node;
     }
 
     public isLadderBindMode(): boolean {
@@ -62,17 +51,6 @@ export default class EditorSetting extends cc.Component {
 
     public setLadderBindMode(enabled: boolean) {
         this._ladderBindMode = enabled;
-        if (!enabled) {
-            this._ladderBindStart = null;
-        }
-    }
-
-    public getLadderBindStart(): cc.Node | null {
-        return this._ladderBindStart;
-    }
-
-    public setLadderBindStart(node: cc.Node | null) {
-        this._ladderBindStart = node;
     }
 
     public isPortalBindMode(): boolean {
@@ -81,17 +59,6 @@ export default class EditorSetting extends cc.Component {
 
     public setPortalBindMode(enabled: boolean) {
         this._portalBindMode = enabled;
-        if (!enabled) {
-            this._portalBindPortal = null;
-        }
-    }
-
-    public getPortalBindPortal(): cc.Node | null {
-        return this._portalBindPortal;
-    }
-
-    public setPortalBindPortal(node: cc.Node | null) {
-        this._portalBindPortal = node;
     }
 
     public isRoomUnlockBindMode(): boolean {
@@ -100,17 +67,5 @@ export default class EditorSetting extends cc.Component {
 
     public setRoomUnlockBindMode(enabled: boolean) {
         this._roomUnlockBindMode = enabled;
-        if (!enabled) {
-            this._roomUnlockBindRoom = null;
-        }
     }
-
-    public getRoomUnlockBindRoom(): cc.Node | null {
-        return this._roomUnlockBindRoom;
-    }
-
-    public setRoomUnlockBindRoom(node: cc.Node | null) {
-        this._roomUnlockBindRoom = node;
-    }
-
 }
