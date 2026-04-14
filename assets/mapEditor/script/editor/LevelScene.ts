@@ -71,6 +71,26 @@ export default class LevelScene extends cc.Component {
   //属性面板追踪的节点(注意删除节点时的问题)
   private _trackNd: cc.Node;
 
+  /** 世界坐标是否落在指定节点的 world rect 内（节点为空则视为不命中） */
+  private isWorldPosInNodeRect(
+    worldPos: cc.Vec2,
+    node: cc.Node | null,
+  ): boolean {
+    if (!node || !cc.isValid(node)) return false;
+    const box = node.getBoundingBoxToWorld();
+    return box.contains(worldPos);
+  }
+
+  /**
+   * 是否允许地图交互：
+   * - 鼠标在 editorRoot 的 world rect 内
+   * - 且不在 itemPanelNd 的 world rect 内（避免 UI 面板误触）
+   */
+  private isWorldPosInEditorArea(worldPos: cc.Vec2): boolean {
+    if (this.isWorldPosInNodeRect(worldPos, this.mapGraph) || this.isWorldPosInNodeRect(worldPos, this.itemPanelNd)) return true;
+    return false;
+  }
+
   protected onLoad(): void {
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this, true);
@@ -359,12 +379,15 @@ export default class LevelScene extends cc.Component {
 
   private onMouseDown(event: cc.Event.EventMouse) {
     this._isDrag = false;
+    const worldPos = event.getLocation();
+    // UI（属性面板等）上的操作不进入地图交互
+    if (!this.isWorldPosInEditorArea(worldPos)) return;
     if (event.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
       this._isLeftDown = true;
       this.clearHoverDat();
       this.hoverDrawer?.clear();
       //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
-      this.updateDragRoomHover(event.getLocation());
+      this.updateDragRoomHover(worldPos);
     } else if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       this._isRightDown = true;
       this.clearHoverDat();
@@ -447,9 +470,15 @@ export default class LevelScene extends cc.Component {
 
   private onMouseUp(event: cc.Event.EventMouse) {
     if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
+      const wasRightDown = this._isRightDown;
       this._isRightDown = false;
+      // 没有经历过右键按下，则忽略右键抬起（避免 UI 上抬起误触发）
+      if (!wasRightDown) return;
     } else if (event.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
+      const wasLeftDown = this._isLeftDown;
       this._isLeftDown = false;
+      // 没有经历过左键按下，则忽略左键抬起（避免 UI 上抬起误触发）
+      if (!wasLeftDown) return;
       if (this._dragDat) {
         const itemDat = this._dragDat.itemNode;
         const itemParent = this._dragDat.parent;
