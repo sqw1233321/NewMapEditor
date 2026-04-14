@@ -14,6 +14,9 @@ export default class EditorSetting extends cc.Component {
     /** 传送门绑定终点模式：先选传送门，再点一个路径点 */
     private _portalBindMode = false;
     private _portalBindPortal: cc.Node = null;
+    /** 房间解锁点绑定模式：先选房间，再点路径点切换解锁点 */
+    private _roomUnlockBindMode = false;
+    private _roomUnlockBindRoom: cc.Node = null;
 
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
@@ -89,6 +92,25 @@ export default class EditorSetting extends cc.Component {
 
     public setPortalBindPortal(node: cc.Node | null) {
         this._portalBindPortal = node;
+    }
+
+    public isRoomUnlockBindMode(): boolean {
+        return this._roomUnlockBindMode;
+    }
+
+    public setRoomUnlockBindMode(enabled: boolean) {
+        this._roomUnlockBindMode = enabled;
+        if (!enabled) {
+            this._roomUnlockBindRoom = null;
+        }
+    }
+
+    public getRoomUnlockBindRoom(): cc.Node | null {
+        return this._roomUnlockBindRoom;
+    }
+
+    public setRoomUnlockBindRoom(node: cc.Node | null) {
+        this._roomUnlockBindRoom = node;
     }
 
 }

@@ -33,14 +33,14 @@ export interface HoverType {
 export interface attrPanelType {
   type: UnitType;
   dat:
-    | attrPanelTypeBase
-    | attrPanelTypeRoom
-    | attrPanelTypePoint
-    | attrPanelTypeDoor
-    | attrPanelTypeLadder
-    | attrPanelTypeSurvive
-    | attrPanelTypeSearchItem
-    | attrPanelTypePortal;
+  | attrPanelTypeBase
+  | attrPanelTypeRoom
+  | attrPanelTypePoint
+  | attrPanelTypeDoor
+  | attrPanelTypeLadder
+  | attrPanelTypeSurvive
+  | attrPanelTypeSearchItem
+  | attrPanelTypePortal;
 }
 
 export interface attrPanelTypeBase {

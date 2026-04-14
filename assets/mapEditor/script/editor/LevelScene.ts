@@ -118,6 +118,16 @@ export default class LevelScene extends cc.Component {
       this,
     );
     EventManager.instance.on(
+      MapEditorEvent.RoomUnlockBindRoomClick,
+      this.onRoomUnlockBindRoomClick,
+      this,
+    );
+    EventManager.instance.on(
+      MapEditorEvent.RoomUnlockBindPointClick,
+      this.onRoomUnlockBindPointClick,
+      this,
+    );
+    EventManager.instance.on(
       MapEditorEvent.UpdateFromAttrPanel,
       this.refreshNdAttr,
       this,
@@ -148,6 +158,16 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.off(
       MapEditorEvent.PortalBindPathPointClick,
       this.onPortalBindPathPointClick,
+      this,
+    );
+    EventManager.instance.off(
+      MapEditorEvent.RoomUnlockBindRoomClick,
+      this.onRoomUnlockBindRoomClick,
+      this,
+    );
+    EventManager.instance.off(
+      MapEditorEvent.RoomUnlockBindPointClick,
+      this.onRoomUnlockBindPointClick,
       this,
     );
     EventManager.instance.off(
@@ -624,6 +644,10 @@ export default class LevelScene extends cc.Component {
         this.cancelPortalBindPick();
         this.setPortalBindMode(false);
       }
+      if (EditorSetting.Instance.isRoomUnlockBindMode()) {
+        this.cancelRoomUnlockBindPick();
+        this.setRoomUnlockBindMode(false);
+      }
     }
     //p键，进入连线模式
     else if (event.keyCode === cc.macro.KEY.p) {
@@ -640,6 +664,10 @@ export default class LevelScene extends cc.Component {
       event.keyCode === 79
     ) {
       this.togglePortalBindMode();
+    }
+    //r键，进入房间解锁点绑定模式
+    else if (event.keyCode === cc.macro.KEY.r) {
+      this.toggleRoomUnlockBindMode();
     }
   }
   //模式：
@@ -706,6 +734,9 @@ export default class LevelScene extends cc.Component {
     if (enabled && EditorSetting.Instance.isLadderBindMode()) {
       this.setLadderBindMode(false);
     }
+    if (enabled && EditorSetting.Instance.isRoomUnlockBindMode()) {
+      this.setRoomUnlockBindMode(false);
+    }
     if (!enabled) {
       this.cancelPortalBindPick();
     }
@@ -722,6 +753,75 @@ export default class LevelScene extends cc.Component {
       n.getComponent(MapDrawPortal)?.setPortalBindHighlight(false);
     }
     EditorSetting.Instance.setPortalBindPortal(null);
+  }
+
+  //房间解锁点绑定模式（先点房间，再点路径点切换）
+  public setRoomUnlockBindMode(enabled: boolean) {
+    if (enabled && EditorSetting.Instance.isPathPointLinkMode()) {
+      this.setPathPointLinkMode(false);
+    }
+    if (enabled && EditorSetting.Instance.isLadderBindMode()) {
+      this.setLadderBindMode(false);
+    }
+    if (enabled && EditorSetting.Instance.isPortalBindMode()) {
+      this.setPortalBindMode(false);
+    }
+    if (!enabled) {
+      this.cancelRoomUnlockBindPick();
+    }
+    EditorSetting.Instance.setRoomUnlockBindMode(enabled);
+  }
+
+  public toggleRoomUnlockBindMode() {
+    this.setRoomUnlockBindMode(!EditorSetting.Instance.isRoomUnlockBindMode());
+  }
+
+  private cancelRoomUnlockBindPick() {
+    const n = EditorSetting.Instance.getRoomUnlockBindRoom();
+    if (n && cc.isValid(n)) {
+      n.getComponent(MapDrawRoom)?.setUnlockBindHighlight(false);
+    }
+    EditorSetting.Instance.setRoomUnlockBindRoom(null);
+  }
+
+  private onRoomUnlockBindRoomClick(node: cc.Node) {
+    if (!EditorSetting.Instance.isRoomUnlockBindMode()) return;
+    if (!node || !cc.isValid(node)) return;
+    const roomCom = node.getComponent(MapDrawRoom);
+    if (!roomCom) return;
+
+    const prev = EditorSetting.Instance.getRoomUnlockBindRoom();
+    if (prev && cc.isValid(prev) && prev !== node) {
+      prev.getComponent(MapDrawRoom)?.setUnlockBindHighlight(false);
+    }
+    if (prev === node) {
+      roomCom.setUnlockBindHighlight(false);
+      EditorSetting.Instance.setRoomUnlockBindRoom(null);
+      return;
+    }
+
+    EditorSetting.Instance.setRoomUnlockBindRoom(node);
+    roomCom.setUnlockBindHighlight(true);
+  }
+
+  private onRoomUnlockBindPointClick(node: cc.Node) {
+    if (!EditorSetting.Instance.isRoomUnlockBindMode()) return;
+    if (!node || !cc.isValid(node)) return;
+    const pointNd = node;
+    const pointCom = pointNd.getComponent(MapDrawP);
+    if (!pointCom) return;
+
+    const roomNd = EditorSetting.Instance.getRoomUnlockBindRoom();
+    if (!roomNd || !cc.isValid(roomNd)) return;
+    const roomCom = roomNd.getComponent(MapDrawRoom);
+    if (!roomCom) return;
+
+    const prev = roomCom.unLockPoints || [];
+    const exists = prev.indexOf(pointNd) >= 0;
+    const next = exists ? prev.filter((p) => p !== pointNd) : prev.concat([pointNd]);
+    roomCom.setUnLockPoints(next);
+    roomCom.refreshDat();
+    this.refreshAttrPanel();
   }
 
   private onPortalBindPortalClick(node: cc.Node) {
@@ -1020,7 +1120,10 @@ export default class LevelScene extends cc.Component {
     switch (type) {
       case UnitType.Room:
         (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
-        (dat as attrPanelTypeRoom).unLockPoints = [];
+        (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
+          ?.getUnLockPoints()
+          .filter((nd) => nd && cc.isValid(nd))
+          .map((nd) => nd.name);
         break;
       case UnitType.PathPoint:
         const pointCom = this._trackNd?.getComponent(MapDrawP);
@@ -1079,6 +1182,8 @@ export default class LevelScene extends cc.Component {
         const size = dat.size;
         this._trackNd.getComponent(MapDrawRoom).setSize(size);
         const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+        const unlockNodes = mapLoaderComp?.resolvePathPointNodes(dat.unLockPoints || []) ?? [];
+        this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(unlockNodes);
         if (mapLoaderComp) {
           mapLoaderComp.refreshLayerBoundsByNode(this._trackNd.parent);
         }
