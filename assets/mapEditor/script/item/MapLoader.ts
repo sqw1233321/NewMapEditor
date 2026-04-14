@@ -127,10 +127,10 @@ export default class MapLoader extends cc.Component {
   }
 
   private buildBaseNd() {
-    this._portalCont = new cc.Node("portalCont");
-    this._portalCont.parent = this.node;
     this._layerCont = new cc.Node("LayerCont");
     this._layerCont.parent = this.node;
+    this._portalCont = new cc.Node("portalCont");
+    this._portalCont.parent = this.node;
     this._playerCreateNd = new cc.Node("playerCreate");
     this._playerCreateNd.parent = this.node;
     this._playerExitNd = new cc.Node("playerExit");
@@ -893,6 +893,10 @@ export default class MapLoader extends cc.Component {
 
   public getPathPointById(id: string) {
     return this._pointMap.get(id);
+  }
+
+  public getPortalParent() {
+    return this._portalCont;
   }
 
   //编辑器操作

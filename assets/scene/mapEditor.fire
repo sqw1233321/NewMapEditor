@@ -1010,7 +1010,9 @@
     "survivePrefab": {
       "__uuid__": "c2d01796-77db-418a-87dd-8c59271752b1"
     },
-    "portalPrefab": null,
+    "portalPrefab": {
+      "__uuid__": "f7cbc449-e67d-422c-906f-d0961c606d52"
+    },
     "_id": "31UOyBRslJkLkxhIhEl4nw"
   },
   {
