@@ -47,7 +47,13 @@ export default class EditPanel extends cc.Component {
   @property(cc.Node)
   portalAttr: cc.Node;
 
+
+  //areaInfo
+  @property(cc.EditBox)
+  areaInfoLb: cc.EditBox;
+
   private _dat: attrPanelType;
+
 
   protected onLoad(): void {
     this.clear();
@@ -56,6 +62,11 @@ export default class EditPanel extends cc.Component {
       this.refreshAttr,
       this,
     );
+    EventManager.instance.on(
+      MapEditorEvent.RefreshAreaInfo,
+      this.setAreaInfo,
+      this
+    )
     EventManager.instance.on(MapEditorEvent.ClearEditPanel, this.clear, this);
   }
 
@@ -65,6 +76,11 @@ export default class EditPanel extends cc.Component {
       this.refreshAttr,
       this,
     );
+    EventManager.instance.off(
+      MapEditorEvent.RefreshAreaInfo,
+      this.setAreaInfo,
+      this
+    )
     EventManager.instance.off(MapEditorEvent.ClearEditPanel, this.clear, this);
   }
 
@@ -169,6 +185,21 @@ export default class EditPanel extends cc.Component {
       dat: dat,
     };
     EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, attrDat);
+  }
+
+  public setAreaInfo(areaInfo: number[]) {
+    let str = "";
+    areaInfo.forEach((areaIndex, index) => {
+      str += `${areaIndex}`;
+      if (index >= areaInfo.length - 1) return;
+      str += "_"
+    })
+    this.areaInfoLb.string = str;
+  }
+
+  public areaInfoChange() {
+    const areaInfo = this.areaInfoLb.string.split("_").map(a => Number(a));
+    EventManager.instance.emit(MapEditorEvent.UpdateAreaInfoFormPanel, areaInfo);
   }
 
   public clear() {

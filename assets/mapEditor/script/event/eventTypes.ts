@@ -19,4 +19,8 @@ export enum MapEditorEvent {
     UpdateFromAttrPanel = "UpdateFromAttrPanel",
     //清除属性面板
     ClearEditPanel = "ClearEditPanel",
+    //刷新区域信息面板
+    RefreshAreaInfo = "RefreshAreaInfo",
+    //区域信息更新
+    UpdateAreaInfoFormPanel = "UpdateAreaInfoFormPanel"
 }

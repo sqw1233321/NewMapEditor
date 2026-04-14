@@ -6,6 +6,8 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import EditorSetting from "../editor/EditorSetting";
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
 import {
   MapDrawDat,
   MapDrawDatEnemyRefreshData,
@@ -34,9 +36,6 @@ export default class MapLoader extends cc.Component {
 
   @property(cc.Vec2)
   size: cc.Vec2 = new cc.Vec2(0, 0);
-
-  @property([cc.String])
-  areaInfo: string[] = [];
 
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
@@ -75,6 +74,7 @@ export default class MapLoader extends cc.Component {
   private _portalCont: cc.Node;
   private _pointLineCont: cc.Node;
   private _pointLineDrawer: cc.Graphics;
+  private _areaInfo: number[] = [];
 
   private _fileName = "";
 
@@ -91,18 +91,18 @@ export default class MapLoader extends cc.Component {
 
   onLoad(): void {
     MapLoader.ins = this;
-    this.build();
   }
 
-  build() {
+  build(json) {
+    this.mapJson = json;
     if (!this.mapJson) return;
     this._fileName = this.mapJson.name;
     this._data = this.mapJson.json;
     this.node.removeAllChildren();
-    this.areaInfo = [];
     this._data.areaInfo?.forEach((info) => {
-      this.areaInfo.push(`${info}`);
+      this._areaInfo.push(info);
     });
+    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
     this.buildBaseNd();
     this.buildRooms();
     this.buildPathPoints();
@@ -112,7 +112,6 @@ export default class MapLoader extends cc.Component {
     this.buildEnemyRefres();
     this.buildSurvives();
     this.buildPortals();
-
     //所有节点创建完毕后，往Room中填数据
     this.initRooms();
   }
@@ -958,6 +957,10 @@ export default class MapLoader extends cc.Component {
     portalNd.destroy();
   }
 
+  public setAreaInfo(areaInfo: number[]) {
+    this._areaInfo = areaInfo;
+  }
+
   //编辑器操作
 
   public clear() {
@@ -1014,7 +1017,7 @@ export default class MapLoader extends cc.Component {
       .getPos();
 
     const areaInfo: number[] = [];
-    this.areaInfo.forEach((info) => {
+    this._areaInfo.forEach((info) => {
       areaInfo.push(Number(info));
     });
 

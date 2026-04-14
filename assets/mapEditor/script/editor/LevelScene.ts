@@ -132,10 +132,19 @@ export default class LevelScene extends cc.Component {
       this.refreshNdAttr,
       this,
     );
+    EventManager.instance.on(
+      MapEditorEvent.UpdateAreaInfoFormPanel,
+      this.refreshAreaInfo,
+      this
+    )
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
     MapTool.init(this.mapLoader);
     this.createLevel();
+  }
+
+  protected start(): void {
+    this.mapLoader.getComponent(MapLoader).build(this.levelJson);
   }
 
   protected onDestroy(): void {
@@ -175,20 +184,19 @@ export default class LevelScene extends cc.Component {
       this.refreshNdAttr,
       this,
     );
+    EventManager.instance.off(
+      MapEditorEvent.UpdateAreaInfoFormPanel,
+      this.refreshAreaInfo,
+      this
+    )
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
   }
 
   private async createLevel() {
-    await this.getLevelJson();
     const graphSize = this.mapGraph.getContentSize();
     const scaleX = graphSize.width / this.mapSize.x;
     const scaleY = graphSize.height / this.mapSize.y;
     EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
-  }
-
-  async getLevelJson() {
-    const json = this.levelJson.json;
-    return json;
   }
 
   /** 根据世界坐标命中房间（后遍历优先，尽量选上层叠放时更“靠上”的房间） */
@@ -1240,6 +1248,11 @@ export default class LevelScene extends cc.Component {
       }
     }
   }
+
+  private refreshAreaInfo(areaInfo: number[]) {
+    this.mapLoader.getComponent(MapLoader).setAreaInfo(areaInfo);
+  }
+
 
   //删除节点
   public deleteNd() {
