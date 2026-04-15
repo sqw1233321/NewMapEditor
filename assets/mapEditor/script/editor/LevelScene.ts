@@ -708,6 +708,7 @@ export default class LevelScene extends cc.Component {
     loader?.movePathPointToRoomByWorldPos(p0, w0, false);
     loader?.movePathPointToRoomByWorldPos(p1, w1, false);
     loader?.rebuildPointIdsByLayer();
+
   }
 
   //根据两个绑定点反推梯子位置和高度
@@ -738,6 +739,15 @@ export default class LevelScene extends cc.Component {
     const draggedLadder = draggedNode.getComponent(MapDrawLadder);
     if (draggedLadder) {
       this.syncBindPointsByLadder(draggedLadder);
+      const binds = draggedLadder.bindPoints || [];
+      const p0 = binds[0];
+      const p1 = binds[1];
+      //如果是吸附的话，先吸点再吸梯子
+      if (this._isShiftDown) {
+        this.trySnapDraggedPointY(p0);
+        this.trySnapDraggedPointY(p1);
+        this.syncLadderToBindPoints(draggedLadder);
+      }
       return;
     }
     const draggedPoint = draggedNode.getComponent(MapDrawP);
