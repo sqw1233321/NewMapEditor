@@ -9,7 +9,7 @@ import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import { UnitType } from "../type/mapTypes";
-import { MapDrawDatPortalData } from "./MapDrawDat";
+import { MapDrawDatPortalData, PortalType } from "./MapDrawDat";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 
 const { ccclass, property } = cc._decorator;
@@ -22,9 +22,12 @@ export default class MapDrawPortal extends MapDrawUnitBase {
 
   linkId: string = "";
   offsetX: number = 0;
+  //各个动画点
+  animIDs: string[] = [];
 
   private _bindHighlight = false;
   private _savedTint: cc.Color = null;
+  protected _portalType: PortalType;
 
 
   protected onLoad(): void {
@@ -34,6 +37,11 @@ export default class MapDrawPortal extends MapDrawUnitBase {
       this.heighLight.active = false;
     }
   }
+
+  protected start(): void {
+    this._portalType = PortalType.Drop;
+  }
+
 
   public getType() {
     return UnitType.Portal;
@@ -80,11 +88,21 @@ export default class MapDrawPortal extends MapDrawUnitBase {
     this.offsetX = offset;
   }
 
+  public getAnimIds() {
+    return this.animIDs;
+  }
+
+  public setAnimIds(ids: string[]) {
+    this.animIDs = ids;
+  }
+
   public getDat(): MapDrawDatPortalData {
     const dat: MapDrawDatPortalData = {
       linkId: this.linkId,
       pos: this.getPos(),
       offsetX: this.offsetX,
+      portalType: this._portalType,
+      animPIds: this.animIDs,
     };
     return dat;
   }

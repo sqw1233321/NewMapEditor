@@ -138,8 +138,24 @@ export interface MapDrawDatSurvivorData {
     pos: MapDrawDatVec2;
 }
 
+
+/**
+ * 传送门相关
+ */
 export interface MapDrawDatPortalData {
     linkId: string;
     pos: MapDrawDatVec2;
     offsetX: number;
+    portalType: PortalType;
+    //（除了起始点和终点外的）各个动画点
+    animPIds: string[];
+}
+
+export enum PortalType {
+    //普通转场
+    Default = 0,
+    //掉落
+    Drop = 1,
+    //船
+    Ship = 2,
 }

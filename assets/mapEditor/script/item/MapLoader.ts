@@ -15,6 +15,7 @@ import {
   MapDrawDatPortalData as MapDrawDatPortal,
   MapDrawDatRoom,
   MapDrawDatSize,
+  PortalType,
 } from "./MapDrawDat";
 import MapDrawDoor from "./MapDrawDoor";
 import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
@@ -63,6 +64,9 @@ export default class MapLoader extends cc.Component {
 
   @property(cc.Prefab)
   portalPrefab: cc.Prefab = null;
+
+  @property(cc.Prefab)
+  shipPrefab: cc.Prefab = null;
 
   private _data;
   private _layerCont: cc.Node;
@@ -378,9 +382,11 @@ export default class MapLoader extends cc.Component {
 
   private buildPortals() {
     let nameId = 0;
-    const portals = this._data.portalDatas;
+    const portals: MapDrawDatPortal[] = this._data.portalDatas;
     portals?.forEach((portal: MapDrawDatPortal) => {
-      const itemNd = cc.instantiate(this.portalPrefab);
+      const type = portal.portalType ?? PortalType.Default;
+      const prefab = this.getPortalPrefab(type);
+      const itemNd = cc.instantiate(prefab);
       itemNd.name = `Portal${nameId++}`;
       itemNd.parent = this._portalCont;
       const worldPos = cc.v2(portal.pos.x, portal.pos.y);
@@ -388,10 +394,23 @@ export default class MapLoader extends cc.Component {
       itemNd.setPosition(localPos);
       const control = itemNd.addComponentSafe(MapDrawPortal);
       control.linkId = portal.linkId;
-      console.log(`portal ${portal.linkId} offsetX ${portal.offsetX}`);
       const offsetX = portal.offsetX || 0;
       control.offsetX = offsetX;
+      control.setAnimIds(portal.animPIds);
     });
+  }
+
+  private getPortalPrefab(type: PortalType) {
+    switch (type) {
+      case PortalType.Default:
+        return this.portalPrefab;
+      case PortalType.Drop:
+        return this.portalPrefab;
+      case PortalType.Ship:
+        return this.shipPrefab;
+      default:
+        return this.portalPrefab;
+    }
   }
 
   //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
