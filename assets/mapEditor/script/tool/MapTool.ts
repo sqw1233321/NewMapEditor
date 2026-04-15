@@ -8,9 +8,16 @@ interface RoomLike {
 export default class MapTool {
 
     static _mapLoader: cc.Node;
+    static _size:cc.Vec2;
 
-    static init(mapLaoder: cc.Node) {
+
+    static init(mapLaoder: cc.Node, size: cc.Vec2) {
         this._mapLoader = mapLaoder;
+        this._size = size;
+    }
+
+    static getSize() {
+        return this._size;
     }
 
     /**

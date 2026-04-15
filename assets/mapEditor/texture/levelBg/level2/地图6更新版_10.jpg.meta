@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "1db81ea8-d1b2-43e2-a309-daf8eb12b95e",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1452,
+  "height": 1827,
+  "platformSettings": {},
+  "subMetas": {
+    "地图6更新版_10": {
+      "ver": "1.0.6",
+      "uuid": "af772dbc-b824-431d-b111-d07b6ed1fd1e",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "1db81ea8-d1b2-43e2-a309-daf8eb12b95e",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 1452,
+      "height": 1827,
+      "rawWidth": 1452,
+      "rawHeight": 1827,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

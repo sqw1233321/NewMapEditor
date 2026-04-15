@@ -148,7 +148,7 @@ export default class LevelScene extends cc.Component {
     )
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-    MapTool.init(this.mapLoader);
+    MapTool.init(this.mapLoader, this.mapSize);
     this.createLevel();
   }
 

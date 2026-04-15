@@ -8,6 +8,8 @@
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import MapTool from "../tool/MapTool";
+import { UnitType } from "../type/mapTypes";
 import {
   MapDrawDat,
   MapDrawDatEnemyRefreshData,
@@ -623,9 +625,7 @@ export default class MapLoader extends cc.Component {
     layerNd.setAnchorPoint(0, 0);
     this._layerNodeMap.set(insertNo, layerNd);
 
-    const jsonWidth = Number(this._data?.size?.width || 0);
-    const inspectorWidth = Number(this.size?.x || 0);
-    const mapWidth = jsonWidth > 0 ? jsonWidth : inspectorWidth;
+    const mapWidth = MapTool.getSize().x;
     const width = Math.max(1, mapWidth);
     const height = Math.max(1, defaultHeight);
     layerNd.setContentSize(width, height);
@@ -798,15 +798,7 @@ export default class MapLoader extends cc.Component {
 
     // 宽度固定为整张地图宽度（不随子节点变化）
     // 取值优先级：json.size.width > inspector.size.x > 当前layer宽度（兜底）
-    const jsonWidth = Number(this._data?.size?.width || 0);
-    const inspectorWidth = Number(this.size?.x || 0);
-    const prevWidth = Number(layerNd.getContentSize()?.width || 0);
-    const mapWidth =
-      jsonWidth > 0
-        ? jsonWidth
-        : inspectorWidth > 0
-          ? inspectorWidth
-          : prevWidth;
+    const mapWidth = MapTool.getSize().x;
     const width = Math.max(1, mapWidth);
     const height = Math.max(1, (yMax - yMin) / mapScale);
 
@@ -866,7 +858,9 @@ export default class MapLoader extends cc.Component {
     if (!unitCom) return false;
     const targetRoomNd = this._roomNodeMap.get(targetRoomId);
     if (!targetRoomNd || !cc.isValid(targetRoomNd)) return false;
-    const targetPointCont = targetRoomNd.getChildByName("pointCont");
+    const isPoint = unitCom.getType() == UnitType.PathPoint;
+    const parentName = isPoint ? "pointCont" : "unitCont";
+    const targetPointCont = targetRoomNd.getChildByName(parentName);
     if (!targetPointCont || !cc.isValid(targetPointCont)) return false;
 
     const prevParent = unitNode.parent;
@@ -1017,7 +1011,14 @@ export default class MapLoader extends cc.Component {
   public clear() {
     const children = this._layerCont.children.slice();
     children.forEach((n) => n.destroy());
+    this._portalCont.destroyAllChildren();
     this._pointLineCont.getComponent(cc.Graphics).clear();
+    this._roomNodeMap.clear();
+    this._pointMap.clear();
+    this._layerNodeMap.clear();
+    this._areaInfo = [];
+    EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
+    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
   }
 
   private getJson() {
