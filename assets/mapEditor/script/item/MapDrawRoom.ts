@@ -12,6 +12,7 @@ import {
     MapDrawDatLadder,
     MapDrawDatRoom,
     MapDrawDatSearchItemData,
+    MapDrawDatSurvivorData,
 } from "./MapDrawDat";
 import MapDrawDoor from "./MapDrawDoor";
 import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
@@ -23,6 +24,7 @@ import MapLoader from "./MapLoader";
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import MapDrawSurvive from "./MapDrawSurvive";
 
 const { ccclass, property } = cc._decorator;
 
@@ -46,11 +48,13 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         doorDat: [],
         enemyRefreshDat: [],
         searchItemDat: [],
+        surviveDat: []
     };
     private _searchItemDat: MapDrawDatSearchItemData[] = [];
     private _enemyRefreshDat: MapDrawDatEnemyRefreshData[] = [];
     private _ladderDat: MapDrawDatLadder[] = [];
     private _doorDat: MapDrawDatDoor[] = [];
+    private _surviveDat: MapDrawDatSurvivorData[] = [];
 
     private _unlockBindHighlight = false;
     private _savedBgColor: cc.Color = null;
@@ -134,6 +138,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this.setLadderDat();
         this.setEnemyDat();
         this.setSearchItemDatas();
+        this.setSurviveDatas();
     }
 
     private setDoorDat() {
@@ -149,7 +154,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private setLadderDat() {
         const allLadders = this._unitCont.getComponentsInChildren(MapDrawLadder);
         this._roomItemDat.ladderDat = allLadders;
-        if (allLadders.length == 0){
+        if (allLadders.length == 0) {
             this._ladderDat = [];
             return;
         }
@@ -162,7 +167,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         const allEnemies =
             this._unitCont.getComponentsInChildren(MapDrawEnemyRefresh);
         this._roomItemDat.enemyRefreshDat = allEnemies;
-        if (allEnemies.length == 0){
+        if (allEnemies.length == 0) {
             this._enemyRefreshDat = [];
             return;
         }
@@ -175,12 +180,25 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         const allSearchItems =
             this._unitCont.getComponentsInChildren(MapDrawSearchItem);
         this._roomItemDat.searchItemDat = allSearchItems;
-        if (allSearchItems.length == 0){
+        if (allSearchItems.length == 0) {
             this._searchItemDat = [];
             return;
         }
         this._searchItemDat = allSearchItems.map((searchItem: MapDrawSearchItem) =>
             searchItem.getDat(),
+        );
+    }
+
+    private setSurviveDatas() {
+        const allSurviveItems =
+            this._unitCont.getComponentsInChildren(MapDrawSurvive);
+        this._roomItemDat.surviveDat = allSurviveItems;
+        if (allSurviveItems.length == 0) {
+            this._surviveDat = [];
+            return;
+        }
+        this._surviveDat = allSurviveItems.map((item: MapDrawSurvive) =>
+            item.getDat(),
         );
     }
 
@@ -232,7 +250,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             enemyCreateDatas: [],
             baseItemDatas: [],
             searchItemDatas: this._searchItemDat ?? [],
-            survivorDatas: [],
+            survivorDatas: this._surviveDat ?? [],
         };
         return dat;
     }
