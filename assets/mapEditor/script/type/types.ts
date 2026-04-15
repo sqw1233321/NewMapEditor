@@ -1,4 +1,3 @@
-import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import { UnitType } from "./mapTypes";
 
 //拖拽数据

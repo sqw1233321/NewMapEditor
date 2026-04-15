@@ -688,8 +688,6 @@ export default class MapLoader extends cc.Component {
     }
   }
 
-  //数据操作
-
   public addRoomToLayer(roomNd: cc.Node, layer: number) {
     let layerNd = this._layerNodeMap.get(layer);
     if (!layerNd) {
@@ -838,35 +836,69 @@ export default class MapLoader extends cc.Component {
   /**
    * 路径点房间变更：切换到目标房间 pointCont，保持世界坐标不变，并刷新相关房间数据。
    */
-  public movePathPointToRoom(
-    pointNode: cc.Node,
+  public moveUnitToRoom(
+    unitNode: cc.Node,
     targetRoomId: number,
+    rebuildIds: boolean = true,
   ): boolean {
-    if (!pointNode || !cc.isValid(pointNode)) return false;
+    if (!unitNode || !cc.isValid(unitNode)) return false;
     if (!isFinite(targetRoomId)) return false;
-    const pointCom = pointNode.getComponent(MapDrawUnitBase);
-    if (!pointCom) return false;
+    const unitCom = unitNode.getComponent(MapDrawUnitBase);
+    if (!unitCom) return false;
     const targetRoomNd = this._roomNodeMap.get(targetRoomId);
     if (!targetRoomNd || !cc.isValid(targetRoomNd)) return false;
     const targetPointCont = targetRoomNd.getChildByName("pointCont");
     if (!targetPointCont || !cc.isValid(targetPointCont)) return false;
 
-    const prevParent = pointNode.parent;
-    pointCom.updateRoomId(targetRoomId);
+    const prevParent = unitNode.parent;
+    unitCom.updateRoomId(targetRoomId);
     if (prevParent === targetPointCont) {
       const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
       targetRoomCom?.refreshDat();
       return true;
     }
 
-    const prevWorldPos = pointNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+    const prevWorldPos = unitNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
     const oldOwnerRoom = this.findOwnerRoomByNode(prevParent);
-    pointNode.parent = targetPointCont;
-    pointNode.setPosition(targetPointCont.convertToNodeSpaceAR(prevWorldPos));
+    unitNode.parent = targetPointCont;
+    unitNode.setPosition(targetPointCont.convertToNodeSpaceAR(prevWorldPos));
     oldOwnerRoom?.refreshDat();
     targetRoomNd.getComponent(MapDrawRoom)?.refreshDat();
-    this.rebuildPointIdsByLayer();
+    if (rebuildIds) {
+      this.rebuildPointIdsByLayer();
+    }
     return true;
+  }
+
+  /** 按世界坐标命中房间并迁移路径点父节点 */
+  public movePathPointToRoomByWorldPos(
+    pointNode: cc.Node,
+    worldPos: cc.Vec2,
+    rebuildIds: boolean = true,
+  ): boolean {
+    if (!pointNode || !cc.isValid(pointNode) || !worldPos) return false;
+    let hitRoomId: number = null;
+    this._roomNodeMap.forEach((roomNd, cfgId) => {
+      if (hitRoomId !== null) return;
+      if (!roomNd || !cc.isValid(roomNd)) return;
+      // 先转到房间本地坐标再判断，避免 world AABB 在缩放层级下出现误差
+      const local = roomNd.convertToNodeSpaceAR(worldPos);
+      const size = roomNd.getContentSize();
+      const left = -roomNd.anchorX * size.width;
+      const right = left + size.width;
+      const bottom = -roomNd.anchorY * size.height;
+      const top = bottom + size.height;
+      if (
+        local.x >= left &&
+        local.x <= right &&
+        local.y >= bottom &&
+        local.y <= top
+      ) {
+        hitRoomId = cfgId;
+      }
+    });
+    if (hitRoomId === null) return false;
+    return this.moveUnitToRoom(pointNode, hitRoomId, rebuildIds);
   }
 
   private findOwnerRoomByNode(nd: cc.Node): MapDrawRoom | null {
