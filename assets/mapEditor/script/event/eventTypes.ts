@@ -9,6 +9,10 @@ export enum MapEditorEvent {
     PortalBindPortalClick = "PortalBindPortalClick",
     /** 传送门绑定模式：点击路径点作为终点（payload 为 cc.Node） */
     PortalBindPathPointClick = "PortalBindPathPointClick",
+    /** 传送门动画点绑定模式：点击传送门（payload 为 cc.Node） */
+    PortalAnimBindPortalClick = "PortalAnimBindPortalClick",
+    /** 传送门动画点绑定模式：点击点（payload 为 cc.Node） */
+    PortalAnimBindPointClick = "PortalAnimBindPortalClick",
     /** 房间解锁点绑定：点击房间（payload 为 cc.Node） */
     RoomUnlockBindRoomClick = "RoomUnlockBindRoomClick",
     /** 房间解锁点绑定：点击路径点（payload 为 cc.Node） */

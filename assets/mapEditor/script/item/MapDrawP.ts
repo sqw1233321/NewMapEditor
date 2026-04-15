@@ -38,7 +38,7 @@ export default class MapDrawP extends MapDrawUnitBase {
             EventManager.instance.emit(MapEditorEvent.RoomUnlockBindPointClick, this.node);
             return true;
         }
-        if (EditorSetting.Instance.isPortalBindMode()) {
+        if (EditorSetting.Instance.isPortalBindMode() || EditorSetting.Instance.isPortalAnimBindMode()) {
             EventManager.instance.emit(MapEditorEvent.PortalBindPathPointClick, this.node);
             return true;
         }

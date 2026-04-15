@@ -28,6 +28,7 @@ import LadderBindMode from "./modes/LadderBindMode";
 import PortalBindMode from "./modes/PortalBindMode";
 import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
 import ModeBase from "./modes/ModeBase";
+import PortalAnimBindMode from "./modes/PortalAnimBindMode";
 
 const { ccclass, property } = cc._decorator;
 
@@ -83,6 +84,7 @@ export default class LevelScene extends cc.Component {
   private _pathPointMode: PathPointLinkMode;
   private _ladderMode: LadderBindMode;
   private _portalMode: PortalBindMode;
+  private _portalAnimMode: PortalAnimBindMode;
   private _roomUnlockMode: RoomUnlockBindMode;
 
 
@@ -103,6 +105,7 @@ export default class LevelScene extends cc.Component {
       this._pathPointMode?.setEnabled(false);
       this._ladderMode?.setEnabled(false);
       this._portalMode?.setEnabled(false);
+      this._portalAnimMode?.setEnabled(false);
       this._roomUnlockMode?.setEnabled(false);
     };
     this._pathPointMode = new PathPointLinkMode(deactivateOthers, {
@@ -116,12 +119,16 @@ export default class LevelScene extends cc.Component {
     this._portalMode = new PortalBindMode(deactivateOthers, {
       onChanged: () => this.refreshAttrPanel(),
     });
+    this._portalAnimMode = new PortalAnimBindMode(deactivateOthers, {
+      onChanged: () => this.refreshAttrPanel(),
+    });
     this._roomUnlockMode = new RoomUnlockBindMode(deactivateOthers, {
       onChanged: () => this.refreshAttrPanel(),
     });
     this._pathPointMode.mount();
     this._ladderMode.mount();
     this._portalMode.mount();
+    this._portalAnimMode.mount();
     this._roomUnlockMode.mount();
 
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
@@ -154,6 +161,7 @@ export default class LevelScene extends cc.Component {
     this._pathPointMode?.unmount();
     this._ladderMode?.unmount();
     this._portalMode?.unmount();
+    this._portalAnimMode?.unmount();
     this._roomUnlockMode?.unmount();
     EventManager.instance.off(
       MapEditorEvent.UpdateFromAttrPanel,
@@ -559,6 +567,7 @@ export default class LevelScene extends cc.Component {
       this._pathPointMode?.setEnabled(false);
       this._ladderMode?.setEnabled(false);
       this._portalMode?.setEnabled(false);
+      this._portalAnimMode?.setEnabled(false);
       this._roomUnlockMode?.setEnabled(false);
     }
     //p键，进入连线模式
@@ -572,6 +581,10 @@ export default class LevelScene extends cc.Component {
     //o键，进入传送门绑定模式
     else if (event.keyCode === cc.macro.KEY.o) {
       this.setMode(this._portalMode);
+    }
+    //i键，进入传送门动画点绑定模式
+    else if (event.keyCode === cc.macro.KEY.i) {
+      this.setMode(this._portalAnimMode);
     }
     //r键，进入房间解锁点绑定模式
     else if (event.keyCode === cc.macro.KEY.r) {
@@ -899,6 +912,8 @@ export default class LevelScene extends cc.Component {
         (dat as attrPanelTypePortal).linkId = portalCom?.getDat()?.linkId ?? "";
         (dat as attrPanelTypePortal).offsetX =
           portalCom?.getDat()?.offsetX ?? 0;
+        (dat as attrPanelTypePortal).animPIds =
+          portalCom?.getAnimIds() ?? [];
         break;
     }
     const panelDat: attrPanelType = {
@@ -960,6 +975,7 @@ export default class LevelScene extends cc.Component {
         if (portalCom) {
           portalCom.setLinkId(dat.linkId);
           portalCom.setOffsetX(dat.offsetX);
+          portalCom.setAnimIds(dat.animPIds);
         }
         break;
     }

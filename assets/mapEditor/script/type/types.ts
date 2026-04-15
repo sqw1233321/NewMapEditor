@@ -80,4 +80,5 @@ export interface attrPanelTypeSearchItem {
 export interface attrPanelTypePortal {
   linkId: string;
   offsetX: number;
+  animPIds: string[];
 }

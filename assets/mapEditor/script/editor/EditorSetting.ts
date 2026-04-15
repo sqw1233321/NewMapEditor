@@ -17,6 +17,8 @@ export default class EditorSetting extends cc.Component {
     /** 房间解锁点绑定模式：先选房间，再点路径点切换解锁点 */
     private _roomUnlockBindMode = false;
     private _roomUnlockBindRoom: cc.Node = null;
+    /** 传送门动画点绑定模式：先选传送门，再点路径点添加动画点 */
+    private _portalAnimBindMode = false;
 
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
@@ -67,5 +69,13 @@ export default class EditorSetting extends cc.Component {
 
     public setRoomUnlockBindMode(enabled: boolean) {
         this._roomUnlockBindMode = enabled;
+    }
+
+    public isPortalAnimBindMode(): boolean {
+        return this._portalAnimBindMode;
+    }
+
+    public setPortalAnimBindMode(enabled: boolean) {
+        this._portalAnimBindMode = enabled;
     }
 }

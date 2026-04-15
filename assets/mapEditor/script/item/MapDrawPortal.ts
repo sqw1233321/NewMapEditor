@@ -52,6 +52,10 @@ export default class MapDrawPortal extends MapDrawUnitBase {
       EventManager.instance.emit(MapEditorEvent.PortalBindPortalClick, this.node);
       return true;
     }
+    if (EditorSetting.Instance.isPortalAnimBindMode()) {
+      EventManager.instance.emit(MapEditorEvent.PortalAnimBindPortalClick, this.node);
+      return true;
+    }
     return false;
   }
 
@@ -89,7 +93,7 @@ export default class MapDrawPortal extends MapDrawUnitBase {
   }
 
   public getAnimIds() {
-    return this.animIDs;
+    return this.animIDs ?? [];
   }
 
   public setAnimIds(ids: string[]) {
@@ -102,7 +106,7 @@ export default class MapDrawPortal extends MapDrawUnitBase {
       pos: this.getPos(),
       offsetX: this.offsetX,
       portalType: this._portalType,
-      animPIds: this.animIDs,
+      animPIds: this.animIDs ?? [],
     };
     return dat;
   }
