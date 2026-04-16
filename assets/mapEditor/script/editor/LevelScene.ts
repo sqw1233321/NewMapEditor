@@ -425,6 +425,7 @@ export default class LevelScene extends cc.Component {
       this._isLeftDown = false;
       // 没有经历过左键按下，则忽略左键抬起（避免 UI 上抬起误触发）
       if (!wasLeftDown) return;
+      const worldPos = event.getLocation();
       if (this._dragDat) {
         const itemDat = this._dragDat.itemNode;
         const itemParent = this._dragDat.parent;
@@ -438,7 +439,7 @@ export default class LevelScene extends cc.Component {
           //放回原位
           const draggedRoom = itemDat.getComponent(MapDrawRoom);
           const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
-          let targetParent = itemParent;
+          let targetParent = null;
           const type = itemDat.getComponent(MapDrawUnitBase).getType();
           //房间
           if (type == UnitType.Room) {
@@ -482,6 +483,14 @@ export default class LevelScene extends cc.Component {
                 targetParent = nonRoomParent;
               }
             }
+          }
+
+          //没有父节点，清除
+          if (!targetParent) {
+            this._dragDat.itemNode.destroy();
+            this._dragDat = null;
+            this.clearDragRoomHover();
+            return;
           }
 
           //切换父节点
