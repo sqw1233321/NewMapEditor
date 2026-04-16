@@ -80,6 +80,8 @@ export default class LevelScene extends cc.Component {
   private _dragHoverRoomName: string = "";
   //属性面板追踪的节点(注意删除节点时的问题)
   private _trackNd: cc.Node;
+  //房间外物品类型
+  private outRoomUnitType = [UnitType.Portal, UnitType.Cable, UnitType.Stone];
   //模式
   private _pathPointMode: PathPointLinkMode;
   private _ladderMode: LadderBindMode;
@@ -437,8 +439,9 @@ export default class LevelScene extends cc.Component {
           const draggedRoom = itemDat.getComponent(MapDrawRoom);
           const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
           let targetParent = itemParent;
+          const type = itemDat.getComponent(MapDrawUnitBase).getType();
           //房间
-          if (draggedRoom) {
+          if (type == UnitType.Room) {
             //拖拽到layer区域
             if (
               this._dragDat.hoverLayerNode &&
@@ -461,12 +464,14 @@ export default class LevelScene extends cc.Component {
               }
             }
           }
-          //传送门
-          else if (itemDat.getComponent(MapDrawPortal)) {
+          //房间外物品
+          else if (this.outRoomUnitType.findIndex(t => t == type) != -1) {
             targetParent = this.mapLoader
               .getComponent(MapLoader)
-              .getPortalParent();
-          } else {
+              .getOutRoomUnitParent();
+          }
+          //房间内物品 
+          else {
             const hoverRoom = MapTool.findHoverRoomForDrag(this._dragDat.hoverRoomId, this._dragDat.hoverRoomName);
             if (hoverRoom && cc.isValid(hoverRoom.node)) {
               const nonRoomParent = MapTool.getNonRoomDropParent(
@@ -478,6 +483,8 @@ export default class LevelScene extends cc.Component {
               }
             }
           }
+
+          //切换父节点
           if (targetParent !== itemParent) {
             // 更换父节点（从 panel/旧 layer 到当前 layer）时，使用“世界坐标->新父节点局部坐标”定位，避免 dragOffset 失效
             const worldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);

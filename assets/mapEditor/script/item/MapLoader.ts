@@ -10,6 +10,7 @@ import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
+import MapDrawCable from "./MapDrawCable";
 import {
   MapDrawDatType,
   MapDrawDatEnemyRefreshData,
@@ -29,6 +30,7 @@ import MapDrawP from "./MapDrawP";
 import MapDrawPortal from "./MapDrawPortal";
 import MapDrawRoom from "./MapDrawRoom";
 import MapDrawSearchItem from "./MapDrawSearchItem";
+import MapDrawStone from "./MapDrawStone";
 import MapDrawSurvive from "./MapDrawSurvive";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 
@@ -75,14 +77,14 @@ export default class MapLoader extends cc.Component {
 
 
   private _size: cc.Vec2;
-  private _data;
+  private _data: MapDrawDatType;
   private _layerCont: cc.Node;
   private _layerNodeMap = new Map<number, cc.Node>();
   private _roomNodeMap = new Map<number, cc.Node>();
   private _pointMap = new Map<string, cc.Node>();
   private _playerCreateNd: cc.Node;
   private _playerExitNd: cc.Node;
-  private _unitCont: cc.Node;
+  private _outRoomUnitCont: cc.Node;
   private _pointLineCont: cc.Node;
   private _pointLineDrawer: cc.Graphics;
   private _areaInfo: number[] = [];
@@ -115,7 +117,9 @@ export default class MapLoader extends cc.Component {
       this._areaInfo.push(info);
     });
     EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
+    //基础节点
     this.buildBaseNd();
+    //房间内item
     this.buildRooms();
     this.buildPathPoints();
     this.buildLadders();
@@ -123,16 +127,20 @@ export default class MapLoader extends cc.Component {
     this.buildSearchItems();
     this.buildEnemyRefres();
     this.buildSurvives();
-    this.buildPortals();
     //所有节点创建完毕后，往Room中填数据
     this.initRooms();
+    //房间外item
+    this.buildPortalUnit();
+    this.buildStoneUnit();
+    this.buildCableUnit();
+
   }
 
   private buildBaseNd() {
     this._layerCont = new cc.Node("LayerCont");
     this._layerCont.parent = this.node;
-    this._unitCont = new cc.Node("unitlCont");
-    this._unitCont.parent = this.node;
+    this._outRoomUnitCont = new cc.Node("outRoomUnitCont");
+    this._outRoomUnitCont.parent = this.node;
     this._playerCreateNd = new cc.Node("playerCreate");
     this._playerCreateNd.parent = this.node;
     this._playerExitNd = new cc.Node("playerExit");
@@ -388,7 +396,7 @@ export default class MapLoader extends cc.Component {
     });
   }
 
-  private buildPortals() {
+  private buildPortalUnit() {
     let nameId = 0;
     const portals: MapDrawDatPortal[] = this._data.portalDatas;
     portals?.forEach((portal: MapDrawDatPortal) => {
@@ -396,7 +404,7 @@ export default class MapLoader extends cc.Component {
       const prefab = this.getPortalPrefab(type);
       const itemNd = cc.instantiate(prefab);
       itemNd.name = `Portal${nameId++}`;
-      itemNd.parent = this._unitCont;
+      itemNd.parent = this._outRoomUnitCont;
       const worldPos = cc.v2(portal.pos.x, portal.pos.y);
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
@@ -421,26 +429,37 @@ export default class MapLoader extends cc.Component {
     }
   }
 
-  private buildTest() {
+  private buildStoneUnit() {
     let nameId = 0;
-    const portals: MapDrawDatPortal[] = this._data.portalDatas;
-    portals?.forEach((portal: MapDrawDatPortal) => {
-      const type = portal.portalType ?? PortalType.Default;
-      const prefab = this.getPortalPrefab(type);
-      const itemNd = cc.instantiate(prefab);
-      itemNd.name = `Portal${nameId++}`;
-      itemNd.parent = this._unitCont;
-      const worldPos = cc.v2(portal.pos.x, portal.pos.y);
+    const datArr: MapDrawDatStoneData[] = this._data.stoneDatas;
+    datArr?.forEach((dat: MapDrawDatStoneData) => {
+      const itemNd = cc.instantiate(this.stonePrefab);
+      itemNd.name = `Stone${nameId++}`;
+      itemNd.parent = this._outRoomUnitCont;
+      const worldPos = cc.v2(dat.pos.x, dat.pos.y);
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
-      const control = itemNd.addComponentSafe(MapDrawPortal);
-      control.linkId = portal.linkId;
-      const offsetX = portal.offsetX || 0;
-      control.offsetX = offsetX;
-      control.setAnimIds(portal.animPIds);
+      const control = itemNd.addComponentSafe(MapDrawStone);
+      control.init(dat);
     });
   }
 
+  private buildCableUnit() {
+    let nameId = 0;
+    const datArr: MapDrawDatCableData[] = this._data.cableDatas;
+    datArr?.forEach((dat: MapDrawDatCableData) => {
+      const itemNd = cc.instantiate(this.cablePrefab);
+      itemNd.name = `Cable${nameId++}`;
+      itemNd.parent = this._outRoomUnitCont;
+      const worldPos = cc.v2(dat.pos.x, dat.pos.y);
+      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
+      itemNd.setPosition(localPos);
+      const control = itemNd.addComponentSafe(MapDrawCable);
+      let startP: cc.Node = this._pointMap.get(dat.startId);
+      let endP: cc.Node = this._pointMap.get(dat.endId);
+      control.init(startP, endP, dat);
+    });
+  }
 
   //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
   private refreshDat() {
@@ -955,8 +974,8 @@ export default class MapLoader extends cc.Component {
     return this._pointMap.get(id);
   }
 
-  public getPortalParent() {
-    return this._unitCont;
+  public getOutRoomUnitParent() {
+    return this._outRoomUnitCont;
   }
 
   /** 删除一个路径点，并维护 links / 梯子绑定 / unlockPoints / 点映射 */
@@ -1038,7 +1057,7 @@ export default class MapLoader extends cc.Component {
   public clear() {
     const children = this._layerCont.children.slice();
     children.forEach((n) => n.destroy());
-    this._unitCont.destroyAllChildren();
+    this._outRoomUnitCont.destroyAllChildren();
     this._pointLineCont.getComponent(cc.Graphics).clear();
     this._roomNodeMap.clear();
     this._pointMap.clear();
@@ -1087,7 +1106,7 @@ export default class MapLoader extends cc.Component {
     const portalDatas: MapDrawDatPortal[] = [];
     const cableDatas: MapDrawDatCableData[] = [];
     const stoneDatas: MapDrawDatStoneData[] = [];
-    this._unitCont.children.forEach((unit) => {
+    this._outRoomUnitCont.children.forEach((unit) => {
       const controller = unit.getComponent(MapDrawUnitBase);
       if (!controller) return;
       let container = null;
