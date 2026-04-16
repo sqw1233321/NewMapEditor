@@ -49,6 +49,10 @@ export default class LevelScene extends cc.Component {
   @property(cc.JsonAsset)
   levelJson: cc.JsonAsset = null;
 
+  //地图画板节点
+  @property(cc.Node)
+  mapCanvasNd: cc.Node;
+
   @property(cc.Node)
   mapGraph: cc.Node = null;
 
@@ -104,8 +108,6 @@ export default class LevelScene extends cc.Component {
   }
 
   protected onLoad(): void {
-    this._modeMgr = new ModeMgr();
-    this._modeMgr.init();
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this, true);
     this.node.on(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
@@ -128,11 +130,34 @@ export default class LevelScene extends cc.Component {
     )
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+    //模式管理器初始化
+    this._modeMgr = new ModeMgr();
+    this._modeMgr.init();
+    //数据类初始化
     MapTool.init(this.mapLoader, this._modeMgr, this.mapSize);
+    //关卡信息
     this.createLevel();
+    //地图锚点适配
+    this.adapterMap();
+  }
+
+  private async createLevel() {
+    const graphSize = this.mapGraph.getContentSize();
+    const scaleX = graphSize.width / this.mapSize.x;
+    const scaleY = graphSize.height / this.mapSize.y;
+    EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
+  }
+
+  private adapterMap() {
+    const canvasNd = cc.Canvas.instance.node;
+    const worldPos = canvasNd.convertToWorldSpaceAR(MapTool.getLeftBottom(canvasNd));
+    const localPos = this.mapCanvasNd.parent.convertToNodeSpaceAR(worldPos);
+    this.mapCanvasNd.setPosition(localPos);
+    this.mapLoader.setPosition(localPos);
   }
 
   protected start(): void {
+    //地图构造器
     this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
   }
 
@@ -156,13 +181,6 @@ export default class LevelScene extends cc.Component {
     )
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-  }
-
-  private async createLevel() {
-    const graphSize = this.mapGraph.getContentSize();
-    const scaleX = graphSize.width / this.mapSize.x;
-    const scaleY = graphSize.height / this.mapSize.y;
-    EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
   }
 
   private updateCurModeDisplay(modeType: ModeType) {
