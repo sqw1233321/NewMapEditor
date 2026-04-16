@@ -206,7 +206,7 @@ export default class LevelScene extends cc.Component {
   }
 
   //更新hover框
-  private updateDragRoomHover(worldMousePos: cc.Vec2) {
+  private updateDragRoomHover() {
     if (!this._dragDat) return;
     // 如果当前拖拽的是“房间”，则根据鼠标命中的 layer 容器高亮整个 layer
     const draggedRoom = this._dragDat.itemNode.getComponent(MapDrawRoom);
@@ -264,12 +264,9 @@ export default class LevelScene extends cc.Component {
     }
 
     const roomNd = room.node;
-    if (roomNd.name === this._dragHoverRoomName) return;
     this._dragHoverRoomName = roomNd.name;
-
     this._dragDat.hoverRoomId = room.getId();
     this._dragDat.hoverRoomName = roomNd.name;
-
     this._hoverDat.name = roomNd.name;
     const mapScale = EditorSetting.Instance.getMapScale();
     const size = roomNd.getContentSize();
@@ -302,7 +299,7 @@ export default class LevelScene extends cc.Component {
     const dragOffset = this._dragDat.dragOffset;
     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
     //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
-    this.updateDragRoomHover(this._dragDat.mousePos);
+    this.updateDragRoomHover();
     //刷新属性面板
     this.refreshAttrPanel();
   }
@@ -326,7 +323,7 @@ export default class LevelScene extends cc.Component {
       this.clearHoverDat();
       this.hoverDrawer?.clear();
       //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
-      this.updateDragRoomHover(worldPos);
+      this.updateDragRoomHover();
     } else if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       this._isRightDown = true;
       this.clearHoverDat();
@@ -349,7 +346,7 @@ export default class LevelScene extends cc.Component {
           this.trySnapDraggedPointY(itemDat);
           this.syncLadderWithDraggedNode(itemDat);
           //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
-          this.updateDragRoomHover(event.getLocation());
+          this.updateDragRoomHover();
           //刷新属性面板
           this.refreshAttrPanel();
         }
@@ -486,6 +483,7 @@ export default class LevelScene extends cc.Component {
             return;
           }
 
+          //算位置
           //切换父节点
           if (targetParent !== itemParent) {
             // 更换父节点（从 panel/旧 layer 到当前 layer）时，使用“世界坐标->新父节点局部坐标”定位，避免 dragOffset 失效
@@ -502,12 +500,15 @@ export default class LevelScene extends cc.Component {
           }
           // 抬起瞬间再执行一次 Shift 吸附
           this.trySnapDraggedPointY(itemDat);
+          //梯子，重新算一次位置
+          if (type == UnitType.Ladder) {
+            this.syncLadderToBindPoints(itemDat.getComponent(MapDrawLadder));
+          }
           //没有实际拖拽，只是点击了拖拽节点，清除本次dragDat
           if (!this._isDrag) {
             this._dragDat = null;
             return;
           }
-
           //房间名字同步
           if (
             draggedRoom &&
