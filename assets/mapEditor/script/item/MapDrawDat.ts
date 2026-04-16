@@ -162,8 +162,12 @@ export interface MapDrawDatStoneData {
 
 /**缆车 */
 export interface MapDrawDatCableData {
-    pos: MapDrawDatVec2;
-    startId: string;
-    endId: string;
+    //终点1
+    point1: string;
+    //终点2
+    point2: string;
+    //相关点
+    points: string[];
+    //缆车速度
     speed: number;
 }

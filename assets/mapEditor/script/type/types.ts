@@ -39,7 +39,8 @@ export interface attrPanelType {
   | attrPanelTypeLadder
   | attrPanelTypeSurvive
   | attrPanelTypeSearchItem
-  | attrPanelTypePortal;
+  | attrPanelTypePortal
+  | attrPanelTypeCable
 }
 
 export interface attrPanelTypeBase {
@@ -81,4 +82,11 @@ export interface attrPanelTypePortal {
   linkId: string;
   offsetX: number;
   animPIds: string[];
+}
+
+export interface attrPanelTypeCable {
+  startPId: string;
+  endPId: string;
+  points: string[];
+  speed: number;
 }

@@ -17,10 +17,8 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawP extends MapDrawUnitBase {
     links: cc.Node[] = [];
-
     protected _type: UnitType.PathPoint;
     private _pid: string = null;
-    private _pDat: MapDrawDatPathPoint = null;
     private _linkHighlight = false;
     private _savedTint: cc.Color = null;
 

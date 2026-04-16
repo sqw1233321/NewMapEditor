@@ -8,6 +8,7 @@ import { UnitType } from "../type/mapTypes";
 import {
   attrPanelType,
   attrPanelTypeBase,
+  attrPanelTypeCable,
   attrPanelTypeDoor,
   attrPanelTypeLadder,
   attrPanelTypePoint,
@@ -29,6 +30,7 @@ import PortalBindMode from "./modes/PortalBindMode";
 import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
 import ModeBase from "./modes/ModeBase";
 import PortalAnimBindMode from "./modes/PortalAnimBindMode";
+import MapDrawCable from "../item/MapDrawCable";
 
 const { ccclass, property } = cc._decorator;
 
@@ -929,10 +931,6 @@ export default class LevelScene extends cc.Component {
         (dat as attrPanelTypeLadder).bindPointIds =
           ladderCom?.getDat().bindPointIds ?? [];
         break;
-      case UnitType.EnemyRefresh:
-        break;
-      case UnitType.SearchPoint:
-        break;
       case UnitType.Portal:
         const portalCom = this._trackNd?.getComponent(MapDrawPortal);
         (dat as attrPanelTypePortal).linkId = portalCom?.getDat()?.linkId ?? "";
@@ -940,6 +938,14 @@ export default class LevelScene extends cc.Component {
           portalCom?.getDat()?.offsetX ?? 0;
         (dat as attrPanelTypePortal).animPIds =
           portalCom?.getAnimIds() ?? [];
+        break;
+      case UnitType.Cable:
+        const controller = this._trackNd?.getComponent(MapDrawCable);
+        const cableDat = controller.getDat();
+        (dat as attrPanelTypeCable).startPId = cableDat.point1;
+        (dat as attrPanelTypeCable).endPId = cableDat.point2;
+        (dat as attrPanelTypeCable).points = cableDat.points;
+        (dat as attrPanelTypeCable).speed = cableDat.speed;
         break;
     }
     const panelDat: attrPanelType = {
@@ -993,8 +999,6 @@ export default class LevelScene extends cc.Component {
       case UnitType.Ladder:
         //操作在l 梯子绑定模式中
         break;
-      case UnitType.EnemyRefresh:
-      case UnitType.SearchPoint:
       case UnitType.Portal:
         dat = attrDat.dat as attrPanelTypePortal;
         const portalCom = this._trackNd.getComponent(MapDrawPortal);
@@ -1002,6 +1006,13 @@ export default class LevelScene extends cc.Component {
           portalCom.setLinkId(dat.linkId);
           portalCom.setOffsetX(dat.offsetX);
           portalCom.setAnimIds(dat.animPIds);
+        }
+        break;
+      case UnitType.Cable:
+        dat = attrDat.dat as attrPanelTypeCable;
+        const cableCom = this._trackNd.getComponent(MapDrawCable);
+        if (cableCom) {
+          cableCom.setSpeed(dat.speed);
         }
         break;
     }

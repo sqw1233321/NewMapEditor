@@ -451,13 +451,15 @@ export default class MapLoader extends cc.Component {
       const itemNd = cc.instantiate(this.cablePrefab);
       itemNd.name = `Cable${nameId++}`;
       itemNd.parent = this._outRoomUnitCont;
-      const worldPos = cc.v2(dat.pos.x, dat.pos.y);
+      const startP: cc.Node = this._pointMap.get(dat.point1);
+      const endP: cc.Node = this._pointMap.get(dat.point2);
+      const pointInfo = this._pointMap.get(startP.getComponent(MapDrawP).getId());
+      const worldPos = cc.v2(pointInfo.position.x, pointInfo.position.y);
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
+      const points = dat.points.map((id) => this._pointMap.get(id));
       const control = itemNd.addComponentSafe(MapDrawCable);
-      let startP: cc.Node = this._pointMap.get(dat.startId);
-      let endP: cc.Node = this._pointMap.get(dat.endId);
-      control.init(startP, endP, dat);
+      control.init(startP, endP, points, dat);
     });
   }
 
@@ -1144,8 +1146,8 @@ export default class MapLoader extends cc.Component {
       playerCreatePos: playerCreatePos,
       playerExitPos: playerExitPos,
       portalDatas: portalDatas,
-      cableDatas: [],
-      stoneDatas: [],
+      cableDatas: cableDatas,
+      stoneDatas: stoneDatas,
       areaInfo: areaInfo
     }
     mapDat.setDat(outDat);

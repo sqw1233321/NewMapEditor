@@ -17,8 +17,10 @@ import {
   attrPanelTypeDoor,
   attrPanelTypeLadder,
   attrPanelTypePortal,
+  attrPanelTypeCable,
 } from "../type/types";
 import AttrPanelBase from "./AttrPanelBase";
+import AttrPanelCable from "./AttrPanelCable";
 import AttrPanelDoor from "./AttrPanelDoor";
 import AttrPanelLadder from "./AttrPanelLadder";
 import AttrPanelPoint from "./AttrPanelPoint";
@@ -26,6 +28,10 @@ import AttrPanelPortal from "./AttrPanelPortal";
 import AttrPanelRoom from "./AttrPanelRoom";
 
 const { ccclass, property } = cc._decorator;
+
+export enum AttrPanelEvent {
+  afterEdit = "afterEdit",
+}
 
 @ccclass
 export default class EditPanel extends cc.Component {
@@ -47,6 +53,8 @@ export default class EditPanel extends cc.Component {
   @property(cc.Node)
   portalAttr: cc.Node;
 
+  @property(cc.Node)
+  cableAttr: cc.Node;
 
   //areaInfo
   @property(cc.EditBox)
@@ -68,6 +76,11 @@ export default class EditPanel extends cc.Component {
       this
     )
     EventManager.instance.on(MapEditorEvent.ClearEditPanel, this.clear, this);
+    EventManager.instance.on(
+      AttrPanelEvent.afterEdit,
+      this.onChangeAttr,
+      this
+    )
   }
 
   protected onDestroy(): void {
@@ -82,6 +95,9 @@ export default class EditPanel extends cc.Component {
       this
     )
     EventManager.instance.off(MapEditorEvent.ClearEditPanel, this.clear, this);
+    EventManager.instance.off(AttrPanelEvent.afterEdit,
+      this.onChangeAttr,
+      this)
   }
 
   private refreshAttr(attrDat: attrPanelType) {
@@ -103,12 +119,11 @@ export default class EditPanel extends cc.Component {
       case UnitType.Ladder:
         this.showLadderAttrNd();
         break;
-      case UnitType.EnemyRefresh:
-        break;
-      case UnitType.SearchPoint:
-        break;
       case UnitType.Portal:
         this.showPortalAttrNd();
+        break;
+      case UnitType.Cable:
+        this.showCableAttrNd();
         break;
     }
   }
@@ -121,6 +136,7 @@ export default class EditPanel extends cc.Component {
     this.doorAttr.active = type == UnitType.Door;
     this.ladderAttr.active = type == UnitType.Ladder;
     this.portalAttr.active = type == UnitType.Portal;
+    this.cableAttr.active = type == UnitType.Cable;
   }
 
   private showBaseAttrNd() {
@@ -153,6 +169,11 @@ export default class EditPanel extends cc.Component {
     this.portalAttr.getComponent(AttrPanelPortal).setAttr(dat);
   }
 
+  private showCableAttrNd() {
+    const dat = this._dat.dat as attrPanelTypeCable;
+    this.cableAttr.getComponent(AttrPanelCable).setAttr(dat);
+  }
+
   public onChangeAttr(event, type: string) {
     const unitType = Number(type) as UnitType;
     let dat;
@@ -172,12 +193,13 @@ export default class EditPanel extends cc.Component {
       case UnitType.Ladder:
         dat = this.ladderAttr.getComponent(AttrPanelLadder).getDat();
         break;
-      case UnitType.EnemyRefresh:
-        break;
-      case UnitType.SearchPoint:
-        break;
       case UnitType.Portal:
         dat = this.portalAttr.getComponent(AttrPanelPortal).getDat();
+        break;
+      case UnitType.Cable:
+        dat = this.cableAttr.getComponent(AttrPanelCable).getDat();
+        break;
+      default:
         break;
     }
     const attrDat: attrPanelType = {
@@ -209,5 +231,6 @@ export default class EditPanel extends cc.Component {
     this.doorAttr.active = false;
     this.ladderAttr.active = false;
     this.portalAttr.active = false;
+    this.cableAttr.active = false;
   }
 }
