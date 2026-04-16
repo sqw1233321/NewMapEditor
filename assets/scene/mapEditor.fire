@@ -2232,6 +2232,12 @@
     "shipPrefab": {
       "__uuid__": "f7cbc449-e67d-422c-906f-d0961c606d52"
     },
+    "cablePrefab": {
+      "__uuid__": "11a5b27c-fecc-4931-91b8-b8ca9c3ba85c"
+    },
+    "stonePrefab": {
+      "__uuid__": "ec679609-f2a8-487d-a49b-a9f85ba40a7d"
+    },
     "_id": "31UOyBRslJkLkxhIhEl4nw"
   },
   {
