@@ -1,3 +1,6 @@
+import EditorSetting from "../editor/EditorSetting";
+import ModeMgr from "../editor/modes/ModeMgr";
+
 //地图工具类
 interface RoomLike {
     node: cc.Node;
@@ -8,12 +11,14 @@ interface RoomLike {
 export default class MapTool {
 
     static _mapLoader: cc.Node;
-    static _size:cc.Vec2;
+    static _size: cc.Vec2;
+    static _modeMgr: ModeMgr;
 
 
-    static init(mapLaoder: cc.Node, size: cc.Vec2) {
+    static init(mapLaoder: cc.Node, modeMgr: ModeMgr, size: cc.Vec2) {
         this._mapLoader = mapLaoder;
         this._size = size;
+        this._modeMgr = modeMgr;
     }
 
     static getSize() {
@@ -44,33 +49,34 @@ export default class MapTool {
         return box.contains(worldPos);
     }
 
-    /** 根据世界坐标命中房间（后遍历优先，尽量选上层叠放时更“靠上”的房间） */
-    static findRoomAtWorldPos(worldPos: cc.Vec2, rooms?: RoomLike[]): RoomLike | null {
-        if (!this._mapLoader) return null;
-        const roomList = rooms || (this._mapLoader.getComponentsInChildren("MapDrawRoom") as any as RoomLike[]);
-        const wp = cc.v2(worldPos.x, worldPos.y);
-        for (let i = roomList.length - 1; i >= 0; i--) {
-            const room = roomList[i];
-            const box = room.node.getBoundingBoxToWorld();
-            if (box.contains(wp)) return room;
+
+    static getLeftBottom(node: cc.Node) {
+        const s = node.getContentSize();
+        const leftBottom = cc.v2(
+            -s.width * node.anchorX,
+            -s.height * node.anchorY
+        );
+        return leftBottom;
+    }
+
+    static _getIntersection(a: cc.Rect, b: cc.Rect): cc.Rect | null {
+        const xMin = Math.max(a.xMin, b.xMin);
+        const yMin = Math.max(a.yMin, b.yMin);
+        const xMax = Math.min(a.xMax, b.xMax);
+        const yMax = Math.min(a.yMax, b.yMax);
+
+        if (xMax >= xMin && yMax >= yMin) {
+            return new cc.Rect(
+                xMin,
+                yMin,
+                xMax - xMin,
+                yMax - yMin
+            );
         }
+
         return null;
     }
 
-    /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
-    static findLayerAtWorldPos(worldPos: cc.Vec2): cc.Node | null {
-        if (!this._mapLoader) return null;
-        const wp = cc.v2(worldPos.x, worldPos.y);
-        const layerCont = this._mapLoader.getChildByName("LayerCont");
-        if (!layerCont) return null;
-        for (const layerNd of layerCont.children) {
-            // 避免把 LayerCont 自己/其它非 Layer{n} 节点误判
-            if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) continue;
-            const box = layerNd.getBoundingBoxToWorld();
-            if (box.contains(wp)) return layerNd;
-        }
-        return null;
-    }
 
     /** 拖拽结束时，根据 hover 信息找到目标房间 */
     static findHoverRoomForDrag(hoverRoomId: number, hoverRoomName: string): RoomLike | null {
@@ -106,6 +112,11 @@ export default class MapTool {
             cur = cur.parent;
         }
         return null;
+    }
+
+    /**获取当前模式类型 */
+    static getCurModeType() {
+        return this._modeMgr.getCurModeType();
     }
 
 }

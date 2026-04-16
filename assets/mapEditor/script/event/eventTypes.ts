@@ -11,12 +11,12 @@ export enum MapEditorEvent {
     PortalBindPathPointClick = "PortalBindPathPointClick",
     /** 传送门动画点绑定模式：点击传送门（payload 为 cc.Node） */
     PortalAnimBindPortalClick = "PortalAnimBindPortalClick",
-    /** 传送门动画点绑定模式：点击点（payload 为 cc.Node） */
-    PortalAnimBindPointClick = "PortalAnimBindPortalClick",
     /** 房间解锁点绑定：点击房间（payload 为 cc.Node） */
     RoomUnlockBindRoomClick = "RoomUnlockBindRoomClick",
     /** 房间解锁点绑定：点击路径点（payload 为 cc.Node） */
     RoomUnlockBindPointClick = "RoomUnlockBindPointClick",
+    /** 通用路径点选择模式：点击路径点（payload 为 cc.Node） */
+    SelectPointClick = "SelectPointClick",
     //刷新属性面板
     RefreshAttrPanel = "RefreshAttrPanel",
     //属性面板同步
@@ -26,5 +26,8 @@ export enum MapEditorEvent {
     //刷新区域信息面板
     RefreshAreaInfo = "RefreshAreaInfo",
     //区域信息更新
-    UpdateAreaInfoFormPanel = "UpdateAreaInfoFormPanel"
+    UpdateAreaInfoFormPanel = "UpdateAreaInfoFormPanel",
+
+    //当前模式显示
+    UpdateCurModeDisplay = "UpdateCurModeDisplay"
 }

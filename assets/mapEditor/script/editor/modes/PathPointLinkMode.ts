@@ -3,6 +3,7 @@ import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
 import EditorSetting from "../EditorSetting";
+import { ModeType } from "../../type/types";
 
 type PathPointModeDeps = {
   onChanged: () => void;
@@ -14,12 +15,8 @@ export default class PathPointLinkMode extends ModeBase {
     deactivateOthers: () => void,
     private readonly deps: PathPointModeDeps,
   ) {
-    super(deactivateOthers);
-  }
-
-  public setEnabled(enabled: boolean): void {
-    super.setEnabled(enabled);
-    EditorSetting.Instance.setPathPointLinkMode(enabled);
+    super(deactivateOthers); 
+    this._modeType = ModeType.PathPointLink;
   }
 
   public mount() {

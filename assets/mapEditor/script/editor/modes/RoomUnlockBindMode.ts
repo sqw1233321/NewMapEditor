@@ -4,6 +4,7 @@ import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
 import EditorSetting from "../EditorSetting";
+import { ModeType } from "../../type/types";
 
 type RoomUnlockModeDeps = {
   onChanged: () => void;
@@ -16,11 +17,7 @@ export default class RoomUnlockBindMode extends ModeBase {
     private readonly deps: RoomUnlockModeDeps,
   ) {
     super(deactivateOthers);
-  }
-
-  public setEnabled(enabled: boolean): void {
-    super.setEnabled(enabled);
-    EditorSetting.Instance.setRoomUnlockBindMode(enabled);
+    this._modeType = ModeType.RoomUnlockBind;
   }
 
   protected onDisabled(): void {

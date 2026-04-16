@@ -3,28 +3,23 @@ import MapDrawP from "../../item/MapDrawP";
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
-import EditorSetting from "../EditorSetting";
+import { ModeType } from "../../type/types";
 
 type LadderModeDeps = {
-  getTrackedNode: () => cc.Node;
-  syncLadderToBindPoints: (ladder: MapDrawLadder) => void;
   onChanged: () => void;
 };
 
 export default class LadderBindMode extends ModeBase {
   private _start: cc.Node = null;
+  private _laddderNd: cc.Node;
+
   constructor(
     deactivateOthers: () => void,
     private readonly deps: LadderModeDeps,
   ) {
     super(deactivateOthers);
+    this._modeType = ModeType.LadderBind;
   }
-
-  public setEnabled(enabled: boolean): void {
-    super.setEnabled(enabled);
-    EditorSetting.Instance.setLadderBindMode(enabled);
-  }
-
 
   protected onDisabled(): void {
     this.cancelPick();
@@ -45,14 +40,17 @@ export default class LadderBindMode extends ModeBase {
     this._start = null;
   }
 
+  public setLadder(ladderNd: cc.Node) {
+    this._laddderNd = ladderNd;
+  }
+
   public onPointClick(node: cc.Node) {
     if (!this.isEnabled()) return;
     if (!node || !cc.isValid(node)) return;
     const targetPoint = node.getComponent(MapDrawP);
     if (!targetPoint) return;
-    const ladderCom = this.deps.getTrackedNode()?.getComponent(MapDrawLadder);
+    const ladderCom = this._laddderNd?.getComponent(MapDrawLadder);
     if (!ladderCom) return;
-
     if (!this._start || !cc.isValid(this._start)) {
       this._start = node;
       targetPoint.setLinkHighlight(true);
@@ -64,6 +62,7 @@ export default class LadderBindMode extends ModeBase {
       this._start = null;
       return;
     }
+
     if (this._start === node) {
       startPoint.setLinkHighlight(false);
       this._start = null;
@@ -77,7 +76,7 @@ export default class LadderBindMode extends ModeBase {
     ladderCom.setBinds([bindStart, bindEnd]);
     startPoint.setLinkHighlight(false);
     this._start = null;
-    this.deps.syncLadderToBindPoints(ladderCom);
+    // this.deps.syncLadderToBindPoints(ladderCom);
     this.deps.onChanged();
   }
 }

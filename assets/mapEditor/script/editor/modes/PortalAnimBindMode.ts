@@ -4,6 +4,7 @@ import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
 import EditorSetting from "../EditorSetting";
+import { ModeType } from "../../type/types";
 
 type PortalAnimModeDeps = {
   onChanged: () => void;
@@ -16,11 +17,7 @@ export default class PortalAnimBindMode extends ModeBase {
     private readonly deps: PortalAnimModeDeps,
   ) {
     super(deactivateOthers);
-  }
-
-  public setEnabled(enabled: boolean): void {
-    super.setEnabled(enabled);
-    EditorSetting.Instance.setPortalAnimBindMode(enabled);
+    this._modeType = ModeType.PortalAnimBind;
   }
 
   protected onDisabled(): void {

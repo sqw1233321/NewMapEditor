@@ -1,3 +1,5 @@
+import { ModeType } from "../../type/types";
+
 export default abstract class ModeBase {
   protected _enabled = false;
   constructor(
@@ -6,6 +8,12 @@ export default abstract class ModeBase {
 
   public isEnabled() {
     return this._enabled;
+  }
+
+  protected _modeType: ModeType
+
+  public getType() {
+    return this._modeType;
   }
 
   public setEnabled(enabled: boolean) {

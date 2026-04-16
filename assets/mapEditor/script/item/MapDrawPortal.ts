@@ -8,7 +8,9 @@
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
+import { ModeType } from "../type/types";
 import { MapDrawDatPortalData, PortalType } from "./MapDrawDat";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 
@@ -48,11 +50,11 @@ export default class MapDrawPortal extends MapDrawUnitBase {
   }
 
   protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-    if (EditorSetting.Instance.isPortalBindMode()) {
+    if (MapTool.getCurModeType() == ModeType.PortalBind) {
       EventManager.instance.emit(MapEditorEvent.PortalBindPortalClick, this.node);
       return true;
     }
-    if (EditorSetting.Instance.isPortalAnimBindMode()) {
+    if (MapTool.getCurModeType() == ModeType.PortalAnimBind) {
       EventManager.instance.emit(MapEditorEvent.PortalAnimBindPortalClick, this.node);
       return true;
     }

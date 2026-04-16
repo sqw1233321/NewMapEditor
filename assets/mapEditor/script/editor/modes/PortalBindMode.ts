@@ -4,6 +4,7 @@ import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
 import EditorSetting from "../EditorSetting";
+import { ModeType } from "../../type/types";
 
 type PortalModeDeps = {
   onChanged: () => void;
@@ -16,11 +17,7 @@ export default class PortalBindMode extends ModeBase {
     private readonly deps: PortalModeDeps,
   ) {
     super(deactivateOthers);
-  }
-
-  public setEnabled(enabled: boolean): void {
-    super.setEnabled(enabled);
-    EditorSetting.Instance.setPortalBindMode(enabled);
+    this._modeType = ModeType.PortalBind;
   }
 
   protected onDisabled(): void {

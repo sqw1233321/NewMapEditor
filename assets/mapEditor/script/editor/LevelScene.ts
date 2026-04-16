@@ -16,6 +16,7 @@ import {
   attrPanelTypeRoom,
   DragType,
   HoverType,
+  ModeType,
 } from "../type/types";
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
@@ -31,6 +32,8 @@ import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
 import ModeBase from "./modes/ModeBase";
 import PortalAnimBindMode from "./modes/PortalAnimBindMode";
 import MapDrawCable from "../item/MapDrawCable";
+import SelectPointMode from "./modes/SelectPointMode";
+import ModeMgr from "./modes/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -84,12 +87,8 @@ export default class LevelScene extends cc.Component {
   private _trackNd: cc.Node;
   //房间外物品类型
   private outRoomUnitType = [UnitType.Portal, UnitType.Cable, UnitType.Stone];
-  //模式
-  private _pathPointMode: PathPointLinkMode;
-  private _ladderMode: LadderBindMode;
-  private _portalMode: PortalBindMode;
-  private _portalAnimMode: PortalAnimBindMode;
-  private _roomUnlockMode: RoomUnlockBindMode;
+
+  private _modeMgr: ModeMgr;
 
 
   /**
@@ -105,36 +104,8 @@ export default class LevelScene extends cc.Component {
   }
 
   protected onLoad(): void {
-    const deactivateOthers = () => {
-      this._pathPointMode?.setEnabled(false);
-      this._ladderMode?.setEnabled(false);
-      this._portalMode?.setEnabled(false);
-      this._portalAnimMode?.setEnabled(false);
-      this._roomUnlockMode?.setEnabled(false);
-    };
-    this._pathPointMode = new PathPointLinkMode(deactivateOthers, {
-      onChanged: () => this.refreshAttrPanel(),
-    });
-    this._ladderMode = new LadderBindMode(deactivateOthers, {
-      getTrackedNode: () => this._trackNd,
-      syncLadderToBindPoints: (ladder) => this.syncLadderToBindPoints(ladder),
-      onChanged: () => this.refreshAttrPanel(),
-    });
-    this._portalMode = new PortalBindMode(deactivateOthers, {
-      onChanged: () => this.refreshAttrPanel(),
-    });
-    this._portalAnimMode = new PortalAnimBindMode(deactivateOthers, {
-      onChanged: () => this.refreshAttrPanel(),
-    });
-    this._roomUnlockMode = new RoomUnlockBindMode(deactivateOthers, {
-      onChanged: () => this.refreshAttrPanel(),
-    });
-    this._pathPointMode.mount();
-    this._ladderMode.mount();
-    this._portalMode.mount();
-    this._portalAnimMode.mount();
-    this._roomUnlockMode.mount();
-
+    this._modeMgr = new ModeMgr();
+    this._modeMgr.init();
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this, true);
     this.node.on(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
@@ -150,9 +121,14 @@ export default class LevelScene extends cc.Component {
       this.refreshAreaInfo,
       this
     )
+    EventManager.instance.on(
+      MapEditorEvent.UpdateCurModeDisplay,
+      this.updateCurModeDisplay,
+      this
+    )
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-    MapTool.init(this.mapLoader, this.mapSize);
+    MapTool.init(this.mapLoader, this._modeMgr, this.mapSize);
     this.createLevel();
   }
 
@@ -161,12 +137,8 @@ export default class LevelScene extends cc.Component {
   }
 
   protected onDestroy(): void {
+    this._modeMgr.clear();
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
-    this._pathPointMode?.unmount();
-    this._ladderMode?.unmount();
-    this._portalMode?.unmount();
-    this._portalAnimMode?.unmount();
-    this._roomUnlockMode?.unmount();
     EventManager.instance.off(
       MapEditorEvent.UpdateFromAttrPanel,
       this.refreshNdAttr,
@@ -175,6 +147,11 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.off(
       MapEditorEvent.UpdateAreaInfoFormPanel,
       this.refreshAreaInfo,
+      this
+    );
+    EventManager.instance.off(
+      MapEditorEvent.UpdateCurModeDisplay,
+      this.updateCurModeDisplay,
       this
     )
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -186,6 +163,14 @@ export default class LevelScene extends cc.Component {
     const scaleX = graphSize.width / this.mapSize.x;
     const scaleY = graphSize.height / this.mapSize.y;
     EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
+  }
+
+  private updateCurModeDisplay(modeType: ModeType) {
+    if (!modeType) {
+      this.curModeLb.string = "无模式";
+      return;
+    }
+    this.curModeLb.string = modeType;
   }
 
   /** 悬停框：与 MapDrawUnitBase 的命中盒一致 */
@@ -230,7 +215,10 @@ export default class LevelScene extends cc.Component {
       this._dragDat.hoverRoomId = draggedRoom.getId();
       this._dragDat.hoverRoomName = draggedRoom.node.name;
 
-      const layerNd = MapTool.findLayerAtWorldPos(worldMousePos);
+      const box = draggedRoom.getHoverBoxSize();
+      const worldPos = draggedRoom.node.convertToWorldSpaceAR(MapTool.getLeftBottom(draggedRoom.node));
+      const rect = new cc.Rect(worldPos.x, worldPos.y, box.width, box.height);
+      const layerNd = this.findLayerAtWorldPos(rect);
       if (!layerNd) {
         // 只清空 hover 框，不清空 hoverRoomId/hoverRoomName
         this._dragDat.hoverLayerNode = undefined;
@@ -264,8 +252,12 @@ export default class LevelScene extends cc.Component {
     // 非房间拖拽：按房间命中判断 hover 框
     this._dragDat.hoverLayerNode = undefined;
     this._dragDat.hoverLayerName = undefined;
-    const allRooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
-    const room = MapTool.findRoomAtWorldPos(worldMousePos, allRooms);
+
+    const base = this._dragDat.itemNode.getComponent(MapDrawUnitBase);
+    const box = base.getHoverBoxSize();
+    const worldPos = base.node.convertToWorldSpaceAR(MapTool.getLeftBottom(base.node));
+    const rect = new cc.Rect(worldPos.x, worldPos.y, box.width, box.height);
+    const room = this.findRoomAtWorldPos(rect);
     if (!room) {
       this.clearDragRoomHover();
       return;
@@ -427,7 +419,6 @@ export default class LevelScene extends cc.Component {
       this._isLeftDown = false;
       // 没有经历过左键按下，则忽略左键抬起（避免 UI 上抬起误触发）
       if (!wasLeftDown) return;
-      const worldPos = event.getLocation();
       if (this._dragDat) {
         const itemDat = this._dragDat.itemNode;
         const itemParent = this._dragDat.parent;
@@ -582,31 +573,27 @@ export default class LevelScene extends cc.Component {
     }
     //退出按钮
     if (event.keyCode === cc.macro.KEY.escape) {
-      this._pathPointMode?.setEnabled(false);
-      this._ladderMode?.setEnabled(false);
-      this._portalMode?.setEnabled(false);
-      this._portalAnimMode?.setEnabled(false);
-      this._roomUnlockMode?.setEnabled(false);
+      this._modeMgr.clear();
     }
     //p键，进入连线模式
     else if (event.keyCode === cc.macro.KEY.p) {
-      this.setMode(this._pathPointMode);
+      this._modeMgr.enterMode(ModeType.PathPointLink);
     }
     //l键，进入梯子绑定模式
     else if (event.keyCode === cc.macro.KEY.l) {
-      this.setMode(this._ladderMode);
+      this._modeMgr.enterMode(ModeType.LadderBind, this._trackNd);
     }
     //o键，进入传送门绑定模式
     else if (event.keyCode === cc.macro.KEY.o) {
-      this.setMode(this._portalMode);
+      this._modeMgr.enterMode(ModeType.PortalBind);
     }
     //i键，进入传送门动画点绑定模式
     else if (event.keyCode === cc.macro.KEY.i) {
-      this.setMode(this._portalAnimMode);
+      this._modeMgr.enterMode(ModeType.PortalAnimBind);
     }
     //r键，进入房间解锁点绑定模式
     else if (event.keyCode === cc.macro.KEY.r) {
-      this.setMode(this._roomUnlockMode);
+      this._modeMgr.enterMode(ModeType.RoomUnlockBind);
     }
   }
 
@@ -1141,6 +1128,62 @@ export default class LevelScene extends cc.Component {
 
   private clearHoverDat() {
     this._hoverDat.name = "";
+  }
+
+  //工具类方法
+  /** 根据世界坐标命中 layer 容器（用于拖拽房间时，鼠标不在任意房间上也能高亮整个 layer） */
+  private findLayerAtWorldPos(rect: cc.Rect): cc.Node | null {
+    const layerCont = this.mapLoader.getChildByName("LayerCont");
+    if (!layerCont) return null;
+    let bestLayer: cc.Node | null = null;
+    let maxArea = 0;
+    for (const layerNd of layerCont.children) {
+      if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) continue;
+      const mapScale = EditorSetting.Instance.getMapScale();
+      const size = layerNd.getContentSize();
+      const offset = cc.v2(
+        layerNd.anchorX * size.width * mapScale,
+        layerNd.anchorY * size.height * mapScale,
+      );
+      const worldPos = layerNd
+        .convertToWorldSpaceAR(cc.Vec2.ZERO)
+        .clone()
+        .subtract(offset);
+      const width = size.width * mapScale;
+      const height = size.height * mapScale;
+      const boxRect = new cc.Rect(worldPos.x, worldPos.y, width, height);
+      // 计算相交矩形
+      const interRect = MapTool._getIntersection(rect, boxRect);
+      if (!interRect) continue;
+      const area = interRect.width * interRect.height;
+      if (area > maxArea) {
+        maxArea = area;
+        bestLayer = layerNd;
+      }
+    }
+    return bestLayer;
+  }
+
+
+  /** 根据世界坐标命中房间（后遍历优先，尽量选上层叠放时更“靠上”的房间） */
+  private findRoomAtWorldPos(rect: cc.Rect): MapDrawRoom | null {
+    const roomList = this.mapLoader.getComponentsInChildren(MapDrawRoom);
+    let bestRoom: MapDrawRoom;
+    let maxArea = 0;
+    for (const room of roomList) {
+      const box = room.getHoverBoxSize();
+      const worldPos = room.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+      const boxRect = new cc.Rect(worldPos.x, worldPos.y, box.width, box.height);
+      // 计算相交矩形
+      const interRect = MapTool._getIntersection(rect, boxRect);
+      if (!interRect) continue;
+      const area = interRect.width * interRect.height;
+      if (area > maxArea) {
+        maxArea = area;
+        bestRoom = room;
+      }
+    }
+    return bestRoom;
   }
 }
 

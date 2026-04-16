@@ -5776,7 +5776,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 150,
+      "width": 90,
       "height": 40.32
     },
     "_anchorPoint": {
@@ -5828,8 +5828,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "当前的模式",
-    "_N$string": "当前的模式",
+    "_string": "无模式",
+    "_N$string": "无模式",
     "_fontSize": 30,
     "_lineHeight": 32,
     "_enableWrapText": true,

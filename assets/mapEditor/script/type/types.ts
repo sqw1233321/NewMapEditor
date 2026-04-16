@@ -90,3 +90,12 @@ export interface attrPanelTypeCable {
   points: string[];
   speed: number;
 }
+
+export enum ModeType {
+  PathPointLink = "PathPointLink",
+  LadderBind = "LadderBind",
+  PortalBind = "PortalBind",
+  PortalAnimBind = "PortalAnimBind",
+  RoomUnlockBind = "RoomUnlockBind",
+  SelectPoint = "SelectPoint",
+}

@@ -25,6 +25,8 @@ import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapDrawSurvive from "./MapDrawSurvive";
+import MapTool from "../tool/MapTool";
+import { ModeType } from "../type/types";
 
 const { ccclass, property } = cc._decorator;
 
@@ -64,7 +66,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (EditorSetting.Instance.isRoomUnlockBindMode()) {
+        if (MapTool.getCurModeType() == ModeType.RoomUnlockBind) {
             EventManager.instance.emit(MapEditorEvent.RoomUnlockBindRoomClick, this.node);
             return true;
         }
