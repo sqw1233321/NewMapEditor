@@ -24,4 +24,6 @@ export enum UnitType {
     SearchPoint,
     Portal,
     SurviveDat,
+    Stone,
+    Cable,
 }

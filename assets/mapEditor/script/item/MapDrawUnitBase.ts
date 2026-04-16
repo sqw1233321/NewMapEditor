@@ -14,7 +14,7 @@ export default class MapDrawUnitBase extends cc.Component {
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
   }
 
-  public init(...params) {}
+  public init(...params) { }
 
   public getType() {
     return UnitType.Default;
@@ -73,5 +73,9 @@ export default class MapDrawUnitBase extends cc.Component {
     const size = this.node.getContentSize();
     const mapScale = EditorSetting.Instance.getMapScale();
     return { width: size.width * mapScale, height: size.height * mapScale };
+  }
+
+  protected getDat() {
+
   }
 }

@@ -11,13 +11,16 @@ import { EventManager } from "../frameWork/EventManager";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import {
-  MapDrawDat,
+  MapDrawDatType,
   MapDrawDatEnemyRefreshData,
   MapDrawDatPathPoint,
   MapDrawDatPortalData as MapDrawDatPortal,
   MapDrawDatRoom,
   MapDrawDatSize,
   PortalType,
+  MapDrawDat,
+  MapDrawDatCableData,
+  MapDrawDatStoneData,
 } from "./MapDrawDat";
 import MapDrawDoor from "./MapDrawDoor";
 import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
@@ -34,12 +37,6 @@ const { ccclass, property, executeInEditMode } = cc._decorator;
 @ccclass
 // @executeInEditMode
 export default class MapLoader extends cc.Component {
-  @property(cc.JsonAsset)
-  mapJson: cc.JsonAsset = null;
-
-  @property(cc.Vec2)
-  size: cc.Vec2 = new cc.Vec2(0, 0);
-
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
 
@@ -70,6 +67,14 @@ export default class MapLoader extends cc.Component {
   @property(cc.Prefab)
   shipPrefab: cc.Prefab = null;
 
+  @property(cc.Prefab)
+  cablePrefab: cc.Prefab;
+
+  @property(cc.Prefab)
+  stonePrefab: cc.Prefab;
+
+
+  private _size: cc.Vec2;
   private _data;
   private _layerCont: cc.Node;
   private _layerNodeMap = new Map<number, cc.Node>();
@@ -77,7 +82,7 @@ export default class MapLoader extends cc.Component {
   private _pointMap = new Map<string, cc.Node>();
   private _playerCreateNd: cc.Node;
   private _playerExitNd: cc.Node;
-  private _portalCont: cc.Node;
+  private _unitCont: cc.Node;
   private _pointLineCont: cc.Node;
   private _pointLineDrawer: cc.Graphics;
   private _areaInfo: number[] = [];
@@ -99,11 +104,12 @@ export default class MapLoader extends cc.Component {
     MapLoader.ins = this;
   }
 
-  build(json) {
-    this.mapJson = json;
-    if (!this.mapJson) return;
-    this._fileName = this.mapJson.name;
-    this._data = this.mapJson.json;
+  build(json, size: cc.Vec2) {
+    const mapJson = json;
+    this._size = size;
+    if (!mapJson) return;
+    this._fileName = mapJson.name;
+    this._data = mapJson.json;
     this.node.removeAllChildren();
     this._data.areaInfo?.forEach((info) => {
       this._areaInfo.push(info);
@@ -125,8 +131,8 @@ export default class MapLoader extends cc.Component {
   private buildBaseNd() {
     this._layerCont = new cc.Node("LayerCont");
     this._layerCont.parent = this.node;
-    this._portalCont = new cc.Node("portalCont");
-    this._portalCont.parent = this.node;
+    this._unitCont = new cc.Node("unitlCont");
+    this._unitCont.parent = this.node;
     this._playerCreateNd = new cc.Node("playerCreate");
     this._playerCreateNd.parent = this.node;
     this._playerExitNd = new cc.Node("playerExit");
@@ -390,7 +396,7 @@ export default class MapLoader extends cc.Component {
       const prefab = this.getPortalPrefab(type);
       const itemNd = cc.instantiate(prefab);
       itemNd.name = `Portal${nameId++}`;
-      itemNd.parent = this._portalCont;
+      itemNd.parent = this._unitCont;
       const worldPos = cc.v2(portal.pos.x, portal.pos.y);
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
@@ -414,6 +420,27 @@ export default class MapLoader extends cc.Component {
         return this.portalPrefab;
     }
   }
+
+  private buildTest() {
+    let nameId = 0;
+    const portals: MapDrawDatPortal[] = this._data.portalDatas;
+    portals?.forEach((portal: MapDrawDatPortal) => {
+      const type = portal.portalType ?? PortalType.Default;
+      const prefab = this.getPortalPrefab(type);
+      const itemNd = cc.instantiate(prefab);
+      itemNd.name = `Portal${nameId++}`;
+      itemNd.parent = this._unitCont;
+      const worldPos = cc.v2(portal.pos.x, portal.pos.y);
+      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
+      itemNd.setPosition(localPos);
+      const control = itemNd.addComponentSafe(MapDrawPortal);
+      control.linkId = portal.linkId;
+      const offsetX = portal.offsetX || 0;
+      control.offsetX = offsetX;
+      control.setAnimIds(portal.animPIds);
+    });
+  }
+
 
   //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
   private refreshDat() {
@@ -929,7 +956,7 @@ export default class MapLoader extends cc.Component {
   }
 
   public getPortalParent() {
-    return this._portalCont;
+    return this._unitCont;
   }
 
   /** 删除一个路径点，并维护 links / 梯子绑定 / unlockPoints / 点映射 */
@@ -1011,7 +1038,7 @@ export default class MapLoader extends cc.Component {
   public clear() {
     const children = this._layerCont.children.slice();
     children.forEach((n) => n.destroy());
-    this._portalCont.destroyAllChildren();
+    this._unitCont.destroyAllChildren();
     this._pointLineCont.getComponent(cc.Graphics).clear();
     this._roomNodeMap.clear();
     this._pointMap.clear();
@@ -1024,16 +1051,17 @@ export default class MapLoader extends cc.Component {
   private getJson() {
     const mapDat = new MapDrawDat();
     const size: MapDrawDatSize = {
-      width: this.size.x,
-      height: this.size.y,
+      width: this._size.x,
+      height: this._size.y,
     };
 
     console.log(`getJson`);
+
+    //路径数据
     const pathPoints: MapDrawDatPathPoint[] = [];
     this._pointMap.forEach((point) => {
       pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
     });
-    // 稳定排序：优先按 P{layer}_{n} 解析，其次按字符串
     pathPoints.sort((a, b) => {
       const ma = /^P(\d+)_(\d+)$/.exec(a.id || "");
       const mb = /^P(\d+)_(\d+)$/.exec(b.id || "");
@@ -1048,23 +1076,39 @@ export default class MapLoader extends cc.Component {
       return String(a.id || "").localeCompare(String(b.id || ""));
     });
 
+    //房间数据
     const rooms: MapDrawDatRoom[] = [];
     this._roomNodeMap.forEach((room) => {
       rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
     });
-    // 稳定排序：房间按 cfgId
     rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));
 
-    const portals: MapDrawDatPortal[] = [];
-    this._portalCont.children.forEach((portal) => {
-      portals.push(portal.addComponentSafe(MapDrawPortal).getDat());
+    //房间外物体数据
+    const portalDatas: MapDrawDatPortal[] = [];
+    const cableDatas: MapDrawDatCableData[] = [];
+    const stoneDatas: MapDrawDatStoneData[] = [];
+    this._unitCont.children.forEach((unit) => {
+      const controller = unit.getComponent(MapDrawUnitBase);
+      if (!controller) return;
+      let container = null;
+      switch (controller.getType()) {
+        case UnitType.Portal:
+          container = portalDatas;
+          break;
+        case UnitType.Cable:
+          container = cableDatas;
+          break;
+        case UnitType.Stone:
+          container = stoneDatas;
+          break;
+      }
+      container.push(controller.getDat());
     });
 
-    //TODO: 玩家创建位置和出口位置
     const playerCreatePos = this._playerCreateNd
       .addComponentSafe(MapDrawUnitBase)
       .getPos();
-    const exitPos = this._playerExitNd
+    const playerExitPos = this._playerExitNd
       .addComponentSafe(MapDrawUnitBase)
       .getPos();
 
@@ -1073,15 +1117,19 @@ export default class MapLoader extends cc.Component {
       areaInfo.push(Number(info));
     });
 
-    mapDat.setDat(
-      size,
-      pathPoints,
-      rooms,
-      playerCreatePos,
-      exitPos,
-      portals,
-      areaInfo,
-    );
+    //导出数据
+    const outDat: MapDrawDatType = {
+      size: size,
+      pathPoints: pathPoints,
+      rooms: rooms,
+      playerCreatePos: playerCreatePos,
+      playerExitPos: playerExitPos,
+      portalDatas: portalDatas,
+      cableDatas: [],
+      stoneDatas: [],
+      areaInfo: areaInfo
+    }
+    mapDat.setDat(outDat);
     return mapDat.createJson();
   }
 

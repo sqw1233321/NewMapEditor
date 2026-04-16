@@ -16,7 +16,6 @@ import MapDrawUnitBase from "./MapDrawUnitBase";
 const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawP extends MapDrawUnitBase {
-    @property([cc.Node])
     links: cc.Node[] = [];
 
     protected _type: UnitType.PathPoint;

@@ -153,7 +153,7 @@ export default class LevelScene extends cc.Component {
   }
 
   protected start(): void {
-    this.mapLoader.getComponent(MapLoader).build(this.levelJson);
+    this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
   }
 
   protected onDestroy(): void {

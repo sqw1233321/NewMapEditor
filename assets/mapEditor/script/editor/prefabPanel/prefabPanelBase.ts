@@ -7,6 +7,9 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class prefabPanelBase extends cc.Component {
+    @property({type:cc.Enum(UnitType)})
+    type: UnitType = UnitType.Default;
+
     /** 面板里代表的预制体（拖拽时会实例化一个临时节点） */
     @property(cc.Prefab)
     prefab: cc.Prefab = null;

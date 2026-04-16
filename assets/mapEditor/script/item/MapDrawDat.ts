@@ -1,29 +1,24 @@
 /**
  * 地图数据
  */
+export interface MapDrawDatType {
+    size: MapDrawDatSize,
+    pathPoints: MapDrawDatPathPoint[],
+    rooms: MapDrawDatRoom[],
+    playerCreatePos: MapDrawDatVec2,
+    playerExitPos: MapDrawDatVec2,
+    portalDatas?: MapDrawDatPortalData[],
+    cableDatas: MapDrawDatCableData[];
+    stoneDatas: MapDrawDatStoneData[];
+    areaInfo?: number[]
+}
+
+
 export class MapDrawDat {
-    private _jsonDat: {
-        size: MapDrawDatSize,
-        pathPoints: MapDrawDatPathPoint[],
-        rooms: MapDrawDatRoom[],
-        playerCreatePos: MapDrawDatVec2,
-        playerExitPos: MapDrawDatVec2,
-        portalDatas?: MapDrawDatPortalData[],
-        areaInfo?: number[]
-    }
+    private _jsonDat: MapDrawDatType;
 
-    private _json: any;
-
-    public setDat(size: MapDrawDatSize, pathPoints: MapDrawDatPathPoint[], rooms: MapDrawDatRoom[], playerCreatePos: MapDrawDatVec2, playerExitPos: MapDrawDatVec2, portalDatas?: MapDrawDatPortalData[], areaInfo?: number[]) {
-        this._jsonDat = {
-            size,
-            pathPoints,
-            rooms,
-            playerCreatePos,
-            playerExitPos,
-            portalDatas,
-            areaInfo
-        }
+    public setDat(dat: MapDrawDatType) {
+        this._jsonDat = dat;
     }
 
     createJson() {
@@ -158,4 +153,16 @@ export enum PortalType {
     Drop = 1,
     //船
     Ship = 2,
+}
+
+/**落石 */
+export interface MapDrawDatStoneData {
+    pos: MapDrawDatVec2;
+}
+
+/**缆车 */
+export interface MapDrawDatCableData {
+    startId: string;
+    endId: string;
+    speed: number;
 }
