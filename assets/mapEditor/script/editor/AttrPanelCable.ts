@@ -89,6 +89,7 @@ export default class AttrPanelCable extends cc.Component {
                 const nameLb = nd.children[0].children[0].getComponent(cc.Label);
                 nameLb.string = dat;
             })
+            EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
         const isMulti = true;
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
