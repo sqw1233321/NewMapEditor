@@ -439,8 +439,6 @@ export default class LevelScene extends cc.Component {
           cc.isValid(itemParent)
         ) {
           //放回原位
-          const draggedRoom = itemDat.getComponent(MapDrawRoom);
-          const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
           let targetParent = null;
           const type = itemDat.getComponent(MapDrawUnitBase).getType();
           //房间
@@ -490,7 +488,6 @@ export default class LevelScene extends cc.Component {
               }
             }
           }
-
           //没有父节点，清除
           if (!targetParent) {
             this._dragDat.itemNode.destroy();
@@ -498,7 +495,6 @@ export default class LevelScene extends cc.Component {
             this.clearDragRoomHover();
             return;
           }
-
           //算位置
           //切换父节点
           if (targetParent !== itemParent) {
@@ -525,6 +521,7 @@ export default class LevelScene extends cc.Component {
             this._dragDat = null;
             return;
           }
+          const draggedRoom = itemDat.getComponent(MapDrawRoom);
           //房间名字同步
           if (
             draggedRoom &&
@@ -557,7 +554,8 @@ export default class LevelScene extends cc.Component {
             }
           }
           // 非房间节点迁移后，刷新来源/目标房间，确保 roomId 与导出数据同步
-          if (!draggedRoom) {
+          if (!this.outRoomUnitType.includes(type)) {
+            const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
             const newOwnerRoom = MapTool.findOwnerRoomByNode(targetParent);
             if (oldOwnerRoom && cc.isValid(oldOwnerRoom.node)) {
               oldOwnerRoom.refreshDat();
@@ -947,9 +945,12 @@ export default class LevelScene extends cc.Component {
       case UnitType.Cable:
         const controller = this._trackNd?.getComponent(MapDrawCable);
         const cableDat = controller.getDat();
-        (dat as attrPanelTypeCable).startPId = cableDat.point1;
-        (dat as attrPanelTypeCable).endPId = cableDat.point2;
-        (dat as attrPanelTypeCable).points = cableDat.points;
+        const startP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.point1);
+        const endP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.point2);
+        const pointP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.points);
+        (dat as attrPanelTypeCable).startP = startP[0];
+        (dat as attrPanelTypeCable).endP = endP[0];
+        (dat as attrPanelTypeCable).points = pointP;
         (dat as attrPanelTypeCable).speed = cableDat.speed;
         break;
     }
@@ -1016,17 +1017,14 @@ export default class LevelScene extends cc.Component {
       case UnitType.Cable:
         dat = attrDat.dat as attrPanelTypeCable;
         const cableCom = this._trackNd.getComponent(MapDrawCable);
-        const startPid = dat.startPId;
-        const endPid = dat.endPId;
-        const pointPids = dat.points;
-        const startP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(startPid);
-        const endP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(endPid);
-        const pointP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(pointPids);
+        const startP = dat.startP;
+        const endP = dat.endP;
+        const pointPs = dat.points;
         if (cableCom) {
           cableCom.setSpeed(dat.speed);
-          cableCom.setStartP(startP[0]);
-          cableCom.setEndP(endP[0]);
-          cableCom.setPoints(pointP);
+          cableCom.setStartP(startP);
+          cableCom.setEndP(endP);
+          cableCom.setPoints(pointPs);
         }
         break;
     }

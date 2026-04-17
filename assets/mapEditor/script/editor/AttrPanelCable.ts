@@ -7,6 +7,7 @@
 
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import MapDrawP from "../item/MapDrawP";
 import { NodeUtil } from "../tool/NodeUtil";
 import { UnitType } from "../type/mapTypes";
 import { attrPanelType, attrPanelTypeCable } from "../type/types";
@@ -35,22 +36,19 @@ export default class AttrPanelCable extends cc.Component {
 
     setAttr(dat: attrPanelTypeCable) {
         this._dat = dat;
-        this.startP.string = this._dat.startPId;
-        this.endP.string = this._dat.endPId;
+        this.startP.string = this._dat.startP?.getComponent(MapDrawP).getId() ?? "";
+        this.endP.string = this._dat.endP?.getComponent(MapDrawP).getId() ?? "";
         NodeUtil.autoRefreshChildren(this.pointCont, this._dat.points, (nd, index, dat) => {
             const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-            nameLb.string = dat;
+            nameLb.string = dat.getComponent(MapDrawP)?.getId() ?? "";
         })
     }
 
     public getDat(): attrPanelTypeCable {
-        const points = this.pointCont.children.map((nd) => {
-            return nd.children[0].children[0].getComponent(cc.Label).string;
-        });
         return {
-            startPId: this.startP.string,
-            endPId: this.endP.string,
-            points: points,
+            startP: this._dat.startP,
+            endP: this._dat.endP,
+            points: this._dat.points,
             speed: Number(this.speed.string)
         }
     }
@@ -64,35 +62,40 @@ export default class AttrPanelCable extends cc.Component {
     //选择起始点（正向时）
     public onClickStart() {
         //进入选点模式，传入一个回调
-        const cb = (pids: string[]) => {
-            this.startP.string = pids[0] ?? "";
+        const cb = (nodes: cc.Node[]) => {
+            this.startP.string = nodes[0]?.getComponent(MapDrawP).getId() ?? "";
+            this._dat.startP = nodes[0];
             EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
         const isMulti = false;
-        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
+        const arr = this._dat.startP ? [this._dat.startP] : [];
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
 
     //选择终点（正向时）
     public onClickEnd() {
-        const cb = (pids: string[]) => {
-            this.endP.string = pids[0] ?? "";
+        const cb = (nodes: cc.Node[]) => {
+            this.endP.string = nodes[0]?.getComponent(MapDrawP).getId() ?? "";
+            this._dat.endP = nodes[0];
             EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
         const isMulti = false;
-        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
+        const arr = this._dat.endP ? [this._dat.endP] : [];
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
 
     //选择可编辑点
     public onClickPoints() {
-        const cb = (pids: string[]) => {
-            NodeUtil.autoRefreshChildren(this.pointCont, pids, (nd, index, dat) => {
+        const cb = (nodes: cc.Node[]) => {
+            this._dat.points = nodes;
+            NodeUtil.autoRefreshChildren(this.pointCont, nodes, (nd, index, dat) => {
                 const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-                nameLb.string = dat;
+                nameLb.string = dat?.getComponent(MapDrawP).getId() ?? "";
             })
             EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
         const isMulti = true;
-        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, this._dat.points);
     }
 
 

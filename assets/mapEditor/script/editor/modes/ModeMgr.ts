@@ -55,8 +55,8 @@ export default class ModeMgr {
         EventManager.instance.on(MapEditorEvent.OpenSelectPointMode, this.onOpenSelectPointMode, this);
     }
 
-    private onOpenSelectPointMode(ismulti, cb) {
-        this.enterMode(ModeType.SelectPoint, ismulti, cb);
+    private onOpenSelectPointMode(ismulti, cb, selections) {
+        this.enterMode(ModeType.SelectPoint, ismulti, cb, selections);
     }
 
     //进入模式
@@ -85,6 +85,7 @@ export default class ModeMgr {
                 this._selectPointMode.setEnabled(true);
                 this._selectPointMode.setIsMulti(isMulti);
                 this._selectPointMode.setChangeCb(param[1]);
+                this._selectPointMode.setSelections(param[2]);
                 break;
         }
         this._curMode = this._allMode.find(mode => mode.getType() == modeType);

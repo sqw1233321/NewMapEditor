@@ -86,9 +86,9 @@ export interface attrPanelTypePortal {
 }
 
 export interface attrPanelTypeCable {
-  startPId: string;
-  endPId: string;
-  points: string[];
+  startP: cc.Node;
+  endP: cc.Node;
+  points: cc.Node[];
   speed: number;
 }
 

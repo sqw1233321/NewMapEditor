@@ -730,7 +730,9 @@ export default class MapLoader extends cc.Component {
     }
 
     // 房间删除后，统一重排一次点ID（避免每删一个点都重排）
-    this.rebuildPointIdsByLayer();
+    this.scheduleOnce(() => {
+      this.rebuildPointIdsByLayer();
+    })
   }
 
   /** 房间移动后，清理空 Layer（childrenCount==0），并在下一帧重排层级编号 */
@@ -1045,7 +1047,9 @@ export default class MapLoader extends cc.Component {
 
     // 6) 删除后重排 ID（也会重建 _pointMap / 刷新 roomDat）
     if (rebuildIds) {
-      this.rebuildPointIdsByLayer();
+      this.scheduleOnce(() => {
+        this.rebuildPointIdsByLayer();
+      })
     }
   }
 
@@ -1087,6 +1091,7 @@ export default class MapLoader extends cc.Component {
     //路径数据
     const pathPoints: MapDrawDatPathPoint[] = [];
     this._pointMap.forEach((point) => {
+      if (!point || !cc.isValid(point)) return;
       pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
     });
     pathPoints.sort((a, b) => {

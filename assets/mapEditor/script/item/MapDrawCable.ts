@@ -46,9 +46,12 @@ export default class MapDrawCable extends MapDrawUnitBase {
     }
 
     public getDat(): MapDrawDatCableData {
-        const pointIds = this._points.map(p => p.getComponent(MapDrawP).getId() ?? "");
-        const startId = this._startP?.getComponent(MapDrawP).getId() ?? "";
-        const endId = this._endP?.getComponent(MapDrawP).getId() ?? "";
+        const pointIds = this._points
+            .filter(p => (p && cc.isValid(p) && p.getComponent(MapDrawP)))
+            .map(p => p.getComponent(MapDrawP).getId());
+        //可能节点已经被删除了
+        const startId = (this._startP && cc.isValid(this._startP)) ? this._startP.getComponent(MapDrawP).getId() : "";
+        const endId = (this._endP && cc.isValid(this._endP)) ? this._endP.getComponent(MapDrawP).getId() : "";
         const dat: MapDrawDatCableData = {
             point1: startId,
             point2: endId,

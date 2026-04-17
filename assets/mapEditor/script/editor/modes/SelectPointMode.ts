@@ -45,6 +45,13 @@ export default class SelectPointMode extends ModeBase {
     this._cb = cb;
   }
 
+  public setSelections(selections: cc.Node[]) {
+    this._selections = selections;
+    this._selections.forEach(n => {
+      if (cc.isValid(n)) n.getComponent(MapDrawP)?.setLinkHighlight(true);
+    })
+  }
+
   public getSelections(): cc.Node[] {
     return this._selections.filter((n) => cc.isValid(n));
   }
@@ -63,17 +70,19 @@ export default class SelectPointMode extends ModeBase {
     if (!target) return;
 
     if (!this._multiSelect) {
-      if (this._selections.length > 0 && this._selections[0] !== node) {
+      const select = this._selections[0]
+      if (this._selections.length > 0 && select !== node) {
         this._selections[0].getComponent(MapDrawP)?.setLinkHighlight(false);
       }
-      if (this._selections.length > 0 && this._selections[0] === node) {
+      if (this._selections.length > 0 && select === node) {
         this._selections = [];
         this._cb?.([]);
+        target.setLinkHighlight(false);
         return;
       }
       this._selections = [node];
       target.setLinkHighlight(true);
-      this._cb?.([target.getId()]);
+      this._cb?.(this._selections);
       return;
     }
     const idx = this._selections.indexOf(node);
@@ -85,6 +94,6 @@ export default class SelectPointMode extends ModeBase {
       target.setLinkHighlight(true);
     }
     const pids = this._selections.map(nd => nd.getComponent(MapDrawP).getId());
-    this._cb?.([...pids]);
+    this._cb?.(this._selections);
   }
 }
