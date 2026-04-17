@@ -6,14 +6,6 @@ import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import {
-  attrPanelType,
-  attrPanelTypeBase,
-  attrPanelTypeCable,
-  attrPanelTypeDoor,
-  attrPanelTypeLadder,
-  attrPanelTypePoint,
-  attrPanelTypePortal,
-  attrPanelTypeRoom,
   DragType,
   HoverType,
   ModeType,
@@ -25,9 +17,9 @@ import { MapDrawDatRoom } from "../item/MapDrawDat";
 import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawPortal from "../item/MapDrawPortal";
-import ModeBase from "./modes/ModeBase";
 import MapDrawCable from "../item/MapDrawCable";
-import ModeMgr from "./modes/ModeMgr";
+import { AttrMgr } from "../frameWork/AttrMgr";
+import { ModeMgr } from "../frameWork/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -81,12 +73,8 @@ export default class LevelScene extends cc.Component {
   };
   //拖拽时命中的房间（用于高亮）
   private _dragHoverRoomName: string = "";
-  //属性面板追踪的节点(注意删除节点时的问题)
-  private _trackNd: cc.Node;
   //房间外物品类型
   private outRoomUnitType = [UnitType.Portal, UnitType.Cable, UnitType.Stone];
-
-  private _modeMgr: ModeMgr;
 
 
   /**
@@ -108,16 +96,6 @@ export default class LevelScene extends cc.Component {
     this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.on(
-      MapEditorEvent.UpdateFromAttrPanel,
-      this.refreshNdAttr,
-      this,
-    );
-    EventManager.instance.on(
-      MapEditorEvent.UpdateAreaInfoFormPanel,
-      this.refreshAreaInfo,
-      this
-    )
-    EventManager.instance.on(
       MapEditorEvent.UpdateCurModeDisplay,
       this.updateCurModeDisplay,
       this
@@ -125,10 +103,11 @@ export default class LevelScene extends cc.Component {
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
     //模式管理器初始化
-    this._modeMgr = new ModeMgr();
-    this._modeMgr.init();
+    ModeMgr.instance.init();
+    //属性管理器初始化
+    AttrMgr.instance.init(this.mapLoader.getComponent(MapLoader));
     //数据类初始化
-    MapTool.init(this.mapLoader, this._modeMgr, this.mapSize);
+    MapTool.init(this.mapLoader, this.mapSize);
     //关卡信息
     this.createLevel();
     //地图锚点适配
@@ -156,18 +135,7 @@ export default class LevelScene extends cc.Component {
   }
 
   protected onDestroy(): void {
-    this._modeMgr.clear();
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
-    EventManager.instance.off(
-      MapEditorEvent.UpdateFromAttrPanel,
-      this.refreshNdAttr,
-      this,
-    );
-    EventManager.instance.off(
-      MapEditorEvent.UpdateAreaInfoFormPanel,
-      this.refreshAreaInfo,
-      this
-    );
     EventManager.instance.off(
       MapEditorEvent.UpdateCurModeDisplay,
       this.updateCurModeDisplay,
@@ -175,6 +143,10 @@ export default class LevelScene extends cc.Component {
     )
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
     cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+
+    //单例的销毁
+    ModeMgr.instance.destroy();
+    AttrMgr.instance.destroy();
   }
 
   private updateCurModeDisplay(modeType: ModeType) {
@@ -313,7 +285,8 @@ export default class LevelScene extends cc.Component {
     //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
     this.updateDragRoomHover();
     //刷新属性面板
-    this.refreshAttrPanel();
+    AttrMgr.instance.setTrackNd(itemDat);
+    AttrMgr.instance.refreshAttrPanel();
   }
 
   private onMouseWheel(event: cc.Event.EventMouse) {
@@ -360,7 +333,7 @@ export default class LevelScene extends cc.Component {
           //拖拽过程中：判断鼠标是否覆盖到某个房间或者Layer上
           this.updateDragRoomHover();
           //刷新属性面板
-          this.refreshAttrPanel();
+          AttrMgr.instance.refreshAttrPanel();
         }
       }
     }
@@ -573,7 +546,7 @@ export default class LevelScene extends cc.Component {
               mapLoaderComp.rebuildPointIdsByLayer();
             }
           }
-          this.refreshAttrPanel();
+          AttrMgr.instance.refreshAttrPanel();
         }
         this._dragDat = null;
       }
@@ -582,33 +555,14 @@ export default class LevelScene extends cc.Component {
   }
 
   private onKeyDown(event: cc.Event.EventKeyboard) {
+    //shift按钮吸附
     if (this.isShiftKey(event.keyCode)) {
       this._isShiftDown = true;
       return;
     }
     //退出按钮
     if (event.keyCode === cc.macro.KEY.escape) {
-      this._modeMgr.clear();
-    }
-    //p键，进入连线模式
-    else if (event.keyCode === cc.macro.KEY.p) {
-      this._modeMgr.enterMode(ModeType.PathPointLink);
-    }
-    //l键，进入梯子绑定模式
-    else if (event.keyCode === cc.macro.KEY.l) {
-      this._modeMgr.enterMode(ModeType.LadderBind, this._trackNd);
-    }
-    //o键，进入传送门绑定模式
-    else if (event.keyCode === cc.macro.KEY.o) {
-      this._modeMgr.enterMode(ModeType.PortalBind);
-    }
-    //i键，进入传送门动画点绑定模式
-    else if (event.keyCode === cc.macro.KEY.i) {
-      this._modeMgr.enterMode(ModeType.PortalAnimBind);
-    }
-    //r键，进入房间解锁点绑定模式
-    else if (event.keyCode === cc.macro.KEY.r) {
-      this._modeMgr.enterMode(ModeType.RoomUnlockBind);
+      ModeMgr.instance.clear();
     }
   }
 
@@ -625,12 +579,6 @@ export default class LevelScene extends cc.Component {
       keyCode === (cc.macro.KEY as any).right_shift ||
       keyCode === 16
     );
-  }
-
-  //模式：
-  public setMode(mode: ModeBase) {
-    const enable = mode.isEnabled();
-    mode?.setEnabled(!enable);
   }
 
   private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
@@ -878,192 +826,28 @@ export default class LevelScene extends cc.Component {
     }
   }
 
-  //属性面板相关
-  //刷新属性面板
-  private refreshAttrPanel() {
-    if (!this._dragDat) return;
-    this._trackNd = this._dragDat.itemNode;
-    const itemDat = this._dragDat.itemNode;
-    const controller = itemDat.getComponent(MapDrawUnitBase);
-    const type = controller.getType();
-
-    //基础属性的同步
-    const worldPos = this._dragDat.itemNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    const pos = MapTool.converWorldPosToMapPos(worldPos);
-    const baseDat: attrPanelTypeBase = {
-      name: this._trackNd.name,
-      pos: pos,
-    };
-    const basePanelDat: attrPanelType = {
-      type: UnitType.Default,
-      dat: baseDat,
-    };
-    EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, basePanelDat);
-    if (type == UnitType.Default) return;
-
-    //特殊属性的同步
-    let dat: any = {};
-    switch (type) {
-      case UnitType.Room:
-        (dat as attrPanelTypeRoom).nameLb = `${this._trackNd.getComponent(MapDrawRoom).getId()}`;
-        (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
-        (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
-          ?.getUnLockPoints()
-          .filter((nd) => nd && cc.isValid(nd))
-          .map((nd) => nd.name);
-        break;
-      case UnitType.PathPoint:
-        const pointCom = this._trackNd?.getComponent(MapDrawP);
-        const links = pointCom?.links ?? [];
-        (dat as attrPanelTypePoint).roomId =
-          pointCom?.getDat()?.roomId.toString() ?? "";
-        (dat as attrPanelTypePoint).links = links
-          .filter((nd) => nd && cc.isValid(nd))
-          .map((nd) => nd.name);
-        break;
-      case UnitType.Door:
-        const doorCom = this._trackNd?.getComponent(MapDrawDoor);
-        (dat as attrPanelTypeDoor).roomId =
-          doorCom?.getDat()?.roomId.toString() ?? "";
-        (dat as attrPanelTypeDoor).hp = doorCom?.getDat().hp ?? 0;
-        break;
-      case UnitType.Ladder:
-        const ladderCom = this._trackNd?.getComponent(MapDrawLadder);
-        (dat as attrPanelTypeLadder).roomId =
-          ladderCom?.getDat()?.roomId.toString() ?? "";
-        (dat as attrPanelTypeLadder).bindPointIds =
-          ladderCom?.getDat().bindPointIds ?? [];
-        break;
-      case UnitType.Portal:
-        const portalCom = this._trackNd?.getComponent(MapDrawPortal);
-        (dat as attrPanelTypePortal).linkId = portalCom?.getDat()?.linkId ?? "";
-        (dat as attrPanelTypePortal).offsetX =
-          portalCom?.getDat()?.offsetX ?? 0;
-        (dat as attrPanelTypePortal).animPIds =
-          portalCom?.getAnimIds() ?? [];
-        break;
-      case UnitType.Cable:
-        const controller = this._trackNd?.getComponent(MapDrawCable);
-        const cableDat = controller.getDat();
-        const startP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.point1);
-        const endP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.point2);
-        const pointP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(cableDat.points);
-        (dat as attrPanelTypeCable).startP = startP[0];
-        (dat as attrPanelTypeCable).endP = endP[0];
-        (dat as attrPanelTypeCable).points = pointP;
-        (dat as attrPanelTypeCable).speed = cableDat.speed;
-        break;
-    }
-    const panelDat: attrPanelType = {
-      type: type,
-      dat: dat,
-    };
-    EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat);
-  }
-
-  //属性面板刷新节点
-  private refreshNdAttr(attrDat: attrPanelType) {
-    if (!this._trackNd) return;
-    const type = attrDat.type;
-    let dat;
-    switch (type) {
-      case UnitType.Default:
-        dat = attrDat.dat as attrPanelTypeBase;
-        const worldPos = MapTool.converMapPosToWorldPos(dat.pos);
-        const localPos = this._trackNd.parent.convertToNodeSpaceAR(worldPos);
-        this._trackNd.setPosition(localPos);
-        break;
-      case UnitType.Room:
-        dat = attrDat.dat as attrPanelTypeRoom;
-        const size = dat.size;
-        this._trackNd.getComponent(MapDrawRoom).setSize(size);
-        const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-        const unlockNodes = mapLoaderComp?.resolvePathPointNodes(dat.unLockPoints || []) ?? [];
-        this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(unlockNodes);
-        if (mapLoaderComp) {
-          mapLoaderComp.refreshLayerBoundsByNode(this._trackNd.parent);
-        }
-        break;
-      case UnitType.PathPoint:
-        dat = attrDat.dat as attrPanelTypePoint;
-        const links = dat.links;
-        const controller = this._trackNd.getComponent(MapDrawP);
-        if (controller) {
-          const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-          const linkNodes =
-            mapLoaderComp?.resolvePathPointNodes(links || []) ?? [];
-          controller.setLinks(linkNodes);
-        }
-        break;
-      case UnitType.Door:
-        dat = attrDat.dat as attrPanelTypeDoor;
-        const doorCom = this._trackNd.getComponent(MapDrawDoor);
-        if (doorCom) {
-          doorCom.setHp(dat.hp);
-        }
-        break;
-      case UnitType.Ladder:
-        //操作在l 梯子绑定模式中
-        break;
-      case UnitType.Portal:
-        dat = attrDat.dat as attrPanelTypePortal;
-        const portalCom = this._trackNd.getComponent(MapDrawPortal);
-        if (portalCom) {
-          portalCom.setLinkId(dat.linkId);
-          portalCom.setOffsetX(dat.offsetX);
-          portalCom.setAnimIds(dat.animPIds);
-        }
-        break;
-      case UnitType.Cable:
-        dat = attrDat.dat as attrPanelTypeCable;
-        const cableCom = this._trackNd.getComponent(MapDrawCable);
-        const startP = dat.startP;
-        const endP = dat.endP;
-        const pointPs = dat.points;
-        if (cableCom) {
-          cableCom.setSpeed(dat.speed);
-          cableCom.setStartP(startP);
-          cableCom.setEndP(endP);
-          cableCom.setPoints(pointPs);
-        }
-        break;
-    }
-
-    //如果有房间信息，更新一手
-    if (dat.roomId) {
-      const nextRoomId = Number(dat.roomId);
-      if (isFinite(nextRoomId)) {
-        const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-        mapLoaderComp?.moveUnitToRoom(this._trackNd, nextRoomId);
-      }
-    }
-  }
-
-  private refreshAreaInfo(areaInfo: number[]) {
-    this.mapLoader.getComponent(MapLoader).setAreaInfo(areaInfo);
-  }
-
 
   //删除节点
   public deleteNd() {
-    if (!this._trackNd || !cc.isValid(this._trackNd)) return;
-    const type = this._trackNd.getComponent(MapDrawUnitBase).getType();
+    const trackNd = AttrMgr.instance.getTrachNd();
+    if (!trackNd || !cc.isValid(trackNd)) return;
+    const type = trackNd.getComponent(MapDrawUnitBase).getType();
     const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
     if (type == UnitType.Room) {
-      mapLoaderComp?.deleteRoom(this._trackNd);
+      mapLoaderComp?.deleteRoom(trackNd);
     }
     else if (type == UnitType.PathPoint) {
-      mapLoaderComp?.deletePathPoint(this._trackNd);
+      mapLoaderComp?.deletePathPoint(trackNd);
     }
     else if (this.outRoomUnitType.includes(type)) {
-      mapLoaderComp?.deletePortal(this._trackNd);
+      mapLoaderComp?.deletePortal(trackNd);
     }
     else {
       // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
-      const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
+      const ownerRoom = MapTool.findOwnerRoomByNode(trackNd.parent);
       const ownerLayer = ownerRoom?.node?.parent ?? null;
-      this._trackNd.removeFromParent();
-      this._trackNd.destroy();
+      trackNd.removeFromParent();
+      trackNd.destroy();
       //删除完要过一帧
       this.scheduleOnce(() => {
         ownerRoom?.refreshDat();
@@ -1072,7 +856,7 @@ export default class LevelScene extends cc.Component {
         }
       })
     }
-    this._trackNd = null;
+    AttrMgr.instance.setTrackNd(null);
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
   }
 

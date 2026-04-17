@@ -1,10 +1,12 @@
-import { NodeUtil } from "../tool/NodeUtil";
-import { attrPanelTypePortal } from "../type/types";
+import { NodeUtil } from "../../tool/NodeUtil";
+import { attrPanelTypePortal } from "../../type/types";
+import AttrPanel from "./AttrPanel";
+
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class AttrPanelPortal extends cc.Component {
+export default class AttrPanelPortal extends AttrPanel{
   @property(cc.Label)
   bindP: cc.Label;
 

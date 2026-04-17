@@ -1,9 +1,11 @@
-import { attrPanelTypeLadder } from "../type/types";
+import { attrPanelTypeLadder } from "../../type/types";
+import AttrPanel from "./AttrPanel";
+
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class AttrPanelLadder extends cc.Component {
+export default class AttrPanelLadder extends AttrPanel {
 
     @property(cc.EditBox)
     roomLb: cc.EditBox;

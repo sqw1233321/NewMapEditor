@@ -21,12 +21,11 @@ import MapDrawP from "./MapDrawP";
 import MapDrawSearchItem from "./MapDrawSearchItem";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapLoader from "./MapLoader";
-import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapDrawSurvive from "./MapDrawSurvive";
-import MapTool from "../tool/MapTool";
 import { ModeType } from "../type/types";
+import { ModeMgr } from "../frameWork/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -66,7 +65,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (MapTool.getCurModeType() == ModeType.RoomUnlockBind) {
+        if (ModeMgr.instance.curModeType == ModeType.RoomUnlockBind) {
             EventManager.instance.emit(MapEditorEvent.RoomUnlockBindRoomClick, this.node);
             return true;
         }

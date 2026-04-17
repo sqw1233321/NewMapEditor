@@ -1,10 +1,12 @@
-import { NodeUtil } from "../tool/NodeUtil";
-import { attrPanelTypeRoom } from "../type/types";
+import { NodeUtil } from "../../tool/NodeUtil";
+import { attrPanelTypeRoom } from "../../type/types";
+import AttrPanel from "./AttrPanel";
+
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class AttrPanelRoom extends cc.Component {
+export default class AttrPanelRoom extends AttrPanel {
     @property(cc.EditBox)
     nameLb: cc.EditBox;
 

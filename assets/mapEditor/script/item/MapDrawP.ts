@@ -1,14 +1,6 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapTool from "../tool/MapTool";
+import { ModeMgr } from "../frameWork/ModeMgr";
 import { UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
 import { MapDrawDatPathPoint } from "./MapDrawDat";
@@ -31,30 +23,27 @@ export default class MapDrawP extends MapDrawUnitBase {
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (MapTool.getCurModeType() == ModeType.PathPointLink) {
+        if (ModeMgr.instance.curModeType == ModeType.PathPointLink) {
             EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
             return true;
         }
-        if (MapTool.getCurModeType() == ModeType.RoomUnlockBind) {
+        if (ModeMgr.instance.curModeType == ModeType.RoomUnlockBind) {
             EventManager.instance.emit(MapEditorEvent.RoomUnlockBindPointClick, this.node);
             return true;
         }
-        if (MapTool.getCurModeType() == ModeType.PortalBind || MapTool.getCurModeType() == ModeType.PortalAnimBind) {
+        if (ModeMgr.instance.curModeType == ModeType.PortalBind || ModeMgr.instance.curModeType == ModeType.PortalAnimBind) {
             EventManager.instance.emit(MapEditorEvent.PortalBindPathPointClick, this.node);
             return true;
         }
-        if (MapTool.getCurModeType() == ModeType.LadderBind) {
+        if (ModeMgr.instance.curModeType == ModeType.LadderBind) {
             EventManager.instance.emit(MapEditorEvent.LadderBindPointClick, this.node);
             return true;
         }
-
         //选点模式
-        if (MapTool.getCurModeType() == ModeType.SelectPoint) {
+        if (ModeMgr.instance.curModeType == ModeType.SelectPoint) {
             EventManager.instance.emit(MapEditorEvent.SelectPointClick, this.node);
             return true;
         }
-
-
         return false;
     }
 

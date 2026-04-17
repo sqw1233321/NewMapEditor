@@ -1,4 +1,4 @@
-import { attrPanelTypeBase } from "../type/types";
+import { attrPanelTypeBase } from "../../type/types";
 
 const { ccclass, property } = cc._decorator;
 
@@ -29,5 +29,4 @@ export default class AttrPanelBase extends cc.Component {
             name: this._dat.name
         }
     }
-
 }

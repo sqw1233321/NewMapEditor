@@ -4,11 +4,9 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapTool from "../tool/MapTool";
+import { ModeMgr } from "../frameWork/ModeMgr";
 import { UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
 import { MapDrawDatPortalData, PortalType } from "./MapDrawDat";
@@ -50,11 +48,11 @@ export default class MapDrawPortal extends MapDrawUnitBase {
   }
 
   protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-    if (MapTool.getCurModeType() == ModeType.PortalBind) {
+    if (ModeMgr.instance.curModeType == ModeType.PortalBind) {
       EventManager.instance.emit(MapEditorEvent.PortalBindPortalClick, this.node);
       return true;
     }
-    if (MapTool.getCurModeType() == ModeType.PortalAnimBind) {
+    if (ModeMgr.instance.curModeType == ModeType.PortalAnimBind) {
       EventManager.instance.emit(MapEditorEvent.PortalAnimBindPortalClick, this.node);
       return true;
     }

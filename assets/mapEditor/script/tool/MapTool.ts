@@ -1,5 +1,3 @@
-import ModeMgr from "../editor/modes/ModeMgr";
-
 //地图工具类
 interface RoomLike {
     node: cc.Node;
@@ -11,13 +9,11 @@ export default class MapTool {
 
     static _mapLoader: cc.Node;
     static _size: cc.Vec2;
-    static _modeMgr: ModeMgr;
 
 
-    static init(mapLaoder: cc.Node, modeMgr: ModeMgr, size: cc.Vec2) {
+    static init(mapLaoder: cc.Node, size: cc.Vec2) {
         this._mapLoader = mapLaoder;
         this._size = size;
-        this._modeMgr = modeMgr;
     }
 
     static getSize() {
@@ -112,10 +108,4 @@ export default class MapTool {
         }
         return null;
     }
-
-    /**获取当前模式类型 */
-    static getCurModeType() {
-        return this._modeMgr.getCurModeType();
-    }
-
 }

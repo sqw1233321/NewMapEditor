@@ -18,13 +18,13 @@ import {
   attrPanelTypePortal,
   attrPanelTypeCable,
 } from "../type/types";
-import AttrPanelBase from "./AttrPanelBase";
-import AttrPanelCable from "./AttrPanelCable";
-import AttrPanelDoor from "./AttrPanelDoor";
-import AttrPanelLadder from "./AttrPanelLadder";
-import AttrPanelPoint from "./AttrPanelPoint";
-import AttrPanelPortal from "./AttrPanelPortal";
-import AttrPanelRoom from "./AttrPanelRoom";
+import AttrPanelBase from "./attrPanel/AttrPanelBase";
+import AttrPanelCable from "./attrPanel/AttrPanelCable";
+import AttrPanelDoor from "./attrPanel/AttrPanelDoor";
+import AttrPanelLadder from "./attrPanel/AttrPanelLadder";
+import AttrPanelPoint from "./attrPanel/AttrPanelPoint";
+import AttrPanelPortal from "./attrPanel/AttrPanelPortal";
+import AttrPanelRoom from "./attrPanel/AttrPanelRoom";
 
 const { ccclass, property } = cc._decorator;
 
@@ -174,7 +174,7 @@ export default class EditPanel extends cc.Component {
     this.cableAttr.getComponent(AttrPanelCable).setAttr(dat);
   }
 
-  public onChangeAttr(event, type: string) {
+  public onChangeAttr(type: string) {
     const unitType = Number(type) as UnitType;
     let dat;
     switch (unitType) {

@@ -1,18 +1,17 @@
-import { MapEditorEvent } from "../../event/eventTypes";
-import { EventManager } from "../../frameWork/EventManager";
-import { ModeType } from "../../type/types";
-import LadderBindMode from "./LadderBindMode";
-import ModeBase from "./ModeBase";
-import PathPointLinkMode from "./PathPointLinkMode";
-import PortalAnimBindMode from "./PortalAnimBindMode";
-import PortalBindMode from "./PortalBindMode";
-import RoomUnlockBindMode from "./RoomUnlockBindMode";
-import SelectPointMode from "./SelectPointMode";
+import LadderBindMode from "../editor/modes/LadderBindMode";
+import ModeBase from "../editor/modes/ModeBase";
+import PathPointLinkMode from "../editor/modes/PathPointLinkMode";
+import PortalAnimBindMode from "../editor/modes/PortalAnimBindMode";
+import PortalBindMode from "../editor/modes/PortalBindMode";
+import RoomUnlockBindMode from "../editor/modes/RoomUnlockBindMode";
+import SelectPointMode from "../editor/modes/SelectPointMode";
+import { MapEditorEvent } from "../event/eventTypes";
+import { ModeType } from "../type/types";
+import { EventManager } from "./EventManager";
+import { Singleton } from "./Singleton";
 
-const { ccclass, property } = cc._decorator;
-//模式管理器
-@ccclass
-export default class ModeMgr {
+
+export class ModeMgr extends Singleton<ModeMgr> {
     //模式
     private _pathPointMode: PathPointLinkMode;
     private _ladderMode: LadderBindMode;
@@ -24,7 +23,11 @@ export default class ModeMgr {
     private _allMode: ModeBase[] = [];
     private _curMode: ModeBase;
 
-    public init() {
+    public static get instance(): ModeMgr {
+        return super.instance as ModeMgr;
+    }
+
+    protected onInit() {
         const deactivateOthers = () => {
             this.clear();
         };
@@ -48,12 +51,16 @@ export default class ModeMgr {
         this._allMode.forEach(mode => {
             mode.mount();
         })
-        this.initEvents();
-    }
-
-    private initEvents() {
         EventManager.instance.on(MapEditorEvent.OpenSelectPointMode, this.onOpenSelectPointMode, this);
     }
+
+    protected onDestroy(): void {
+        this._allMode.forEach(mode => {
+            mode.unmount();
+        })
+        EventManager.instance.off(MapEditorEvent.OpenSelectPointMode, this.onOpenSelectPointMode, this);
+    }
+
 
     private onOpenSelectPointMode(ismulti, cb, selections) {
         this.enterMode(ModeType.SelectPoint, ismulti, cb, selections);
@@ -61,7 +68,9 @@ export default class ModeMgr {
 
     //进入模式
     public enterMode(modeType: ModeType, ...param) {
-        this.clearAllMode();
+        this._allMode.forEach(mode => {
+            mode.setEnabled(false);
+        })
         switch (modeType) {
             case ModeType.PathPointLink:
                 this._pathPointMode.setEnabled(true);
@@ -92,18 +101,11 @@ export default class ModeMgr {
         EventManager.instance.emit(MapEditorEvent.UpdateCurModeDisplay, modeType);
     }
 
-    //关闭所有模式
-    public clearAllMode() {
-        this._allMode.forEach(mode => {
-            mode.setEnabled(false);
-        })
-    }
-
-    public getCurMode() {
+    public get curMode() {
         return this._curMode;
     }
 
-    public getCurModeType() {
+    public get curModeType() {
         return this._curMode?.getType();
     }
 
@@ -114,12 +116,4 @@ export default class ModeMgr {
         this._curMode = null;
         EventManager.instance.emit(MapEditorEvent.UpdateCurModeDisplay);
     }
-
-    destroy() {
-        this._allMode.forEach(mode => {
-            mode.unmount();
-        })
-    }
-
-
 }
