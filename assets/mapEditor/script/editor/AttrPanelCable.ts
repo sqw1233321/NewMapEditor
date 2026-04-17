@@ -5,6 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import { NodeUtil } from "../tool/NodeUtil";
 import { UnitType } from "../type/mapTypes";
@@ -63,21 +64,35 @@ export default class AttrPanelCable extends cc.Component {
     //选择起始点（正向时）
     public onClickStart() {
         //进入选点模式，传入一个回调
-        const cb = (pid: string) => {
-            this.startP.string = pid;
+        const cb = (pids: string[]) => {
+            this.startP.string = pids[0] ?? "";
+            EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
+        const isMulti = false;
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
     }
 
     //选择终点（正向时）
     public onClickEnd() {
-        const cb = (pid: string) => {
-            this.endP.string = pid;
+        const cb = (pids: string[]) => {
+            this.endP.string = pids[0] ?? "";
+            EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
         }
+        const isMulti = false;
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
     }
 
     //选择可编辑点
     public onClickPoints() {
-
+        const cb = (pids: string[]) => {
+            NodeUtil.autoRefreshChildren(this.pointCont, pids, (nd, index, dat) => {
+                const nameLb = nd.children[0].children[0].getComponent(cc.Label);
+                nameLb.string = dat;
+            })
+            EventManager.instance.emit(AttrPanelEvent.afterEdit, {}, this.type);
+        }
+        const isMulti = true;
+        EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb);
     }
 
 

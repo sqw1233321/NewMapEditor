@@ -41,6 +41,10 @@ export default class MapDrawCable extends MapDrawUnitBase {
         this._speed = speed;
     }
 
+    public setPoints(points: cc.Node[]) {
+        this._points = points;
+    }
+
     public getDat(): MapDrawDatCableData {
         const pointIds = this._points.map(p => p.getComponent(MapDrawP).getId() ?? "");
         const startId = this._startP?.getComponent(MapDrawP).getId() ?? "";

@@ -5,19 +5,17 @@ import ModeBase from "./ModeBase";
 import EditorSetting from "../EditorSetting";
 import { ModeType } from "../../type/types";
 
-export type SelectPointCallback = (selectedNodes: cc.Node[]) => void;
 
 /** 单选/多选路径点的通用回调模式 */
 export default class SelectPointMode extends ModeBase {
   private _selections: cc.Node[] = [];
   /** true = 多选，false = 单选 */
   private _multiSelect: boolean;
+
+  private _cb;
+
   constructor(
     deactivateOthers: () => void,
-    private readonly deps: {
-      /** 选择变化时回调，传入当前选中的节点列表 */
-      onSelectionChanged: SelectPointCallback;
-    },
   ) {
     super(deactivateOthers);
     this._modeType = ModeType.SelectPoint;
@@ -43,6 +41,10 @@ export default class SelectPointMode extends ModeBase {
     this._multiSelect = isMulti;
   }
 
+  public setChangeCb(cb) {
+    this._cb = cb;
+  }
+
   public getSelections(): cc.Node[] {
     return this._selections.filter((n) => cc.isValid(n));
   }
@@ -66,15 +68,14 @@ export default class SelectPointMode extends ModeBase {
       }
       if (this._selections.length > 0 && this._selections[0] === node) {
         this._selections = [];
-        this.deps.onSelectionChanged([]);
+        this._cb?.([]);
         return;
       }
       this._selections = [node];
       target.setLinkHighlight(true);
-      this.deps.onSelectionChanged([node]);
+      this._cb?.([target.getId()]);
       return;
     }
-
     const idx = this._selections.indexOf(node);
     if (idx >= 0) {
       this._selections.splice(idx, 1);
@@ -83,6 +84,7 @@ export default class SelectPointMode extends ModeBase {
       this._selections.push(node);
       target.setLinkHighlight(true);
     }
-    this.deps.onSelectionChanged([...this._selections]);
+    const pids = this._selections.map(nd => nd.getComponent(MapDrawP).getId());
+    this._cb?.([...pids]);
   }
 }

@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "mapBg2",
+    "_name": "mapBg3",
     "_objFlags": 0,
     "_parent": null,
     "_children": [
@@ -21,13 +21,13 @@
         "__id__": 2
       },
       {
-        "__id__": 41
+        "__id__": 17
       }
     ],
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 44
+      "__id__": 32
     },
     "_opacity": 255,
     "_color": {
@@ -95,40 +95,16 @@
       },
       {
         "__id__": 12
-      },
-      {
-        "__id__": 15
-      },
-      {
-        "__id__": 18
-      },
-      {
-        "__id__": 21
-      },
-      {
-        "__id__": 24
-      },
-      {
-        "__id__": 27
-      },
-      {
-        "__id__": 30
-      },
-      {
-        "__id__": 33
-      },
-      {
-        "__id__": 36
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 39
+        "__id__": 15
       }
     ],
     "_prefab": {
-      "__id__": 40
+      "__id__": 16
     },
     "_opacity": 255,
     "_color": {
@@ -140,8 +116,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 8715,
-      "height": 3654
+      "width": 2900,
+      "height": 3500
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -179,7 +155,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_01",
+    "_name": "tiangong2-1_01",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -204,8 +180,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -216,8 +192,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -3631,
-        913.5,
+        -725,
+        875,
         0,
         0,
         0,
@@ -257,7 +233,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "c9d127c1-0a80-4837-8275-b2df3fd9fc19"
+      "__uuid__": "3fe74b79-4287-443f-a102-0f8c2d9abe17"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -281,12 +257,12 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "1b1iyL58dIq5hzc5J8yVga",
+    "fileId": "11oEJDTxlMe5HTJO5bTqqD",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_02",
+    "_name": "tiangong2-1_02",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -311,8 +287,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -323,8 +299,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -2178.5,
-        913.5,
+        725,
+        875,
         0,
         0,
         0,
@@ -364,7 +340,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "9f728c9b-6d01-46a8-be4c-3337d025128b"
+      "__uuid__": "e79af799-42e4-4d5b-8dc3-d74828b12bce"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -388,12 +364,12 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "4aQnffbJREabKUBMV3m0oL",
+    "fileId": "6cYpsYze5L/YFz4r3OsYPy",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_03",
+    "_name": "tiangong2-1_03",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -418,8 +394,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -430,8 +406,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -726,
-        913.5,
+        -725,
+        -875,
         0,
         0,
         0,
@@ -471,7 +447,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "10836c54-8be9-4b9a-96e0-ed708629634f"
+      "__uuid__": "6a526d66-26c9-4cdd-a13d-411018cb33d7"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -495,12 +471,12 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "6fVRuhRu9L8r04EeEDKi9C",
+    "fileId": "c5hKV+WLhKd53JKUHn9zpM",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_04",
+    "_name": "tiangong2-1_04",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -525,8 +501,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -537,8 +513,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        726.5,
-        913.5,
+        725,
+        -875,
         0,
         0,
         0,
@@ -578,7 +554,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "44e4d890-ab89-4991-8ead-560e7d77634b"
+      "__uuid__": "9b4d1c90-b583-475e-ab21-3780920d4aaa"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -602,25 +578,81 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "4bkKYRKthJG6Tx8MCK/5XB",
+    "fileId": "04v+WT2p1CHaYvA7lT8MbK",
+    "sync": false
+  },
+  {
+    "__type__": "cc.Layout",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "_layoutSize": {
+      "__type__": "cc.Size",
+      "width": 2900,
+      "height": 3500
+    },
+    "_resize": 1,
+    "_N$layoutType": 3,
+    "_N$cellSize": {
+      "__type__": "cc.Size",
+      "width": 40,
+      "height": 40
+    },
+    "_N$startAxis": 0,
+    "_N$paddingLeft": 0,
+    "_N$paddingRight": 0,
+    "_N$paddingTop": 0,
+    "_N$paddingBottom": 0,
+    "_N$spacingX": 0,
+    "_N$spacingY": 0,
+    "_N$verticalDirection": 1,
+    "_N$horizontalDirection": 0,
+    "_N$affectedByScale": false,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "d55hnpSdZEMpuCXYG3pfjq",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_05",
+    "_name": "mapArea copy",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 2
+      "__id__": 1
     },
-    "_children": [],
+    "_children": [
+      {
+        "__id__": 18
+      },
+      {
+        "__id__": 21
+      },
+      {
+        "__id__": 24
+      },
+      {
+        "__id__": 27
+      }
+    ],
     "_active": true,
     "_components": [
       {
-        "__id__": 16
+        "__id__": 30
       }
     ],
     "_prefab": {
-      "__id__": 17
+      "__id__": 31
     },
     "_opacity": 255,
     "_color": {
@@ -632,8 +664,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
+      "width": 2900,
+      "height": 3500
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -644,8 +676,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        2179,
-        913.5,
+        0,
+        4000,
         0,
         0,
         0,
@@ -670,54 +702,11 @@
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 15
-    },
-    "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "b2ff38e2-aff4-49f4-8ed9-c881e9750627"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "52QRwkPSFPhIRN9nW70mNA",
-    "sync": false
-  },
-  {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_06",
+    "_name": "tiangong2-1_01",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 2
+      "__id__": 17
     },
     "_children": [],
     "_active": true,
@@ -739,8 +728,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -751,8 +740,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        3631.5,
-        913.5,
+        -725,
+        875,
         0,
         0,
         0,
@@ -792,7 +781,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "e0b7354a-fe3d-4d50-ad58-12c9986cd01b"
+      "__uuid__": "f3ba1c88-a1b3-4a20-ae87-1c4a0f0a9c01"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -816,15 +805,15 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "b2zBFp595Di4iw2c4Cy40C",
+    "fileId": "ff2kS9BCFPObDOpk0WoRIX",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_07",
+    "_name": "tiangong2-1_02",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 2
+      "__id__": 17
     },
     "_children": [],
     "_active": true,
@@ -846,8 +835,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -858,8 +847,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -3631,
-        -913.5,
+        725,
+        875,
         0,
         0,
         0,
@@ -899,7 +888,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "7f2533d4-af85-4c3f-84d1-51ea22a3a331"
+      "__uuid__": "1062811a-49d4-4f1a-847e-cfc86c206d90"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -923,15 +912,15 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "76rJ7EewVEe5VpmSBfFLYa",
+    "fileId": "f2AaE9LwNH9ar4AqTPy6Ps",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_08",
+    "_name": "tiangong2-1_03",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 2
+      "__id__": 17
     },
     "_children": [],
     "_active": true,
@@ -953,8 +942,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -965,8 +954,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -2178.5,
-        -913.5,
+        -725,
+        -875,
         0,
         0,
         0,
@@ -1006,7 +995,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "750b8a9e-7b12-4123-9d9c-48759549f90d"
+      "__uuid__": "874aaa1c-dba7-4c59-80a4-2bb07915dce7"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -1030,15 +1019,15 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "25L/PvmiJLp4wj76BlyUzO",
+    "fileId": "70Q9Li6VZFYKUbnaFPqoYX",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "地图6更新版_09",
+    "_name": "tiangong2-1_04",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 2
+      "__id__": 17
     },
     "_children": [],
     "_active": true,
@@ -1060,8 +1049,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
+      "width": 1450,
+      "height": 1750
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1072,8 +1061,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -726,
-        -913.5,
+        725,
+        -875,
         0,
         0,
         0,
@@ -1113,7 +1102,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "75da03c3-6337-408e-bc2e-179ba63b243a"
+      "__uuid__": "80ddb73f-e242-4ddd-a615-21eecfe56e99"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -1137,328 +1126,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "6fLLqXv1tHHJjycr0VcySm",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "地图6更新版_10",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 2
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 31
-      }
-    ],
-    "_prefab": {
-      "__id__": 32
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        726.5,
-        -913.5,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 30
-    },
-    "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "af772dbc-b824-431d-b111-d07b6ed1fd1e"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "27xxsVGzdIYpcWDX58LPFX",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "地图6更新版_11",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 2
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 34
-      }
-    ],
-    "_prefab": {
-      "__id__": 35
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 1453,
-      "height": 1827
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        2179,
-        -913.5,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 33
-    },
-    "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "7e02ab09-2628-47a0-a8d3-33e87229ebd9"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "16LhjTm8pHtKf1FdQIMHrr",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "地图6更新版_12",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 2
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 37
-      }
-    ],
-    "_prefab": {
-      "__id__": 38
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 1452,
-      "height": 1827
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        3631.5,
-        -913.5,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 36
-    },
-    "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "a774ccac-3fb1-4d7c-979a-01457942c045"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "04aBKRFTZPJqdACsqBwuQz",
+    "fileId": "8eD7zPE/pNap+e2C5tqhco",
     "sync": false
   },
   {
@@ -1466,13 +1134,13 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 2
+      "__id__": 17
     },
     "_enabled": true,
     "_layoutSize": {
       "__type__": "cc.Size",
-      "width": 8715,
-      "height": 3654
+      "width": 2900,
+      "height": 3500
     },
     "_resize": 1,
     "_N$layoutType": 3,
@@ -1501,114 +1169,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "d55hnpSdZEMpuCXYG3pfjq",
-    "sync": false
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "New Sprite(Splash)",
-    "_objFlags": 0,
-    "_parent": {
-      "__id__": 1
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 42
-      }
-    ],
-    "_prefab": {
-      "__id__": 43
-    },
-    "_opacity": 255,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_trs": {
-      "__type__": "TypedArray",
-      "ctor": "Float64Array",
-      "array": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1
-      ]
-    },
-    "_eulerAngles": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_skewX": 0,
-    "_skewY": 0,
-    "_is3DNode": false,
-    "_groupIndex": 0,
-    "groupIndex": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 41
-    },
-    "_enabled": true,
-    "_materials": [
-      {
-        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
-      }
-    ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
-    },
-    "_type": 0,
-    "_sizeMode": 0,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "b9IQvhRAZKsa+g+rxwdfy8",
+    "fileId": "2eqfpqGz5IN6negoRLbw76",
     "sync": false
   },
   {

@@ -25,14 +25,8 @@ import { MapDrawDatRoom } from "../item/MapDrawDat";
 import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawPortal from "../item/MapDrawPortal";
-import PathPointLinkMode from "./modes/PathPointLinkMode";
-import LadderBindMode from "./modes/LadderBindMode";
-import PortalBindMode from "./modes/PortalBindMode";
-import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
 import ModeBase from "./modes/ModeBase";
-import PortalAnimBindMode from "./modes/PortalAnimBindMode";
 import MapDrawCable from "../item/MapDrawCable";
-import SelectPointMode from "./modes/SelectPointMode";
 import ModeMgr from "./modes/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
@@ -474,10 +468,14 @@ export default class LevelScene extends cc.Component {
             }
           }
           //房间外物品
-          else if (this.outRoomUnitType.findIndex(t => t == type) != -1) {
+          else if (this.outRoomUnitType.includes(type)) {
             targetParent = this.mapLoader
               .getComponent(MapLoader)
               .getOutRoomUnitParent();
+          }
+          else if (itemDat.name == "playerExit" || itemDat.name == "playerCreate") {
+            //TODO：之后改，其实点和创造点不变
+            targetParent = itemParent;
           }
           //房间内物品 
           else {
@@ -909,6 +907,7 @@ export default class LevelScene extends cc.Component {
     let dat: any = {};
     switch (type) {
       case UnitType.Room:
+        (dat as attrPanelTypeRoom).nameLb = `${this._trackNd.getComponent(MapDrawRoom).getId()}`;
         (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
         (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
           ?.getUnLockPoints()
@@ -1017,8 +1016,17 @@ export default class LevelScene extends cc.Component {
       case UnitType.Cable:
         dat = attrDat.dat as attrPanelTypeCable;
         const cableCom = this._trackNd.getComponent(MapDrawCable);
+        const startPid = dat.startPId;
+        const endPid = dat.endPId;
+        const pointPids = dat.points;
+        const startP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(startPid);
+        const endP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(endPid);
+        const pointP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(pointPids);
         if (cableCom) {
           cableCom.setSpeed(dat.speed);
+          cableCom.setStartP(startP[0]);
+          cableCom.setEndP(endP[0]);
+          cableCom.setPoints(pointP);
         }
         break;
     }
@@ -1043,35 +1051,28 @@ export default class LevelScene extends cc.Component {
     if (!this._trackNd || !cc.isValid(this._trackNd)) return;
     const type = this._trackNd.getComponent(MapDrawUnitBase).getType();
     const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-    switch (type) {
-      case UnitType.Room:
-        mapLoaderComp?.deleteRoom(this._trackNd);
-        break;
-      case UnitType.PathPoint:
-        mapLoaderComp?.deletePathPoint(this._trackNd);
-        break;
-      case UnitType.Door:
-      case UnitType.Ladder:
-      case UnitType.EnemyRefresh:
-      case UnitType.SearchPoint:
-        {
-          // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
-          const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
-          const ownerLayer = ownerRoom?.node?.parent ?? null;
-          this._trackNd.removeFromParent();
-          this._trackNd.destroy();
-          //删除完要过一帧
-          this.scheduleOnce(() => {
-            ownerRoom?.refreshDat();
-            if (ownerLayer && mapLoaderComp) {
-              mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
-            }
-          })
+    if (type == UnitType.Room) {
+      mapLoaderComp?.deleteRoom(this._trackNd);
+    }
+    else if (type == UnitType.PathPoint) {
+      mapLoaderComp?.deletePathPoint(this._trackNd);
+    }
+    else if (this.outRoomUnitType.includes(type)) {
+      mapLoaderComp?.deletePortal(this._trackNd);
+    }
+    else {
+      // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
+      const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
+      const ownerLayer = ownerRoom?.node?.parent ?? null;
+      this._trackNd.removeFromParent();
+      this._trackNd.destroy();
+      //删除完要过一帧
+      this.scheduleOnce(() => {
+        ownerRoom?.refreshDat();
+        if (ownerLayer && mapLoaderComp) {
+          mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
         }
-        break;
-      case UnitType.Portal:
-        mapLoaderComp?.deletePortal(this._trackNd);
-        break;
+      })
     }
     this._trackNd = null;
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
