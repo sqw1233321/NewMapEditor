@@ -450,10 +450,14 @@ export default class LevelScene extends cc.Component {
             }
           }
           //房间外物品
-          else if (this.outRoomUnitType.findIndex(t => t == type) != -1) {
+          else if (this.outRoomUnitType.includes(type)) {
             targetParent = this.mapLoader
               .getComponent(MapLoader)
               .getOutRoomUnitParent();
+          }
+          else if (itemDat.name == "playerExit" || itemDat.name == "playerCreate") {
+            //TODO：之后改，其实点和创造点不变
+            targetParent = itemParent;
           }
           //房间内物品 
           else {
@@ -1028,35 +1032,28 @@ export default class LevelScene extends cc.Component {
     if (!this._trackNd || !cc.isValid(this._trackNd)) return;
     const type = this._trackNd.getComponent(MapDrawUnitBase).getType();
     const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
-    switch (type) {
-      case UnitType.Room:
-        mapLoaderComp?.deleteRoom(this._trackNd);
-        break;
-      case UnitType.PathPoint:
-        mapLoaderComp?.deletePathPoint(this._trackNd);
-        break;
-      case UnitType.Door:
-      case UnitType.Ladder:
-      case UnitType.EnemyRefresh:
-      case UnitType.SearchPoint:
-        {
-          // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
-          const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
-          const ownerLayer = ownerRoom?.node?.parent ?? null;
-          this._trackNd.removeFromParent();
-          this._trackNd.destroy();
-          //删除完要过一帧
-          this.scheduleOnce(() => {
-            ownerRoom?.refreshDat();
-            if (ownerLayer && mapLoaderComp) {
-              mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
-            }
-          })
+    if (type == UnitType.Room) {
+      mapLoaderComp?.deleteRoom(this._trackNd);
+    }
+    else if (type == UnitType.PathPoint) {
+      mapLoaderComp?.deletePathPoint(this._trackNd);
+    }
+    else if (this.outRoomUnitType.includes(type)) {
+      mapLoaderComp?.deletePortal(this._trackNd);
+    }
+    else {
+      // 房间内单位：直接删节点，然后刷新所属房间与 layer bounds
+      const ownerRoom = MapTool.findOwnerRoomByNode(this._trackNd.parent);
+      const ownerLayer = ownerRoom?.node?.parent ?? null;
+      this._trackNd.removeFromParent();
+      this._trackNd.destroy();
+      //删除完要过一帧
+      this.scheduleOnce(() => {
+        ownerRoom?.refreshDat();
+        if (ownerLayer && mapLoaderComp) {
+          mapLoaderComp.refreshLayerBoundsByNode(ownerLayer);
         }
-        break;
-      case UnitType.Portal:
-        mapLoaderComp?.deletePortal(this._trackNd);
-        break;
+      })
     }
     this._trackNd = null;
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
