@@ -1,4 +1,4 @@
-export default class EditorSetting extends cc.Component {
+export default class EditorSetting {
     private static _ins: EditorSetting;
 
     private _scale: number = 1;

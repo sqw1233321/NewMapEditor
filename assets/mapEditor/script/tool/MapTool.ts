@@ -1,4 +1,3 @@
-import EditorSetting from "../editor/EditorSetting";
 import ModeMgr from "../editor/modes/ModeMgr";
 
 //地图工具类
