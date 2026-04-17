@@ -43,17 +43,25 @@ export default class ModeMgr {
         this._roomUnlockMode = new RoomUnlockBindMode(deactivateOthers, {
             onChanged: () => { },
         });
-        this._selectPointMode = new SelectPointMode(deactivateOthers, {
-            onSelectionChanged: () => { },
-        })
+        this._selectPointMode = new SelectPointMode(deactivateOthers);
         this._allMode = [this._pathPointMode, this._ladderMode, this._portalMode, this._portalAnimMode, this._roomUnlockMode, this._selectPointMode];
         this._allMode.forEach(mode => {
             mode.mount();
         })
+        this.initEvents();
+    }
+
+    private initEvents() {
+        EventManager.instance.on(MapEditorEvent.OpenSelectPointMode, this.onOpenSelectPointMode, this);
+    }
+
+    private onOpenSelectPointMode(ismulti, cb) {
+        this.enterMode(ModeType.SelectPoint, ismulti, cb);
     }
 
     //进入模式
     public enterMode(modeType: ModeType, ...param) {
+        this.clearAllMode();
         switch (modeType) {
             case ModeType.PathPointLink:
                 this._pathPointMode.setEnabled(true);
@@ -73,7 +81,10 @@ export default class ModeMgr {
                 this._roomUnlockMode.setEnabled(true);
                 break;
             case ModeType.SelectPoint:
+                const isMulti = param[0];
                 this._selectPointMode.setEnabled(true);
+                this._selectPointMode.setIsMulti(isMulti);
+                this._selectPointMode.setChangeCb(param[1]);
                 break;
         }
         this._curMode = this._allMode.find(mode => mode.getType() == modeType);

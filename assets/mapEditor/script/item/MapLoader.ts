@@ -885,11 +885,17 @@ export default class MapLoader extends cc.Component {
   }
 
   /** 把路径点 ID 列表解析成节点（忽略不存在项） */
-  public resolvePathPointNodes(ids: string[]): cc.Node[] {
-    const list = ids || [];
-    return list
-      .map((id) => this._pointMap.get(id))
-      .filter((nd) => !!nd && cc.isValid(nd));
+  public resolvePathPointNodes(ids: string[] | string): cc.Node[] {
+    if (Array.isArray(ids)) {
+      const list = ids || [];
+      return list
+        .map((id) => this._pointMap.get(id))
+        .filter((nd) => !!nd && cc.isValid(nd));
+    } else {
+      const point = this._pointMap.get(ids);
+      return point ? [point] : [];
+
+    }
   }
 
   /**

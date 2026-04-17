@@ -7,7 +7,6 @@
 
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapDrawRoom from "../item/MapDrawRoom";
 import { UnitType } from "../type/mapTypes";
 import {
   attrPanelTypeRoom,
@@ -29,6 +28,7 @@ import AttrPanelRoom from "./AttrPanelRoom";
 
 const { ccclass, property } = cc._decorator;
 
+//属性面板自用事件
 export enum AttrPanelEvent {
   afterEdit = "afterEdit",
 }

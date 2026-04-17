@@ -25,14 +25,8 @@ import { MapDrawDatRoom } from "../item/MapDrawDat";
 import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawPortal from "../item/MapDrawPortal";
-import PathPointLinkMode from "./modes/PathPointLinkMode";
-import LadderBindMode from "./modes/LadderBindMode";
-import PortalBindMode from "./modes/PortalBindMode";
-import RoomUnlockBindMode from "./modes/RoomUnlockBindMode";
 import ModeBase from "./modes/ModeBase";
-import PortalAnimBindMode from "./modes/PortalAnimBindMode";
 import MapDrawCable from "../item/MapDrawCable";
-import SelectPointMode from "./modes/SelectPointMode";
 import ModeMgr from "./modes/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
@@ -999,8 +993,17 @@ export default class LevelScene extends cc.Component {
       case UnitType.Cable:
         dat = attrDat.dat as attrPanelTypeCable;
         const cableCom = this._trackNd.getComponent(MapDrawCable);
+        const startPid = dat.startPId;
+        const endPid = dat.endPId;
+        const pointPids = dat.points;
+        const startP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(startPid);
+        const endP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(endPid);
+        const pointP = this.mapLoader.getComponent(MapLoader).resolvePathPointNodes(pointPids);
         if (cableCom) {
           cableCom.setSpeed(dat.speed);
+          cableCom.setStartP(startP[0]);
+          cableCom.setEndP(endP[0]);
+          cableCom.setPoints(pointP);
         }
         break;
     }
