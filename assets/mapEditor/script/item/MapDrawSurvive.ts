@@ -10,6 +10,8 @@ export default class MapDrawSurvive extends MapDrawUnitBase {
     return UnitType.SurviveDat;
   }
 
+  private weight: number = 0;
+
   public init(roomId: number) {
     this._roomId = roomId;
   }
@@ -17,9 +19,18 @@ export default class MapDrawSurvive extends MapDrawUnitBase {
   public getDat() {
     const dat: MapDrawDatSurvivorData = {
       roomId: this._roomId,
-      weight: 0,
+      weight: this.weight,
       pos: this.getPos(),
     };
     return dat;
   }
+
+  public setRoomId(roomId: number) {
+    this._roomId = roomId;
+  }
+
+  public setWeight(weight: number) {
+    this.weight = weight;
+  }
+
 }

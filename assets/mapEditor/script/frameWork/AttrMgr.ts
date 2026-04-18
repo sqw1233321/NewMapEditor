@@ -6,11 +6,12 @@ import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawPortal from "../item/MapDrawPortal";
 import MapDrawRoom from "../item/MapDrawRoom";
+import MapDrawSurvive from "../item/MapDrawSurvive";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -137,6 +138,13 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeEnemyRefresh).param =
                     enemyRefreshCom?.getDat()?.param ?? "";
                 break;
+            case UnitType.SurviveDat:
+                const surviveRefreshCom = this._trackNd?.getComponent(MapDrawSurvive);
+                (dat as attrPanelTypeSurviveRefresh).roomId =
+                    surviveRefreshCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypeSurviveRefresh).weight =
+                    surviveRefreshCom?.getDat()?.weight ?? 0;
+                break;
         }
         const panelDat: attrPanelType = {
             type: type,
@@ -214,6 +222,14 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 if (enemyRefreshCom) {
                     enemyRefreshCom.setRoomId(Number(dat.roomId));
                     enemyRefreshCom.setParam(dat.param);
+                }
+                break;
+            case UnitType.SurviveDat:
+                dat = attrDat.dat as attrPanelTypeSurviveRefresh;
+                const surviveRefreshCom = this._trackNd.getComponent(MapDrawSurvive);
+                if (surviveRefreshCom) {
+                    surviveRefreshCom.setRoomId(Number(dat.roomId));
+                    surviveRefreshCom.setWeight(dat.weight);
                 }
                 break;
         }

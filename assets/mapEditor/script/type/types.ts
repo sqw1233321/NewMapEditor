@@ -41,6 +41,8 @@ export interface attrPanelType {
   | attrPanelTypeSearchItem
   | attrPanelTypePortal
   | attrPanelTypeCable
+  | attrPanelTypeEnemyRefresh
+  | attrPanelTypeSurviveRefresh
 }
 
 export interface attrPanelTypeBase {
@@ -67,6 +69,11 @@ export interface attrPanelTypeDoor {
 export interface attrPanelTypeEnemyRefresh {
   roomId: string;
   param: string;
+}
+
+export interface attrPanelTypeSurviveRefresh {
+  roomId: string;
+  weight: number;
 }
 
 export interface attrPanelTypeLadder {
