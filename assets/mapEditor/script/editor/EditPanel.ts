@@ -17,10 +17,12 @@ import {
   attrPanelTypeLadder,
   attrPanelTypePortal,
   attrPanelTypeCable,
+  attrPanelTypeEnemyRefresh,
 } from "../type/types";
 import AttrPanelBase from "./attrPanel/AttrPanelBase";
 import AttrPanelCable from "./attrPanel/AttrPanelCable";
 import AttrPanelDoor from "./attrPanel/AttrPanelDoor";
+import AttrPanelEnemyRefresh from "./attrPanel/AttrPanelEnemyRefresh";
 import AttrPanelLadder from "./attrPanel/AttrPanelLadder";
 import AttrPanelPoint from "./attrPanel/AttrPanelPoint";
 import AttrPanelPortal from "./attrPanel/AttrPanelPortal";
@@ -56,6 +58,8 @@ export default class EditPanel extends cc.Component {
   @property(cc.Node)
   cableAttr: cc.Node;
 
+  @property(cc.Node)
+  enemyRefreshAttr: cc.Node;
   //areaInfo
   @property(cc.EditBox)
   areaInfoLb: cc.EditBox;
@@ -125,6 +129,9 @@ export default class EditPanel extends cc.Component {
       case UnitType.Cable:
         this.showCableAttrNd();
         break;
+      case UnitType.EnemyRefresh:
+        this.showEnemyRefreshAttrNd();
+        break;
     }
   }
 
@@ -137,6 +144,7 @@ export default class EditPanel extends cc.Component {
     this.ladderAttr.active = type == UnitType.Ladder;
     this.portalAttr.active = type == UnitType.Portal;
     this.cableAttr.active = type == UnitType.Cable;
+    this.enemyRefreshAttr.active = type == UnitType.EnemyRefresh;
   }
 
   private showBaseAttrNd() {
@@ -174,6 +182,11 @@ export default class EditPanel extends cc.Component {
     this.cableAttr.getComponent(AttrPanelCable).setAttr(dat);
   }
 
+  private showEnemyRefreshAttrNd() {
+    const dat = this._dat.dat as attrPanelTypeEnemyRefresh;
+    this.enemyRefreshAttr.getComponent(AttrPanelEnemyRefresh).setAttr(dat);
+  }
+
   public onChangeAttr(type: string) {
     const unitType = Number(type) as UnitType;
     let dat;
@@ -198,6 +211,9 @@ export default class EditPanel extends cc.Component {
         break;
       case UnitType.Cable:
         dat = this.cableAttr.getComponent(AttrPanelCable).getDat();
+        break;
+      case UnitType.EnemyRefresh:
+        dat = this.enemyRefreshAttr.getComponent(AttrPanelEnemyRefresh).getDat();
         break;
       default:
         break;
@@ -232,5 +248,6 @@ export default class EditPanel extends cc.Component {
     this.ladderAttr.active = false;
     this.portalAttr.active = false;
     this.cableAttr.active = false;
+    this.enemyRefreshAttr.active = false;
   }
 }

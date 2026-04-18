@@ -64,6 +64,11 @@ export interface attrPanelTypeDoor {
   hp: number;
 }
 
+export interface attrPanelTypeEnemyRefresh {
+  roomId: string;
+  param: string;
+}
+
 export interface attrPanelTypeLadder {
   roomId: string;
   bindPointIds: string[];

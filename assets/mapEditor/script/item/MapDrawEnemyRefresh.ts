@@ -31,6 +31,14 @@ export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
         this._roomId = roomId;
     }
 
+    public setRoomId(roomId: number) {
+        this._roomId = roomId;
+    }
+
+    public setParam(param: string) {
+        this.param = param;
+    }
+
     public getDat(): MapDrawDatEnemyRefreshData {
         const dat: MapDrawDatEnemyRefreshData = {
             refreshId: this.refreshId,

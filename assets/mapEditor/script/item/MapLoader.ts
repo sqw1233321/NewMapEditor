@@ -64,6 +64,9 @@ export default class MapLoader extends cc.Component {
   survivePrefab: cc.Prefab = null;
 
   @property(cc.Prefab)
+  defaultPortalPrefab: cc.Prefab = null;
+
+  @property(cc.Prefab)
   portalPrefab: cc.Prefab = null;
 
   @property(cc.Prefab)
@@ -419,13 +422,13 @@ export default class MapLoader extends cc.Component {
   private getPortalPrefab(type: PortalType) {
     switch (type) {
       case PortalType.Default:
-        return this.portalPrefab;
+        return this.defaultPortalPrefab;
       case PortalType.Drop:
         return this.portalPrefab;
       case PortalType.Ship:
         return this.shipPrefab;
       default:
-        return this.portalPrefab;
+        return this.defaultPortalPrefab;
     }
   }
 

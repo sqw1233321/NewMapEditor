@@ -1,6 +1,7 @@
 import { MapEditorEvent } from "../event/eventTypes";
 import MapDrawCable from "../item/MapDrawCable";
 import MapDrawDoor from "../item/MapDrawDoor";
+import MapDrawEnemyRefresh from "../item/MapDrawEnemyRefresh";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawPortal from "../item/MapDrawPortal";
@@ -9,7 +10,7 @@ import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -129,6 +130,13 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeCable).points = pointP;
                 (dat as attrPanelTypeCable).speed = cableDat.speed;
                 break;
+            case UnitType.EnemyRefresh:
+                const enemyRefreshCom = this._trackNd?.getComponent(MapDrawEnemyRefresh);
+                (dat as attrPanelTypeEnemyRefresh).roomId =
+                    enemyRefreshCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypeEnemyRefresh).param =
+                    enemyRefreshCom?.getDat()?.param ?? "";
+                break;
         }
         const panelDat: attrPanelType = {
             type: type,
@@ -198,6 +206,14 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     cableCom.setStartP(startP);
                     cableCom.setEndP(endP);
                     cableCom.setPoints(pointPs);
+                }
+                break;
+            case UnitType.EnemyRefresh:
+                dat = attrDat.dat as attrPanelTypeEnemyRefresh;
+                const enemyRefreshCom = this._trackNd.getComponent(MapDrawEnemyRefresh);
+                if (enemyRefreshCom) {
+                    enemyRefreshCom.setRoomId(Number(dat.roomId));
+                    enemyRefreshCom.setParam(dat.param);
                 }
                 break;
         }
