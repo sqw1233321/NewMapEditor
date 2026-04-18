@@ -1,3 +1,4 @@
+import MapDrawP from "../../item/MapDrawP";
 import { NodeUtil } from "../../tool/NodeUtil";
 import { attrPanelTypePoint } from "../../type/types";
 import AttrPanel from "./AttrPanel";
@@ -21,18 +22,22 @@ export default class AttrPanelPoint extends AttrPanel {
         this.roomLb.string = this._dat.roomId;
         NodeUtil.autoRefreshChildren(this.pointCont, this._dat.links, (nd, index, dat) => {
             const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-            nameLb.string = dat;
+            nameLb.string = dat.getComponent(MapDrawP).getId() ?? "";
         })
 
     }
 
     public getDat(): attrPanelTypePoint {
-        const links = this.pointCont.children.map((nd) => {
-            return nd.children[0].children[0].getComponent(cc.Label).string;
-        });
         return {
             roomId: this.roomLb.string,
-            links
+            links: this._dat.links,
         }
+    }
+
+    //选择可编辑点
+    public onClickPoints() {
+        this.onClickP(true, this.pointCont, this._dat.links, (nodes: cc.Node[]) => {
+            this._dat.links = nodes;
+        });
     }
 }

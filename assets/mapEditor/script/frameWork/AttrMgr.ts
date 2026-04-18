@@ -95,9 +95,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 const links = pointCom?.links ?? [];
                 (dat as attrPanelTypePoint).roomId =
                     pointCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypePoint).links = links
-                    .filter((nd) => nd && cc.isValid(nd))
-                    .map((nd) => nd.name);
+                (dat as attrPanelTypePoint).links = links;
                 break;
             case UnitType.Door:
                 const doorCom = this._trackNd?.getComponent(MapDrawDoor);
@@ -178,11 +176,11 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 break;
             case UnitType.PathPoint:
                 dat = attrDat.dat as attrPanelTypePoint;
-                const links = dat.links;
+                const links = dat.links as cc.Node[];
                 const controller = this._trackNd.getComponent(MapDrawP);
                 if (controller) {
-                    const linkNodes = this._mapLoader.resolvePathPointNodes(links || []) ?? [];
-                    controller.setLinks(linkNodes);
+                    controller.setId(dat.roomId);
+                    controller.setLinks(links);
                 }
                 break;
             case UnitType.Door:

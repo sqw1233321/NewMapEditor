@@ -115,7 +115,6 @@ export default class MapDrawP extends MapDrawUnitBase {
         });
     }
 
-
     public getDat(): MapDrawDatPathPoint {
         const dat: MapDrawDatPathPoint = {
             id: this._pid,
