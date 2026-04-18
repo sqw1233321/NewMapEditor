@@ -11,11 +11,13 @@ type PathPointModeDeps = {
 
 export default class PathPointLinkMode extends ModeBase {
   private _start: cc.Node = null;
+  private _cancelCb;
+
   constructor(
     deactivateOthers: () => void,
     private readonly deps: PathPointModeDeps,
   ) {
-    super(deactivateOthers); 
+    super(deactivateOthers);
     this._modeType = ModeType.PathPointLink;
   }
 
@@ -29,6 +31,7 @@ export default class PathPointLinkMode extends ModeBase {
 
   protected onDisabled(): void {
     this.clearStart();
+    this._cancelCb?.();
   }
 
   private clearStart() {
@@ -77,5 +80,9 @@ export default class PathPointLinkMode extends ModeBase {
     this._start = null;
     onChanged?.();
     this.deps.onChanged();
+  }
+
+  public setCancelCb(cb) {
+    this._cancelCb = cb;
   }
 }

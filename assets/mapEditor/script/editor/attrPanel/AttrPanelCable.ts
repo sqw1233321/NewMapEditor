@@ -76,38 +76,4 @@ export default class AttrPanelCable extends AttrPanel {
         });
     }
 
-    // //编辑结束
-    // public onAfterEdit() {
-    //     EventManager.instance.emit(AttrPanelEvent.afterEdit, this.type);
-    // }
-
-
-    // public onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (nodes: cc.Node[]) => void) {
-    //     const cb = (nodes: cc.Node[]) => {
-    //         if (isMulti) {
-    //             setter(nodes);
-    //             NodeUtil.autoRefreshChildren(nd, nodes, (nd, index, dat) => {
-    //                 const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-    //                 nameLb.string = dat?.getComponent(MapDrawP).getId() ?? "";
-    //             })
-    //         }
-    //         else {
-    //             setter(nodes);
-    //             const singleLb = nd.getComponent(cc.Label) || nd.getComponent(cc.EditBox);
-    //             singleLb.string = nodes[0]?.getComponent(MapDrawP).getId() ?? "";
-    //         }
-    //         EventManager.instance.emit(AttrPanelEvent.afterEdit, this.type);
-    //     }
-
-    //     let arr: cc.Node[] = [];
-    //     if (!isMulti) {
-    //         arr = dat ? [dat] : [];
-    //     }
-    //     else {
-    //         arr = dat;
-    //     }
-    //     EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
-    // }
-
-
 }

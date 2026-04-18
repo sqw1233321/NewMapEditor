@@ -39,6 +39,9 @@ const { ccclass, property, executeInEditMode } = cc._decorator;
 @ccclass
 // @executeInEditMode
 export default class MapLoader extends cc.Component {
+  @property(cc.Node)
+  pointLineCont:cc.Node;
+
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
 
@@ -88,7 +91,6 @@ export default class MapLoader extends cc.Component {
   private _playerCreateNd: cc.Node;
   private _playerExitNd: cc.Node;
   private _outRoomUnitCont: cc.Node;
-  private _pointLineCont: cc.Node;
   private _pointLineDrawer: cc.Graphics;
   private _areaInfo: number[] = [];
 
@@ -148,9 +150,10 @@ export default class MapLoader extends cc.Component {
     this._playerCreateNd.parent = this.node;
     this._playerExitNd = new cc.Node("playerExit");
     this._playerExitNd.parent = this.node;
-    this._pointLineCont = new cc.Node("pointLineCont");
-    this._pointLineCont.parent = this.node;
-    this._pointLineDrawer = this._pointLineCont.addComponent(cc.Graphics);
+    this.pointLineCont = new cc.Node("pointLineCont");
+    this.pointLineCont.group = "pathPoint";
+    this.pointLineCont.parent = this.node;
+    this._pointLineDrawer = this.pointLineCont.addComponent(cc.Graphics);
     this._pointLineDrawer.lineWidth = 5;
     this._pointLineDrawer.strokeColor = new cc.Color(255, 220, 60, 220);
     [this._playerCreateNd, this._playerExitNd].forEach((nd, index) => {
@@ -242,7 +245,7 @@ export default class MapLoader extends cc.Component {
       if (!pointCom) return;
       const fromId = pointCom.getId();
       const fromWorld = pointNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-      const fromLocal = this._pointLineCont.convertToNodeSpaceAR(fromWorld);
+      const fromLocal = this.pointLineCont.convertToNodeSpaceAR(fromWorld);
       pointCom.links?.forEach((toNd) => {
         if (!toNd || !cc.isValid(toNd)) return;
         const toCom = toNd.getComponent(MapDrawP);
@@ -254,7 +257,7 @@ export default class MapLoader extends cc.Component {
         if (drawn.has(edgeKey)) return;
         drawn.add(edgeKey);
         const toWorld = toNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        const toLocal = this._pointLineCont.convertToNodeSpaceAR(toWorld);
+        const toLocal = this.pointLineCont.convertToNodeSpaceAR(toWorld);
         this._pointLineDrawer.moveTo(fromLocal.x, fromLocal.y);
         this._pointLineDrawer.lineTo(toLocal.x, toLocal.y);
       });
@@ -1073,7 +1076,7 @@ export default class MapLoader extends cc.Component {
     const children = this._layerCont.children.slice();
     children.forEach((n) => n.destroy());
     this._outRoomUnitCont.destroyAllChildren();
-    this._pointLineCont.getComponent(cc.Graphics).clear();
+    this.pointLineCont.getComponent(cc.Graphics).clear();
     this._roomNodeMap.clear();
     this._pointMap.clear();
     this._layerNodeMap.clear();

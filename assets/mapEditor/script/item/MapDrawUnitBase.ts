@@ -1,9 +1,10 @@
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import { ModeMgr } from "../frameWork/ModeMgr";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { DragType } from "../type/types";
+import { DragType, ModeType } from "../type/types";
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -52,6 +53,9 @@ export default class MapDrawUnitBase extends cc.Component {
     event.stopPropagation();
     if (event.getButton() === cc.Event.EventMouse.BUTTON_LEFT) {
       if (this.onUnitLeftMouseDownForLink(event)) {
+        return;
+      }
+      if (ModeMgr.instance.curModeType == ModeType.PathPointLink) {
         return;
       }
       // console.log("onMouseDown", this.node.name, event);

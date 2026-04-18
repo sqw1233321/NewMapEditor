@@ -74,6 +74,7 @@ export class ModeMgr extends Singleton<ModeMgr> {
         switch (modeType) {
             case ModeType.PathPointLink:
                 this._pathPointMode.setEnabled(true);
+                this._pathPointMode.setCancelCb(param[0]);
                 break;
             case ModeType.LadderBind:
                 this._ladderMode.setEnabled(true);

@@ -25,6 +25,9 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class LevelScene extends cc.Component {
+  @property(cc.Camera)
+  lineHightCamera: cc.Camera;
+
   @property(cc.Node)
   editorRoot: cc.Node = null;
 
@@ -986,6 +989,15 @@ export default class LevelScene extends cc.Component {
       }
     }
     return bestRoom;
+  }
+
+
+  public onClickPathLineMode() {
+    //TODO:为啥是-4啊
+    this.lineHightCamera.cullingMask = -4;
+    ModeMgr.instance.enterMode(ModeType.PathPointLink,()=>{
+      this.lineHightCamera.cullingMask = -3;
+    });
   }
 }
 
