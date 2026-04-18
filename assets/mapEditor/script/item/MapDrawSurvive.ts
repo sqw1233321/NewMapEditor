@@ -12,8 +12,9 @@ export default class MapDrawSurvive extends MapDrawUnitBase {
 
   private weight: number = 0;
 
-  public init(roomId: number) {
-    this._roomId = roomId;
+  public init(dat: MapDrawDatSurvivorData) {
+    this._roomId = dat.roomId;
+    this.weight = dat.weight;
   }
 
   public getDat() {

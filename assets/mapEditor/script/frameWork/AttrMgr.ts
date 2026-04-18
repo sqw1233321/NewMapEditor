@@ -109,8 +109,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 const ladderCom = this._trackNd?.getComponent(MapDrawLadder);
                 (dat as attrPanelTypeLadder).roomId =
                     ladderCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeLadder).bindPointIds =
-                    ladderCom?.getDat().bindPointIds ?? [];
+                (dat as attrPanelTypeLadder).bindPointIds = ladderCom?.getDat().bindPointIds.map((id) => this._mapLoader.resolvePathPointNodes(id)[0]) ?? [];
+                (dat as attrPanelTypeLadder).isExitLadder =
+                    ladderCom?.getDat().isExitLadder ?? false;
                 break;
             case UnitType.Portal:
                 const portalCom = this._trackNd?.getComponent(MapDrawPortal);
@@ -193,6 +194,12 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 break;
             case UnitType.Ladder:
                 //操作在l 梯子绑定模式中
+                dat = attrDat.dat as attrPanelTypeLadder;
+                const ladderCom = this._trackNd.getComponent(MapDrawLadder);
+                if (ladderCom) {
+                    ladderCom.setBinds(dat.bindPointIds);
+                    ladderCom.setIsExitLadder(dat.isExitLadder);
+                }
                 break;
             case UnitType.Portal:
                 dat = attrDat.dat as attrPanelTypePortal;

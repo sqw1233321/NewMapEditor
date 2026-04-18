@@ -20,12 +20,12 @@ export default class AttrPanel extends cc.Component {
     type: UnitType = UnitType.Default;
 
 
-    //编辑结束
+    //EditBox编辑完成
     public onAfterEdit() {
         EventManager.instance.emit(AttrPanelEvent.afterEdit, this.type);
     }
 
-
+    //选点模式
     public onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (nodes: cc.Node[]) => void) {
         const cb = (nodes: cc.Node[]) => {
             if (isMulti) {
@@ -52,4 +52,6 @@ export default class AttrPanel extends cc.Component {
         }
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
+
+    
 }

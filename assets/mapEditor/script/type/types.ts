@@ -78,7 +78,8 @@ export interface attrPanelTypeSurviveRefresh {
 
 export interface attrPanelTypeLadder {
   roomId: string;
-  bindPointIds: string[];
+  bindPointIds: cc.Node[];
+  isExitLadder: boolean;
 }
 
 export interface attrPanelTypeSurvive {

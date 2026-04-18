@@ -90,7 +90,6 @@ export interface MapDrawDatLadder {
     unlockCost: number;
     showType: number;
     isExitLadder: boolean;
-
     pos: MapDrawDatVec2;
     bindPointIds: string[];
 }

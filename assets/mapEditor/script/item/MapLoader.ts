@@ -394,7 +394,7 @@ export default class MapLoader extends cc.Component {
         const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
         itemNd.setPosition(localPos);
         const control = itemNd.addComponentSafe(MapDrawSurvive);
-        control.init(survive.roomId);
+        control.init(survive);
       });
     });
   }

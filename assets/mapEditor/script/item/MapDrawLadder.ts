@@ -19,6 +19,8 @@ export default class MapDrawLadder extends MapDrawUnitBase {
     @property([cc.Node])
     bindPoints: cc.Node[] = [];
 
+    private _isExitLadder: boolean = false;
+
     public getType() {
         return UnitType.Ladder;
     }
@@ -30,6 +32,10 @@ export default class MapDrawLadder extends MapDrawUnitBase {
 
     public setBinds(nodeArr: cc.Node[]) {
         this.bindPoints = nodeArr;
+    }
+
+    public setIsExitLadder(isExitLadder: boolean) {
+        this._isExitLadder = isExitLadder;
     }
 
     getDat(): MapDrawDatLadder {
@@ -46,7 +52,7 @@ export default class MapDrawLadder extends MapDrawUnitBase {
             unlockMethod: 0,
             unlockCost: 0,
             showType: 0,
-            isExitLadder: false
+            isExitLadder: this._isExitLadder,
         }
         return dat;
     }
