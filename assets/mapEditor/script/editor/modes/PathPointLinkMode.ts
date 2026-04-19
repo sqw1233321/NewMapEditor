@@ -8,7 +8,7 @@ import { ModeType } from "../../type/types";
 type PathPointModeDeps = {
   onChanged: () => void;
 };
-
+//连线模式
 export default class PathPointLinkMode extends ModeBase {
   private _start: cc.Node = null;
   private _cancelCb;
@@ -39,10 +39,6 @@ export default class PathPointLinkMode extends ModeBase {
       this._start.getComponent(MapDrawP)?.setLinkHighlight(false);
     }
     this._start = null;
-  }
-
-  public cancelPick() {
-    this.clearStart();
   }
 
   public onPointClick(node: cc.Node, onChanged?: () => void) {

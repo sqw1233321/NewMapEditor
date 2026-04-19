@@ -3,7 +3,6 @@ import MapDrawRoom from "../../item/MapDrawRoom";
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
-import EditorSetting from "../EditorSetting";
 import { ModeType } from "../../type/types";
 
 type RoomUnlockModeDeps = {

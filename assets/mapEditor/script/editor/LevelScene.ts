@@ -595,7 +595,7 @@ export default class LevelScene extends cc.Component {
     if (!draggedNode || !cc.isValid(draggedNode)) return;
     const draggedPointCom = draggedNode.getComponent(MapDrawP);
     if (!draggedPointCom) return;
-    const layerNd = this.findLayerByRoomId(draggedPointCom.getRoomId());
+    const layerNd = this.findLayerByRoomCfgId(draggedPointCom.getRoomId());
     if (!layerNd) return;
 
     const pointNodes = layerNd
@@ -650,10 +650,10 @@ export default class LevelScene extends cc.Component {
   }
 
   /** 拖拽点在 dragLayer 下时，按 point.roomId 反查所属 layer */
-  private findLayerByRoomId(roomId: number): cc.Node | null {
+  private findLayerByRoomCfgId(roomId: number): cc.Node | null {
     if (!isFinite(roomId) || !this.mapLoader) return null;
     const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
-    const room = rooms.find((r) => r && r.getId() === roomId);
+    const room = rooms.find((r) => r && r.getCfgId() === roomId);
     if (!room || !room.node) return null;
     return this.findLayerByNode(room.node);
   }
@@ -995,7 +995,7 @@ export default class LevelScene extends cc.Component {
   public onClickPathLineMode() {
     //TODO:为啥是-4啊
     this.lineHightCamera.cullingMask = -4;
-    ModeMgr.instance.enterMode(ModeType.PathPointLink,()=>{
+    ModeMgr.instance.enterMode(ModeType.PathPointLink, () => {
       this.lineHightCamera.cullingMask = -3;
     });
   }

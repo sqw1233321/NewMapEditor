@@ -51,9 +51,9 @@ export interface attrPanelTypeBase {
 }
 
 export interface attrPanelTypeRoom {
-  nameLb: string;
+  cfgId: string;
   size: { width: number; height: number };
-  unLockPoints: string[];
+  unLockPoints: cc.Node[];
 }
 
 export interface attrPanelTypePoint {

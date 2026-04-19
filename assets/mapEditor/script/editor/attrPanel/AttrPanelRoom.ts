@@ -1,3 +1,4 @@
+import MapDrawP from "../../item/MapDrawP";
 import { NodeUtil } from "../../tool/NodeUtil";
 import { attrPanelTypeRoom } from "../../type/types";
 import AttrPanel from "./AttrPanel";
@@ -23,23 +24,27 @@ export default class AttrPanelRoom extends AttrPanel {
 
     setAttr(dat: attrPanelTypeRoom) {
         this._dat = dat;
-        this.nameLb.string = dat.nameLb;
+        this.nameLb.string = dat.cfgId;
         this.width.string = `${dat.size.width}`;
         this.height.string = `${dat.size.height}`;
         NodeUtil.autoRefreshChildren(this.pointCont, this._dat.unLockPoints, (nd, index, dat) => {
             const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-            nameLb.string = dat;
+            nameLb.string = dat?.getComponent(MapDrawP).getId() ?? "";
         })
     }
 
     public getDat(): attrPanelTypeRoom {
-        const links = this.pointCont.children.map((nd) => {
-            return nd.children[0].children[0].getComponent(cc.Label).string;
-        });
         return {
-            nameLb: this.nameLb.string,
+            cfgId: this.nameLb.string,
             size: { width: Number(this.width.string), height: Number(this.height.string) },
-            unLockPoints: links
+            unLockPoints: this._dat.unLockPoints
         }
+    }
+
+    //选择可编辑点
+    public onClickPoints() {
+        this.onClickP(true, this.pointCont, this._dat.unLockPoints, (nodes: cc.Node[]) => {
+            this._dat.unLockPoints = nodes;
+        });
     }
 }
