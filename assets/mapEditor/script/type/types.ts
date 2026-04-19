@@ -51,7 +51,7 @@ export interface attrPanelTypeBase {
 }
 
 export interface attrPanelTypeRoom {
-  cfgId: string;
+  roomId: string;
   size: { width: number; height: number };
   unLockPoints: cc.Node[];
 }
@@ -93,9 +93,9 @@ export interface attrPanelTypeSearchItem {
 }
 
 export interface attrPanelTypePortal {
-  linkId: string;
+  linkP: cc.Node;
   offsetX: number;
-  animPIds: string[];
+  animPs: cc.Node[];
 }
 
 export interface attrPanelTypeCable {
@@ -108,8 +108,6 @@ export interface attrPanelTypeCable {
 export enum ModeType {
   PathPointLink = "PathPointLink",
   LadderBind = "LadderBind",
-  PortalBind = "PortalBind",
-  PortalAnimBind = "PortalAnimBind",
   RoomUnlockBind = "RoomUnlockBind",
   SelectPoint = "SelectPoint",
 }

@@ -40,7 +40,7 @@ const { ccclass, property, executeInEditMode } = cc._decorator;
 // @executeInEditMode
 export default class MapLoader extends cc.Component {
   @property(cc.Node)
-  pointLineCont:cc.Node;
+  pointLineCont: cc.Node;
 
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
@@ -415,10 +415,9 @@ export default class MapLoader extends cc.Component {
       const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
       itemNd.setPosition(localPos);
       const control = itemNd.addComponentSafe(MapDrawPortal);
-      control.linkId = portal.linkId;
-      const offsetX = portal.offsetX || 0;
-      control.offsetX = offsetX;
-      control.setAnimIds(portal.animPIds);
+      const linkP = this._pointMap.get(portal.linkId)
+      const animPs = portal.animPIds.map((id) => this._pointMap.get(id));
+      control.init(portal, linkP, animPs);
     });
   }
 

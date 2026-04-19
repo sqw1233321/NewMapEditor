@@ -24,7 +24,7 @@ export default class AttrPanelRoom extends AttrPanel {
 
     setAttr(dat: attrPanelTypeRoom) {
         this._dat = dat;
-        this.nameLb.string = dat.cfgId;
+        this.nameLb.string = dat.roomId;
         this.width.string = `${dat.size.width}`;
         this.height.string = `${dat.size.height}`;
         NodeUtil.autoRefreshChildren(this.pointCont, this._dat.unLockPoints, (nd, index, dat) => {
@@ -35,7 +35,7 @@ export default class AttrPanelRoom extends AttrPanel {
 
     public getDat(): attrPanelTypeRoom {
         return {
-            cfgId: this.nameLb.string,
+            roomId: this.nameLb.string,
             size: { width: Number(this.width.string), height: Number(this.height.string) },
             unLockPoints: this._dat.unLockPoints
         }

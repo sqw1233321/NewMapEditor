@@ -10,23 +10,23 @@ import { ModeMgr } from "../frameWork/ModeMgr";
 import { UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
 import { MapDrawDatPortalData, PortalType } from "./MapDrawDat";
+import MapDrawP from "./MapDrawP";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawPortal extends MapDrawUnitBase {
-  protected _type: UnitType.Portal;
   @property(cc.Node)
   heighLight: cc.Node = null;
 
-  linkId: string = "";
+  protected _type: UnitType.Portal;
   offsetX: number = 0;
-  //各个动画点
-  animIDs: string[] = [];
 
-  private _bindHighlight = false;
-  private _savedTint: cc.Color = null;
+  linkP: cc.Node;
+  animPs: cc.Node[] = []
+
+  private _dat: MapDrawDatPortalData;
   protected _portalType: PortalType;
 
 
@@ -42,71 +42,55 @@ export default class MapDrawPortal extends MapDrawUnitBase {
     this._portalType = PortalType.Drop;
   }
 
-
   public getType() {
     return UnitType.Portal;
   }
 
-  protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-    if (ModeMgr.instance.curModeType == ModeType.PortalBind) {
-      EventManager.instance.emit(MapEditorEvent.PortalBindPortalClick, this.node);
-      return true;
-    }
-    if (ModeMgr.instance.curModeType == ModeType.PortalAnimBind) {
-      EventManager.instance.emit(MapEditorEvent.PortalAnimBindPortalClick, this.node);
-      return true;
-    }
-    return false;
-  }
-
-  /** 绑定模式：高亮当前选中的传送门 */
-  public setPortalBindHighlight(on: boolean) {
-    if (on === this._bindHighlight) return;
-    if (this.heighLight && cc.isValid(this.heighLight)) {
-      this.heighLight.active = on;
-    } else {
-      // buildPortals() 动态创建的 Portal 没有高亮子节点，退化为改色高亮
-      const tintNd = this.node.getComponent(cc.Sprite)
-        ? this.node
-        : this.node.getChildByName("bg");
-      if (tintNd) {
-        if (on) {
-          if (this._savedTint == null) this._savedTint = tintNd.color.clone();
-          tintNd.color = new cc.Color(80, 255, 160, 255);
-        } else {
-          if (this._savedTint) tintNd.color = this._savedTint;
-          this._savedTint = null;
-        }
-      }
-    }
-    this._bindHighlight = on;
-  }
-
-  public init(...params: any[]): void { }
-
-  setLinkId(id: string) {
-    this.linkId = id;
+  public init(dat: MapDrawDatPortalData, linkP: cc.Node, animPs: cc.Node[]): void {
+    this._dat = dat;
+    this.linkP = linkP;
+    this.animPs = animPs;
   }
 
   setOffsetX(offset: number) {
     this.offsetX = offset;
   }
 
-  public getAnimIds() {
-    return this.animIDs ?? [];
+  public getOffsetX(){
+    return this.offsetX;
   }
 
-  public setAnimIds(ids: string[]) {
-    this.animIDs = ids;
+  public setLinkP(linkP: cc.Node) {
+    this.linkP = linkP;
+  }
+
+  public getLinkP() {
+    return this.linkP;
+  }
+
+  public setAnimPs(animPs: cc.Node[]) {
+    this.animPs = animPs;
+  }
+
+  public getAnimP() {
+    return this.animPs;
   }
 
   public getDat(): MapDrawDatPortalData {
+    const animPIds = (this.animPs || [])
+      .filter((bindPoint) => bindPoint && cc.isValid(bindPoint))
+      .map((bindPoint) => bindPoint.getComponent(MapDrawP))
+      .filter((pointCom) => pointCom && pointCom.getId())
+      .map((pointCom) => pointCom.getId()) ?? [];
+
+    const linkId = (this.linkP && cc.isValid(this.linkP)) ? this.linkP?.getComponent(MapDrawP)?.getId() ?? "" : ""
+
     const dat: MapDrawDatPortalData = {
-      linkId: this.linkId,
+      linkId: linkId,
       pos: this.getPos(),
       offsetX: this.offsetX,
       portalType: this._portalType,
-      animPIds: this.animIDs ?? [],
+      animPIds: animPIds,
     };
     return dat;
   }

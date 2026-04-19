@@ -83,7 +83,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
         let dat: any = {};
         switch (type) {
             case UnitType.Room:
-                (dat as attrPanelTypeRoom).cfgId = `${this._trackNd.getComponent(MapDrawRoom).getCfgId()}`;
+                (dat as attrPanelTypeRoom).roomId = `${this._trackNd.getComponent(MapDrawRoom).getRoomId()}`;
                 (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
                 (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
                     ?.getUnLockPoints()
@@ -114,11 +114,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 break;
             case UnitType.Portal:
                 const portalCom = this._trackNd?.getComponent(MapDrawPortal);
-                (dat as attrPanelTypePortal).linkId = portalCom?.getDat()?.linkId ?? "";
-                (dat as attrPanelTypePortal).offsetX =
-                    portalCom?.getDat()?.offsetX ?? 0;
-                (dat as attrPanelTypePortal).animPIds =
-                    portalCom?.getAnimIds() ?? [];
+                (dat as attrPanelTypePortal).linkP = portalCom.getLinkP();
+                (dat as attrPanelTypePortal).offsetX = portalCom?.getDat()?.offsetX ?? 0;
+                (dat as attrPanelTypePortal).animPs = portalCom?.getAnimP() ?? [];
                 break;
             case UnitType.Cable:
                 const controller = this._trackNd?.getComponent(MapDrawCable);
@@ -170,7 +168,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             case UnitType.Room:
                 dat = attrDat.dat as attrPanelTypeRoom;
                 const size = dat.size;
-                this._trackNd.getComponent(MapDrawRoom).setCfgId(Number(dat.cfgId));
+                this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
                 this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);
                 this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
@@ -204,9 +202,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 dat = attrDat.dat as attrPanelTypePortal;
                 const portalCom = this._trackNd.getComponent(MapDrawPortal);
                 if (portalCom) {
-                    portalCom.setLinkId(dat.linkId);
+                    portalCom.setLinkP(dat.linkP);
                     portalCom.setOffsetX(dat.offsetX);
-                    portalCom.setAnimIds(dat.animPIds);
+                    portalCom.setAnimPs(dat.animPs);
                 }
                 break;
             case UnitType.Cable:
