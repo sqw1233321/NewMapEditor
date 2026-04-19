@@ -303,7 +303,7 @@ export default class MapLoader extends cc.Component {
         const bindPoint: cc.Node[] = ladder.bindPointIds.map((id) =>
           this._pointMap.get(id),
         );
-        control.init(ladder.roomId, bindPoint);
+        control.init(ladder.roomId, bindPoint, ladder.isExitLadder);
       });
     });
   }
