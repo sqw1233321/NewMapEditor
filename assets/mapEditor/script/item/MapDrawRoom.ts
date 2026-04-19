@@ -21,11 +21,7 @@ import MapDrawP from "./MapDrawP";
 import MapDrawSearchItem from "./MapDrawSearchItem";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapLoader from "./MapLoader";
-import { MapEditorEvent } from "../event/eventTypes";
-import { EventManager } from "../frameWork/EventManager";
 import MapDrawSurvive from "./MapDrawSurvive";
-import { ModeType } from "../type/types";
-import { ModeMgr } from "../frameWork/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -90,11 +86,8 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this.setDat();
     }
 
-    public changeLayer(roomId: number, newLayer: number) {
-        this._roomId = roomId;
+    public changeLayer(newLayer: number) {
         this._layer = newLayer;
-        this.refreshDat();
-        this.initUI();
     }
 
     public updateRoomId(roomId: number) {
@@ -120,6 +113,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     public setSize(size: { width: number; height: number }) {
+        this._roomDat.size = size;
         this.node.setContentSize(size.width, size.height);
         const bg = this.node.getChildByName("bg");
         bg.setContentSize(size.width, size.height);
@@ -141,6 +135,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     private setRoomNameLb() {
+        this.node.name = `room_${this._roomId}`;
         const roomName = this.node.getChildByName("name");
         roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
         const label = roomName.getComponent(cc.Label);

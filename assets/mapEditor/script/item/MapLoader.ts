@@ -34,7 +34,7 @@ import MapDrawStone from "./MapDrawStone";
 import MapDrawSurvive from "./MapDrawSurvive";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 
-const { ccclass, property, executeInEditMode } = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 // @executeInEditMode
@@ -666,7 +666,8 @@ export default class MapLoader extends cc.Component {
           const oldMapNo = Math.floor(oldId / 100);
           const roomNo = oldId - oldMapNo * 100 - (no - 1) * 10;
           const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + roomNo;
-          roomCom.changeLayer(newCfgId, newNo);
+          roomCom.changeLayer(newNo);
+          if(EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
           roomCom.refreshDat();
           this.renameRoomNode(oldId, newCfgId, roomNd);
         });
@@ -813,7 +814,8 @@ export default class MapLoader extends cc.Component {
         const oldRoomNo = oldId - oldMapNo * 100 - (item.no - 1) * 10;
         const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + oldRoomNo;
         const newLayer = newNo;
-        roomCom.changeLayer(newCfgId, newLayer);
+        roomCom.changeLayer(newLayer);
+        if(EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
         roomCom.refreshDat();
         this.renameRoomNode(oldId, newCfgId, roomNd);
       });

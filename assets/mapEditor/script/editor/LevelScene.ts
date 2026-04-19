@@ -14,10 +14,7 @@ import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
 import MapLoader from "../item/MapLoader";
 import { MapDrawDatRoom } from "../item/MapDrawDat";
-import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawLadder from "../item/MapDrawLadder";
-import MapDrawPortal from "../item/MapDrawPortal";
-import MapDrawCable from "../item/MapDrawCable";
 import { AttrMgr } from "../frameWork/AttrMgr";
 import { ModeMgr } from "../frameWork/ModeMgr";
 
@@ -63,6 +60,9 @@ export default class LevelScene extends cc.Component {
   @property(cc.Label)
   curModeLb: cc.Label;
 
+  @property(cc.Toggle)
+  autoRenameTog: cc.Toggle;
+
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
   private _isShiftDown: boolean = false;
@@ -78,7 +78,6 @@ export default class LevelScene extends cc.Component {
   private _dragHoverRoomName: string = "";
   //房间外物品类型
   private outRoomUnitType = [UnitType.Portal, UnitType.Cable, UnitType.Stone];
-
 
   /**
    * 是否允许地图交互：
@@ -135,6 +134,8 @@ export default class LevelScene extends cc.Component {
   protected start(): void {
     //地图构造器
     this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
+    this.autoRenameTog.isChecked = true;
+    EditorSetting.Instance.setAutoRename(true);
   }
 
   protected onDestroy(): void {
@@ -529,7 +530,7 @@ export default class LevelScene extends cc.Component {
               mapLoaderComp.rebuildPointIdsByLayer();
             }
           }
-          // 非房间节点迁移后，刷新来源/目标房间，确保 roomId 与导出数据同步
+          // 房间节点迁移后，刷新来源/目标房间，确保 roomId 与导出数据同步
           if (!this.outRoomUnitType.includes(type)) {
             const oldOwnerRoom = MapTool.findOwnerRoomByNode(itemParent);
             const newOwnerRoom = MapTool.findOwnerRoomByNode(targetParent);
@@ -766,9 +767,12 @@ export default class LevelScene extends cc.Component {
       rooms.forEach((r, index) => {
         const roomNo = index + 1;
         const renamedId = mapNo * 100 + (layerNo - 1) * 10 + roomNo;
-        r.node.name = `room_${renamedId}`;
         const controller = r.node.getComponent(MapDrawRoom);
-        controller.updateRoomId(renamedId);
+        if (EditorSetting.Instance.getAutoRename()) {
+          const mapLoaderComp = this.mapLoader?.getComponent(MapLoader) ?? null;
+          mapLoaderComp.renameRoomNode(controller.getRoomId(), renamedId, r.node);
+          controller.updateRoomId(renamedId);
+        }
       });
       return rooms;
     };
@@ -998,6 +1002,10 @@ export default class LevelScene extends cc.Component {
     ModeMgr.instance.enterMode(ModeType.PathPointLink, () => {
       this.lineHightCamera.cullingMask = -3;
     });
+  }
+
+  onTogAutoReanme(event) {
+    EditorSetting.Instance.setAutoRename(event.isChecked);
   }
 }
 
