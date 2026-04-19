@@ -50,13 +50,14 @@ export default class MapDrawPortal extends MapDrawUnitBase {
     this._dat = dat;
     this.linkP = linkP;
     this.animPs = animPs;
+    this.offsetX = dat.offsetX;
   }
 
   setOffsetX(offset: number) {
     this.offsetX = offset;
   }
 
-  public getOffsetX(){
+  public getOffsetX() {
     return this.offsetX;
   }
 

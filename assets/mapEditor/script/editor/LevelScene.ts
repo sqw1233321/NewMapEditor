@@ -653,7 +653,7 @@ export default class LevelScene extends cc.Component {
   private findLayerByRoomCfgId(roomId: number): cc.Node | null {
     if (!isFinite(roomId) || !this.mapLoader) return null;
     const rooms = this.mapLoader.getComponentsInChildren(MapDrawRoom);
-    const room = rooms.find((r) => r && r.getCfgId() === roomId);
+    const room = rooms.find((r) => r && r.getRoomId() === roomId);
     if (!room || !room.node) return null;
     return this.findLayerByNode(room.node);
   }

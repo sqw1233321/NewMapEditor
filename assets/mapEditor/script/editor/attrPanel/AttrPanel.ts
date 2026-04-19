@@ -52,6 +52,4 @@ export default class AttrPanel extends cc.Component {
         }
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
-
-
 }

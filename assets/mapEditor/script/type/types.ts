@@ -108,6 +108,5 @@ export interface attrPanelTypeCable {
 export enum ModeType {
   PathPointLink = "PathPointLink",
   LadderBind = "LadderBind",
-  RoomUnlockBind = "RoomUnlockBind",
   SelectPoint = "SelectPoint",
 }

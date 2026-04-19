@@ -5,18 +5,6 @@ export enum MapEditorEvent {
     PathPointLinkClick = "PathPointLinkClick",
     /** 梯子绑定模式：点击路径点（payload 为 cc.Node） */
     LadderBindPointClick = "LadderBindPointClick",
-    /** 传送门绑定模式：点击传送门（payload 为 cc.Node） */
-    PortalBindPortalClick = "PortalBindPortalClick",
-    /** 传送门绑定模式：点击路径点作为终点（payload 为 cc.Node） */
-    PortalBindPathPointClick = "PortalBindPathPointClick",
-    /** 传送门动画点绑定模式：点击传送门（payload 为 cc.Node） */
-    PortalAnimBindPortalClick = "PortalAnimBindPortalClick",
-    /** 房间解锁点绑定：点击房间（payload 为 cc.Node） */
-    RoomUnlockBindRoomClick = "RoomUnlockBindRoomClick",
-    /** 房间解锁点绑定：点击路径点（payload 为 cc.Node） */
-    RoomUnlockBindPointClick = "RoomUnlockBindPointClick",
-
-
     /**开启通用选点模式 */
     OpenSelectPointMode = "OpenSelectPointMode",
     /** 通用路径点选择模式：点击路径点（payload 为 cc.Node） */

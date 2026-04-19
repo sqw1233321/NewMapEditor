@@ -1,10 +1,11 @@
 import { attrPanelTypeBase } from "../../type/types";
+import AttrPanel from "./AttrPanel";
 
 const { ccclass, property } = cc._decorator;
 
 //属性面板基础属性
 @ccclass
-export default class AttrPanelBase extends cc.Component {
+export default class AttrPanelBase extends AttrPanel {
     @property(cc.Label)
     ndName: cc.Label
 

@@ -239,7 +239,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
         }
 
         //如果有房间信息，更新一手
-        if (dat.roomId) {
+        if (type != UnitType.Room && dat.roomId) {
             const nextRoomId = Number(dat.roomId);
             if (isFinite(nextRoomId)) {
                 this._mapLoader.moveUnitToRoom(this._trackNd, nextRoomId);

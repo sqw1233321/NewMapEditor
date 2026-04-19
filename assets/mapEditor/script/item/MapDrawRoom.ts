@@ -61,14 +61,6 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         return UnitType.Room;
     }
 
-    protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (ModeMgr.instance.curModeType == ModeType.RoomUnlockBind) {
-            EventManager.instance.emit(MapEditorEvent.RoomUnlockBindRoomClick, this.node);
-            return true;
-        }
-        return false;
-    }
-
     /** 解锁点绑定模式：高亮当前选中的房间 */
     public setUnlockBindHighlight(on: boolean) {
         if (on === this._unlockBindHighlight) return;
