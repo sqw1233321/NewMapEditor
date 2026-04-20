@@ -133,6 +133,8 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     enemyRefreshCom?.getDat()?.roomId.toString() ?? "";
                 (dat as attrPanelTypeEnemyRefresh).param =
                     enemyRefreshCom?.getDat()?.param ?? "";
+                (dat as attrPanelTypeEnemyRefresh).refreshId =
+                    enemyRefreshCom?.getDat()?.refreshId ?? -1;
                 break;
             case UnitType.SurviveDat:
                 const surviveRefreshCom = this._trackNd?.getComponent(MapDrawSurvive);
@@ -224,6 +226,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 if (enemyRefreshCom) {
                     enemyRefreshCom.setRoomId(Number(dat.roomId));
                     enemyRefreshCom.setParam(dat.param);
+                    enemyRefreshCom.setRefresId(dat.refreshId);
                 }
                 break;
             case UnitType.SurviveDat:

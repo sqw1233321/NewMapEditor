@@ -18,18 +18,23 @@ export default class AttrPanelEnemyRefresh extends AttrPanel {
     @property(cc.EditBox)
     paramLb: cc.EditBox;
 
+    @property(cc.EditBox)
+    refreshId: cc.EditBox;
+
     private _dat: attrPanelTypeEnemyRefresh;
 
     setAttr(dat: attrPanelTypeEnemyRefresh) {
         this._dat = dat;
         this.roomLb.string = this._dat.roomId;
         this.paramLb.string = this._dat.param;
+        this.refreshId.string = this._dat.refreshId.toString();
     }
 
     public getDat(): attrPanelTypeEnemyRefresh {
         return {
             roomId: this.roomLb.string,
             param: this.paramLb.string,
+            refreshId: Number(this.refreshId.string)
         }
     }
 }

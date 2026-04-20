@@ -69,6 +69,7 @@ export interface attrPanelTypeDoor {
 export interface attrPanelTypeEnemyRefresh {
   roomId: string;
   param: string;
+  refreshId: number;
 }
 
 export interface attrPanelTypeSurviveRefresh {

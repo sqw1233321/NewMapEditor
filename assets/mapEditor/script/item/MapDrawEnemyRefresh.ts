@@ -13,12 +13,10 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
-     protected _type: UnitType.EnemyRefresh;
-    
-    @property
+    protected _type: UnitType.EnemyRefresh;
+
     refreshId: number = 0;
 
-    @property
     param: string = "";
 
     public getType() {
@@ -37,6 +35,10 @@ export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
 
     public setParam(param: string) {
         this.param = param;
+    }
+
+    public setRefresId(refreshId: number) {
+        this.refreshId = refreshId;
     }
 
     public getDat(): MapDrawDatEnemyRefreshData {
