@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "8b4fc718-a2c7-4784-885a-c98080a191b2",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1453,
+  "height": 1880,
+  "platformSettings": {},
+  "subMetas": {
+    "蛇沼鬼城切图_01": {
+      "ver": "1.0.6",
+      "uuid": "4f803c49-487b-45f8-9a6a-efec2ba0f8cf",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "8b4fc718-a2c7-4784-885a-c98080a191b2",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 1453,
+      "height": 1880,
+      "rawWidth": 1453,
+      "rawHeight": 1880,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

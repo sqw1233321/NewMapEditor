@@ -10,7 +10,7 @@ export interface MapDrawDatType {
     portalDatas?: MapDrawDatPortalData[],
     scooterDatas: MapDrawDatCableData[];
     rockDatas: MapDrawDatStoneData[];
-    areaInfo?: number[]
+    areaInfo?: number[];
 }
 
 
