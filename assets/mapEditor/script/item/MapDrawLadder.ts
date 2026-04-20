@@ -25,9 +25,10 @@ export default class MapDrawLadder extends MapDrawUnitBase {
         return UnitType.Ladder;
     }
 
-    public init(roomId: number, bindPoints: cc.Node[]): void {
+    public init(roomId: number, bindPoints: cc.Node[], isExit: boolean): void {
         this._roomId = roomId;
         this.bindPoints = bindPoints;
+        this._isExitLadder = isExit;
     }
 
     public setBinds(nodeArr: cc.Node[]) {

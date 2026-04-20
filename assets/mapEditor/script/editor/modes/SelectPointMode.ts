@@ -93,7 +93,6 @@ export default class SelectPointMode extends ModeBase {
       this._selections.push(node);
       target.setLinkHighlight(true);
     }
-    const pids = this._selections.map(nd => nd.getComponent(MapDrawP).getId());
     this._cb?.(this._selections);
   }
 }

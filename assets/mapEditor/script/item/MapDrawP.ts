@@ -27,14 +27,6 @@ export default class MapDrawP extends MapDrawUnitBase {
             EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
             return true;
         }
-        if (ModeMgr.instance.curModeType == ModeType.RoomUnlockBind) {
-            EventManager.instance.emit(MapEditorEvent.RoomUnlockBindPointClick, this.node);
-            return true;
-        }
-        if (ModeMgr.instance.curModeType == ModeType.PortalBind || ModeMgr.instance.curModeType == ModeType.PortalAnimBind) {
-            EventManager.instance.emit(MapEditorEvent.PortalBindPathPointClick, this.node);
-            return true;
-        }
         if (ModeMgr.instance.curModeType == ModeType.LadderBind) {
             EventManager.instance.emit(MapEditorEvent.LadderBindPointClick, this.node);
             return true;

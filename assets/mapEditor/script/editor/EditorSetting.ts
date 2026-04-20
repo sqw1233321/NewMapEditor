@@ -4,6 +4,7 @@ export default class EditorSetting {
     private _scale: number = 1;
     private _maxScale: number = 1.5;
     private _minScale: number = 0;
+    private _autoRename = false;
 
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
@@ -23,4 +24,13 @@ export default class EditorSetting {
     public setMapScale(scale: number) {
         this._scale = Math.max(this._minScale, Math.min(this._maxScale, scale));
     }
+
+    public setAutoRename(auto: boolean) {
+        this._autoRename = auto;
+    }
+
+    public getAutoRename() {
+        return this._autoRename;
+    }
+
 }

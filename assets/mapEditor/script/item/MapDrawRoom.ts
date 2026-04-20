@@ -21,25 +21,18 @@ import MapDrawP from "./MapDrawP";
 import MapDrawSearchItem from "./MapDrawSearchItem";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapLoader from "./MapLoader";
-import { MapEditorEvent } from "../event/eventTypes";
-import { EventManager } from "../frameWork/EventManager";
 import MapDrawSurvive from "./MapDrawSurvive";
-import { ModeType } from "../type/types";
-import { ModeMgr } from "../frameWork/ModeMgr";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawRoom extends MapDrawUnitBase {
-    @property([cc.Node])
     unLockPoints: cc.Node[] = [];
-
     private _pointCont: cc.Node = null;
     private _unitCont: cc.Node = null;
 
     private _roomDat: MapDrawDatRoom = null;
     private _color: cc.Color = null;
-
     private _layer: number = 0;
     private _points: MapDrawP[] = [];
     private _pointIds: string[] = [];
@@ -62,14 +55,6 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     public getType() {
         return UnitType.Room;
-    }
-
-    protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
-        if (ModeMgr.instance.curModeType == ModeType.RoomUnlockBind) {
-            EventManager.instance.emit(MapEditorEvent.RoomUnlockBindRoomClick, this.node);
-            return true;
-        }
-        return false;
     }
 
     /** 解锁点绑定模式：高亮当前选中的房间 */
@@ -101,11 +86,41 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this.setDat();
     }
 
-    public changeLayer(roomId: number, newLayer: number) {
-        this._roomId = roomId;
+    public changeLayer(newLayer: number) {
         this._layer = newLayer;
-        this.initUI();
     }
+
+    public updateRoomId(roomId: number) {
+        this._roomId = roomId;
+        this.refreshDat();
+        this.setRoomNameLb();
+    }
+
+    public setUnLockPoints(points: cc.Node[]) {
+        this.unLockPoints = points;
+    }
+
+    public getUnLockPoints() {
+        return this.unLockPoints;
+    }
+
+    public getPoints() {
+        return this._points;
+    }
+
+    public getId() {
+        return this._roomId;
+    }
+
+    public setSize(size: { width: number; height: number }) {
+        this._roomDat.size = size;
+        this.node.setContentSize(size.width, size.height);
+        const bg = this.node.getChildByName("bg");
+        bg.setContentSize(size.width, size.height);
+        const roomName = this.node.getChildByName("name");
+        roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
+    }
+
 
     private initUI() {
         this.node.name = `room_${this._roomId}`;
@@ -120,21 +135,28 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     private setRoomNameLb() {
+        this.node.name = `room_${this._roomId}`;
         const roomName = this.node.getChildByName("name");
         roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
         const label = roomName.getComponent(cc.Label);
-        label.string = `${this._roomId}`;
+        const nameStr = `${this._roomId}`;
+        label.string = nameStr;
     }
 
+    //设置房间内数据
     public setDat() {
-        this._points = this._pointCont.children.map((child: cc.Node) =>
-            child.getComponent(MapDrawP),
-        );
-        this._pointIds =
-            this._points?.map((point: MapDrawP) => point.getId()) || [];
-        this._unLockPointIds = this.unLockPoints.map((point: cc.Node) =>
-            point.getComponent(MapDrawP).getId(),
-        );
+        this._points = this._pointCont.children
+            .filter((child: cc.Node) => child && cc.isValid(child))
+            .map((child: cc.Node) =>
+                child.getComponent(MapDrawP),
+            ) || [];
+        this._pointIds = this._points
+            .map((point: MapDrawP) => point.getId()) || [];
+        this._unLockPointIds = this.unLockPoints
+            .filter((point: cc.Node) => point && cc.isValid(point))
+            .map((point: cc.Node) =>
+                point.getComponent(MapDrawP).getId()
+            );
         this.setDoorDat();
         this.setLadderDat();
         this.setEnemyDat();
@@ -203,28 +225,15 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         );
     }
 
-    public getPoints() {
-        return this._points;
-    }
-
-    public getId() {
-        return this._roomId;
-    }
-
-    public setSize(size: { width: number; height: number }) {
-        this.node.setContentSize(size.width, size.height);
-        const bg = this.node.getChildByName("bg");
-        bg.setContentSize(size.width, size.height);
-        const roomName = this.node.getChildByName("name");
-        roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
-    }
-
+    //刷新房间内数据
     public refreshDat() {
+        const roomId =  this._roomId;
+
         this.node
             .getComponentsInChildren(MapDrawUnitBase)
             .forEach((unit: MapDrawUnitBase) => {
                 if (unit.node == this.node) return;
-                unit.updateRoomId(this._roomId);
+                unit.updateRoomId(roomId);
             });
 
         if (!this._pointCont) return;
@@ -256,19 +265,4 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         return dat;
     }
 
-    public updateRoomId(roomId: number) {
-        this._roomId = roomId;
-        this.refreshDat();
-        this.setRoomNameLb();
-    }
-
-    public setUnLockPoints(points: cc.Node[]) {
-        this.unLockPoints = points;
-    }
-
-    public getUnLockPoints() {
-        return this.unLockPoints;
-    }
-
-    //操作
 }

@@ -83,12 +83,11 @@ export class AttrMgr extends Singleton<AttrMgr> {
         let dat: any = {};
         switch (type) {
             case UnitType.Room:
-                (dat as attrPanelTypeRoom).nameLb = `${this._trackNd.getComponent(MapDrawRoom).getId()}`;
+                (dat as attrPanelTypeRoom).roomId = `${this._trackNd.getComponent(MapDrawRoom).getRoomId()}`;
                 (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
                 (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
                     ?.getUnLockPoints()
                     .filter((nd) => nd && cc.isValid(nd))
-                    .map((nd) => nd.name);
                 break;
             case UnitType.PathPoint:
                 const pointCom = this._trackNd?.getComponent(MapDrawP);
@@ -113,11 +112,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 break;
             case UnitType.Portal:
                 const portalCom = this._trackNd?.getComponent(MapDrawPortal);
-                (dat as attrPanelTypePortal).linkId = portalCom?.getDat()?.linkId ?? "";
-                (dat as attrPanelTypePortal).offsetX =
-                    portalCom?.getDat()?.offsetX ?? 0;
-                (dat as attrPanelTypePortal).animPIds =
-                    portalCom?.getAnimIds() ?? [];
+                (dat as attrPanelTypePortal).linkP = portalCom.getLinkP();
+                (dat as attrPanelTypePortal).offsetX = portalCom?.getDat()?.offsetX ?? 0;
+                (dat as attrPanelTypePortal).animPs = portalCom?.getAnimP() ?? [];
                 break;
             case UnitType.Cable:
                 const controller = this._trackNd?.getComponent(MapDrawCable);
@@ -169,9 +166,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
             case UnitType.Room:
                 dat = attrDat.dat as attrPanelTypeRoom;
                 const size = dat.size;
+                this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
-                const unlockNodes = this._mapLoader?.resolvePathPointNodes(dat.unLockPoints || []) ?? [];
-                this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(unlockNodes);
+                this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);
                 this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
                 break;
             case UnitType.PathPoint:
@@ -203,9 +200,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 dat = attrDat.dat as attrPanelTypePortal;
                 const portalCom = this._trackNd.getComponent(MapDrawPortal);
                 if (portalCom) {
-                    portalCom.setLinkId(dat.linkId);
+                    portalCom.setLinkP(dat.linkP);
                     portalCom.setOffsetX(dat.offsetX);
-                    portalCom.setAnimIds(dat.animPIds);
+                    portalCom.setAnimPs(dat.animPs);
                 }
                 break;
             case UnitType.Cable:
@@ -240,7 +237,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
         }
 
         //如果有房间信息，更新一手
-        if (dat.roomId) {
+        if (type != UnitType.Room && dat.roomId) {
             const nextRoomId = Number(dat.roomId);
             if (isFinite(nextRoomId)) {
                 this._mapLoader.moveUnitToRoom(this._trackNd, nextRoomId);

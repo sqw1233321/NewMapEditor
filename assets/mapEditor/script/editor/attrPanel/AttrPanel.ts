@@ -26,7 +26,7 @@ export default class AttrPanel extends cc.Component {
     }
 
     //选点模式
-    public onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (nodes: cc.Node[]) => void) {
+    protected onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (nodes: cc.Node[]) => void) {
         const cb = (nodes: cc.Node[]) => {
             if (isMulti) {
                 setter(nodes);
@@ -52,6 +52,4 @@ export default class AttrPanel extends cc.Component {
         }
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
-
-    
 }
