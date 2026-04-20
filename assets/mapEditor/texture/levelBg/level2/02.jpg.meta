@@ -1,6 +1,6 @@
 {
   "ver": "2.3.7",
-  "uuid": "4694918c-8c76-4204-aa17-b73105355a16",
+  "uuid": "06079aaa-0440-44aa-9016-b81ed5b0f217",
   "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
@@ -12,11 +12,11 @@
   "height": 1827,
   "platformSettings": {},
   "subMetas": {
-    "地图6更新版_04": {
+    "02": {
       "ver": "1.0.6",
-      "uuid": "44e4d890-ab89-4991-8ead-560e7d77634b",
+      "uuid": "c72816de-0c8a-470d-aa9f-7b2963501bda",
       "importer": "sprite-frame",
-      "rawTextureUuid": "4694918c-8c76-4204-aa17-b73105355a16",
+      "rawTextureUuid": "06079aaa-0440-44aa-9016-b81ed5b0f217",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

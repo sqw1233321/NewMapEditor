@@ -39,6 +39,7 @@ export default class AttrPanelCable extends AttrPanel {
         this._dat = dat;
         this.startP.string = this._dat.startP?.getComponent(MapDrawP).getId() ?? "";
         this.endP.string = this._dat.endP?.getComponent(MapDrawP).getId() ?? "";
+        this.speed.string = this._dat.speed.toString();
         NodeUtil.autoRefreshChildren(this.pointCont, this._dat.points, (nd, index, dat) => {
             const nameLb = nd.children[0].children[0].getComponent(cc.Label);
             nameLb.string = dat.getComponent(MapDrawP)?.getId() ?? "";

@@ -8,8 +8,8 @@ export interface MapDrawDatType {
     playerCreatePos: MapDrawDatVec2,
     playerExitPos: MapDrawDatVec2,
     portalDatas?: MapDrawDatPortalData[],
-    cableDatas: MapDrawDatCableData[];
-    stoneDatas: MapDrawDatStoneData[];
+    scooterDatas: MapDrawDatCableData[];
+    rockDatas: MapDrawDatStoneData[];
     areaInfo?: number[]
 }
 

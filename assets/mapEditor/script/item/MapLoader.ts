@@ -436,7 +436,7 @@ export default class MapLoader extends cc.Component {
 
   private buildStoneUnit() {
     let nameId = 0;
-    const datArr: MapDrawDatStoneData[] = this._data.stoneDatas;
+    const datArr: MapDrawDatStoneData[] = this._data.rockDatas;
     datArr?.forEach((dat: MapDrawDatStoneData) => {
       const itemNd = cc.instantiate(this.stonePrefab);
       itemNd.name = `Stone${nameId++}`;
@@ -451,7 +451,7 @@ export default class MapLoader extends cc.Component {
 
   private buildCableUnit() {
     let nameId = 0;
-    const datArr: MapDrawDatCableData[] = this._data.cableDatas;
+    const datArr: MapDrawDatCableData[] = this._data.scooterDatas;
     datArr?.forEach((dat: MapDrawDatCableData) => {
       const itemNd = cc.instantiate(this.cablePrefab);
       itemNd.name = `Cable${nameId++}`;
@@ -1164,8 +1164,8 @@ export default class MapLoader extends cc.Component {
       playerCreatePos: playerCreatePos,
       playerExitPos: playerExitPos,
       portalDatas: portalDatas,
-      cableDatas: cableDatas,
-      stoneDatas: stoneDatas,
+      scooterDatas: cableDatas,
+      rockDatas: stoneDatas,
       areaInfo: areaInfo
     }
     mapDat.setDat(outDat);
