@@ -25,6 +25,7 @@ import {
 } from "./MapDrawDat";
 import MapDrawDoor from "./MapDrawDoor";
 import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
+import MapDrawFightSoul from "./MapDrawFightSoul";
 import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
 import MapDrawPortal from "./MapDrawPortal";
@@ -65,6 +66,9 @@ export default class MapLoader extends cc.Component {
 
   @property(cc.Prefab)
   survivePrefab: cc.Prefab = null;
+
+  @property(cc.Prefab)
+  fightSoulPrefab: cc.Prefab = null;
 
   @property(cc.Prefab)
   defaultPortalPrefab: cc.Prefab = null;
@@ -132,6 +136,7 @@ export default class MapLoader extends cc.Component {
     this.buildSearchItems();
     this.buildEnemyRefres();
     this.buildSurvives();
+    this.buildFightSoul();
     //所有节点创建完毕后，往Room中填数据
     this.initRooms();
     //房间外item
@@ -402,6 +407,30 @@ export default class MapLoader extends cc.Component {
     });
   }
 
+  private buildFightSoul() {
+    let nameId = 0;
+    const rooms = this._data.rooms;
+    rooms.forEach((room: MapDrawDatRoom) => {
+      const fightSoulDatas = room.fightSoulDatas;
+      if (!fightSoulDatas) return;
+      fightSoulDatas.forEach((fightSoul) => {
+        const roomNd = this._roomNodeMap.get(fightSoul.roomId);
+        if (!roomNd) {
+          console.log(`roomId ${fightSoul.roomId} not found`);
+          return;
+        }
+        const itemNd = cc.instantiate(this.fightSoulPrefab);
+        itemNd.name = `FightSoul${nameId++}`;
+        itemNd.parent = roomNd.getChildByName("unitCont");
+        const worldPos = cc.v2(fightSoul.pos.x, fightSoul.pos.y);
+        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
+        itemNd.setPosition(localPos);
+        const control = itemNd.addComponentSafe(MapDrawFightSoul);
+        control.init(fightSoul);
+      });
+    });
+  }
+
   private buildPortalUnit() {
     let nameId = 0;
     const portals: MapDrawDatPortal[] = this._data.portalDatas;
@@ -667,7 +696,7 @@ export default class MapLoader extends cc.Component {
           const roomNo = oldId - oldMapNo * 100 - (no - 1) * 10;
           const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + roomNo;
           roomCom.changeLayer(newNo);
-          if(EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
+          if (EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
           roomCom.refreshDat();
           this.renameRoomNode(oldId, newCfgId, roomNd);
         });
@@ -815,7 +844,7 @@ export default class MapLoader extends cc.Component {
         const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + oldRoomNo;
         const newLayer = newNo;
         roomCom.changeLayer(newLayer);
-        if(EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
+        if (EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
         roomCom.refreshDat();
         this.renameRoomNode(oldId, newCfgId, roomNd);
       });

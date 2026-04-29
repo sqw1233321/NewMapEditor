@@ -9,6 +9,7 @@ import { RoomItemType, UnitType } from "../type/mapTypes";
 import {
     MapDrawDatDoor,
     MapDrawDatEnemyRefreshData,
+    MapDrawDatFightSoulData,
     MapDrawDatLadder,
     MapDrawDatRoom,
     MapDrawDatSearchItemData,
@@ -22,6 +23,7 @@ import MapDrawSearchItem from "./MapDrawSearchItem";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapLoader from "./MapLoader";
 import MapDrawSurvive from "./MapDrawSurvive";
+import MapDrawFightSoul from "./MapDrawFightSoul";
 
 const { ccclass, property } = cc._decorator;
 
@@ -42,13 +44,15 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         doorDat: [],
         enemyRefreshDat: [],
         searchItemDat: [],
-        surviveDat: []
+        surviveDat: [],
+        fightSoulDat: [],
     };
     private _searchItemDat: MapDrawDatSearchItemData[] = [];
     private _enemyRefreshDat: MapDrawDatEnemyRefreshData[] = [];
     private _ladderDat: MapDrawDatLadder[] = [];
     private _doorDat: MapDrawDatDoor[] = [];
     private _surviveDat: MapDrawDatSurvivorData[] = [];
+    private _fightSoulDat: MapDrawDatFightSoulData[] = [];
 
     private _unlockBindHighlight = false;
     private _savedBgColor: cc.Color = null;
@@ -162,6 +166,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this.setEnemyDat();
         this.setSearchItemDatas();
         this.setSurviveDatas();
+        this.setFightSoulDatas();
     }
 
     private setDoorDat() {
@@ -225,9 +230,21 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         );
     }
 
+    private setFightSoulDatas() {
+        const allNums = this._unitCont.getComponentsInChildren(MapDrawFightSoul);
+        this._roomItemDat.fightSoulDat = allNums;
+        if (allNums.length == 0) {
+            this._fightSoulDat = [];
+            return;
+        }
+        this._fightSoulDat = allNums.map((item: MapDrawFightSoul) =>
+            item.getDat(),
+        );
+    }
+
     //刷新房间内数据
     public refreshDat() {
-        const roomId =  this._roomId;
+        const roomId = this._roomId;
 
         this.node
             .getComponentsInChildren(MapDrawUnitBase)
@@ -261,6 +278,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             baseItemDatas: [],
             searchItemDatas: this._searchItemDat ?? [],
             survivorDatas: this._surviveDat ?? [],
+            fightSoulDatas: this._fightSoulDat ?? [],
         };
         return dat;
     }

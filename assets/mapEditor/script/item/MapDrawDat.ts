@@ -76,6 +76,7 @@ export interface MapDrawDatRoom {
     searchItemDatas: MapDrawDatSearchItemData[];
 
     survivorDatas: MapDrawDatSurvivorData[];
+    fightSoulDatas: MapDrawDatFightSoulData[];
 }
 
 export interface MapDrawDatDoor {
@@ -130,6 +131,16 @@ export interface MapDrawDatSurvivorData {
     roomId: number;
     weight: number;
     pos: MapDrawDatVec2;
+}
+
+/**
+ * 战魂
+ */
+export interface MapDrawDatFightSoulData {
+    roomId: number;
+    pos: MapDrawDatVec2;
+    isGuide: boolean;
+    weight: number;
 }
 
 
