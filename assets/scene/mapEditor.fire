@@ -622,7 +622,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "mapBg5",
+    "_name": "mapBg1",
     "_objFlags": 0,
     "_parent": {
       "__id__": 10
@@ -685,7 +685,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "ed6/DHDARFgL8S9TO4gorO"
+    "_id": "4aSuXS8ERKNoLXDQFjhFvJ"
   },
   {
     "__type__": "cc.Node",
@@ -727,8 +727,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 3480,
-      "height": 3807
+      "width": 2906,
+      "height": 3654
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -762,11 +762,11 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "70eVTYAS9Kf7QKzrfUddfX"
+    "_id": "817AUuEYdAWqbj4O0/muqi"
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_01",
+    "_name": "bg_1",
     "_objFlags": 0,
     "_parent": {
       "__id__": 12
@@ -791,8 +791,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1738,
-      "height": 1904
+      "width": 1453,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -803,8 +803,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -871,
-        951.5,
+        -726.5,
+        913.5,
         0,
         0,
         0,
@@ -826,7 +826,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "56Z1s0QFhLH6N8Eqq2B1gS"
+    "_id": "b0Anay0PdDJaP/gW8eGiaZ"
   },
   {
     "__type__": "cc.Sprite",
@@ -844,10 +844,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "976d2f56-ff78-4550-b952-c8db5d452ec3"
+      "__uuid__": "42730854-a044-4d14-ac0a-e559de9c09a7"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -856,9 +856,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "01IEDvNolIwKC2HECdRCs5"
+    "_id": "ffZuXoCzlAlpu0fd9RQSIo"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -866,14 +866,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "71b/ejkkdEubwsknE7Z8Ep",
+    "fileId": "ebSiuVYUxGXoKqABSsu0hM",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_02",
+    "_name": "bg_2",
     "_objFlags": 0,
     "_parent": {
       "__id__": 12
@@ -898,8 +898,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1737,
-      "height": 1904
+      "width": 1452,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -910,8 +910,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        866.5,
-        951.5,
+        726,
+        913.5,
         0,
         0,
         0,
@@ -933,7 +933,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "2dxnUQCc1DvoqMNKlj22FU"
+    "_id": "69RMhVkkVPgaJ6hVtUdhXL"
   },
   {
     "__type__": "cc.Sprite",
@@ -951,10 +951,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "f9617062-51e6-414c-8455-60f85bd1843b"
+      "__uuid__": "da7f103d-e6c7-4364-ab58-560d4e344cd3"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -963,9 +963,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "04jaWQyFJDe6bLV19pNs+H"
+    "_id": "65g8y2q0VNyKphJkam4BLO"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -973,14 +973,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "90QIBs2yBOZLafvAgmojI9",
+    "fileId": "dcWDFs7M9GhoDNULm4gcDI",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_03",
+    "_name": "bg_3",
     "_objFlags": 0,
     "_parent": {
       "__id__": 12
@@ -1005,8 +1005,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1738,
-      "height": 1903
+      "width": 1453,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1017,8 +1017,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -871,
-        -952,
+        -726.5,
+        -913.5,
         0,
         0,
         0,
@@ -1040,7 +1040,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "b1Z9I1ndNJgpfSm+vmxye9"
+    "_id": "ad5Xv95D9C9LULWtWh/N7x"
   },
   {
     "__type__": "cc.Sprite",
@@ -1058,10 +1058,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "a92034ab-976a-43a4-adba-69ab61d33c9a"
+      "__uuid__": "b449824b-a296-43e2-9f1e-494eb9c64984"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1070,9 +1070,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "79dmLXBHFL5YL8aA7o8kEZ"
+    "_id": "73a4osxEpMXpb4dH0Y4hs1"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1080,14 +1080,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "deKh4g6HlFULH35eErOggE",
+    "fileId": "22VvKazYtJhozgMt7v0dcZ",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_04",
+    "_name": "bg_4",
     "_objFlags": 0,
     "_parent": {
       "__id__": 12
@@ -1112,8 +1112,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1737,
-      "height": 1903
+      "width": 1452,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1124,8 +1124,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        866.5,
-        -952,
+        726,
+        -913.5,
         0,
         0,
         0,
@@ -1147,7 +1147,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "daN/x5ApxD16ODf7zhVAhf"
+    "_id": "d88P2Jy4NPYIL8+rsAaPFO"
   },
   {
     "__type__": "cc.Sprite",
@@ -1165,10 +1165,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "bfd87216-5b40-49cf-a937-2b6118b2dbd8"
+      "__uuid__": "7a3c0568-6f9b-47a1-a56b-91f811a01511"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1177,9 +1177,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "9351ZLU21BF6me4oV+MO5r"
+    "_id": "d2Iq6dBHxGtor9pzMPbIao"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1187,9 +1187,9 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "4bNY1Zhd5MqKu+5z3+EHLx",
+    "fileId": "e03V3WQwhEXK3q6YEUUN3c",
     "sync": false
   },
   {
@@ -1202,8 +1202,8 @@
     "_enabled": true,
     "_layoutSize": {
       "__type__": "cc.Size",
-      "width": 3480,
-      "height": 3807
+      "width": 2906,
+      "height": 3654
     },
     "_resize": 1,
     "_N$layoutType": 3,
@@ -1222,7 +1222,7 @@
     "_N$verticalDirection": 1,
     "_N$horizontalDirection": 0,
     "_N$affectedByScale": false,
-    "_id": "80BdWs0ttOi6DPIrxelJ9R"
+    "_id": "51pP3cMmpLubusjHqsvtI7"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1230,14 +1230,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
     "fileId": "d55hnpSdZEMpuCXYG3pfjq",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "mapArea copy",
+    "_name": "mapArea2",
     "_objFlags": 0,
     "_parent": {
       "__id__": 11
@@ -1275,8 +1275,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 3480,
-      "height": 3807
+      "width": 2906,
+      "height": 3654
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1310,11 +1310,11 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "87Lxqj/JNJqY3nloR5CNSP"
+    "_id": "34nUBI/c1Cg64k7OmVMuI3"
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_01",
+    "_name": "bg_1",
     "_objFlags": 0,
     "_parent": {
       "__id__": 27
@@ -1339,8 +1339,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1738,
-      "height": 1904
+      "width": 1453,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1351,8 +1351,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -871,
-        951.5,
+        -726.5,
+        913.5,
         0,
         0,
         0,
@@ -1374,7 +1374,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "75R+rbKu1I15fPrVwC1Ix6"
+    "_id": "c3qYgZsOFCB5emutuHnzoY"
   },
   {
     "__type__": "cc.Sprite",
@@ -1392,10 +1392,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "d98f6b70-2f4d-437a-82d8-a38449d9ce15"
+      "__uuid__": "742b0464-9478-47ae-af4d-d1db0eac9154"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1404,9 +1404,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "fd9GQ/eJ5HEpc7BfxVVQLY"
+    "_id": "c1hu8tMqxP9q3LA5M/bKxF"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1414,14 +1414,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "8euCPGfGxG7KmfKAIGoJ1Y",
+    "fileId": "79YmrO6YVC1J+IhQ+fmuaR",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_02",
+    "_name": "bg_2",
     "_objFlags": 0,
     "_parent": {
       "__id__": 27
@@ -1446,8 +1446,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1737,
-      "height": 1904
+      "width": 1452,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1458,8 +1458,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        866.5,
-        951.5,
+        726,
+        913.5,
         0,
         0,
         0,
@@ -1481,7 +1481,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "f2ryak08VL7rgSyOlvc7Pf"
+    "_id": "03h4oPmwtAg5bDxz/Lgcl0"
   },
   {
     "__type__": "cc.Sprite",
@@ -1499,10 +1499,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "301a94ad-d85a-4287-97af-ef28729a7e7c"
+      "__uuid__": "0c69654d-b9a2-425a-a7d9-e9cad622e666"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1511,9 +1511,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "8eSKoMXUBEZpEmZidCiBdz"
+    "_id": "2dKuRJSiJCIL9p7abBooky"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1521,14 +1521,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "e7CPmxY2JLaJUGGIcedoQp",
+    "fileId": "d6/1VYyI5Cqap4TzyFp4LF",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_03",
+    "_name": "bg_3",
     "_objFlags": 0,
     "_parent": {
       "__id__": 27
@@ -1553,8 +1553,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1738,
-      "height": 1903
+      "width": 1453,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1565,8 +1565,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -871,
-        -952,
+        -726.5,
+        -913.5,
         0,
         0,
         0,
@@ -1588,7 +1588,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "a8hFAKJ5xOwrP1qsg4RzUQ"
+    "_id": "35CGt8inZE9L8MSZ5OFOYF"
   },
   {
     "__type__": "cc.Sprite",
@@ -1606,10 +1606,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "c3f079f1-72dd-49a5-b4b7-27e5b8eeea8f"
+      "__uuid__": "445e5c2c-2f87-4483-b0b9-c91c31d8bae5"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1618,9 +1618,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "80j3w64shFqqGuoyl5uufR"
+    "_id": "8bQjOxGRdHIpszYHXyIodL"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1628,14 +1628,14 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "7c7B0KR+BE17yV1UJD3JQN",
+    "fileId": "667AqQkbNNQ7NZ386JrThA",
     "sync": false
   },
   {
     "__type__": "cc.Node",
-    "_name": "蛇沼鬼城切图_04",
+    "_name": "bg_4",
     "_objFlags": 0,
     "_parent": {
       "__id__": 27
@@ -1660,8 +1660,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1737,
-      "height": 1903
+      "width": 1452,
+      "height": 1827
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1672,8 +1672,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        866.5,
-        -952,
+        726,
+        -913.5,
         0,
         0,
         0,
@@ -1695,7 +1695,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "4cL+aLVK9LK5qVITzZoTAr"
+    "_id": "422dagD6xMdaR92AT7wZTD"
   },
   {
     "__type__": "cc.Sprite",
@@ -1713,10 +1713,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "6e5d9ae0-9157-417b-ac49-102c53488538"
+      "__uuid__": "a5c2e6c1-97b7-461c-976d-a4fc5dccab38"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1725,9 +1725,9 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "fexrhNZeNO+4aj9l1wMl3e"
+    "_id": "a8v9mqh35JeJlDrR9xiPPv"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1735,9 +1735,9 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "3fjlv+D+BIAZdGJL/6Ieh8",
+    "fileId": "5bCv7xBU9H15CvjJSSvKxC",
     "sync": false
   },
   {
@@ -1750,8 +1750,8 @@
     "_enabled": true,
     "_layoutSize": {
       "__type__": "cc.Size",
-      "width": 3480,
-      "height": 3807
+      "width": 2906,
+      "height": 3654
     },
     "_resize": 1,
     "_N$layoutType": 3,
@@ -1770,7 +1770,7 @@
     "_N$verticalDirection": 1,
     "_N$horizontalDirection": 0,
     "_N$affectedByScale": false,
-    "_id": "c2NrHNjdhJcokh2qGJY0cK"
+    "_id": "fbXZELGhxLMqE9rBuICtuQ"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -1778,9 +1778,9 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
-    "fileId": "45TzCxahpCFoKedumbWKgU",
+    "fileId": "02drDX9XVLdKFi0Wek4DXn",
     "sync": false
   },
   {
@@ -1789,7 +1789,7 @@
       "__id__": 11
     },
     "asset": {
-      "__uuid__": "1fc6f6d1-4efa-4c7b-8147-113d85ef94a7"
+      "__uuid__": "bfab8b91-4c07-4b99-89b7-a9b6d535ac14"
     },
     "fileId": "",
     "sync": false
@@ -32681,7 +32681,7 @@
       "__id__": 4
     },
     "levelJson": {
-      "__uuid__": "d551a780-7af7-4cdc-af90-0cceebe9874f"
+      "__uuid__": "995c97f4-4547-4c7c-9152-3771d877e456"
     },
     "mapCanvasNd": {
       "__id__": 10

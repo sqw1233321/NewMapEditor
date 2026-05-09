@@ -155,12 +155,14 @@ export default class MapLoader extends cc.Component {
     this._playerCreateNd.parent = this.node;
     this._playerExitNd = new cc.Node("playerExit");
     this._playerExitNd.parent = this.node;
+    //路径线划线工具
     this.pointLineCont = new cc.Node("pointLineCont");
     this.pointLineCont.group = "pathPoint";
     this.pointLineCont.parent = this.node;
     this._pointLineDrawer = this.pointLineCont.addComponent(cc.Graphics);
     this._pointLineDrawer.lineWidth = 5;
     this._pointLineDrawer.strokeColor = new cc.Color(255, 220, 60, 220);
+    //出生点和出生点
     [this._playerCreateNd, this._playerExitNd].forEach((nd, index) => {
       const isCreate = index == 0;
       nd.name = isCreate ? "playerCreate" : "playerExit";
