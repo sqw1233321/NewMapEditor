@@ -9,7 +9,7 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class MapDrawUnitBase extends cc.Component {
-  protected _roomId: number = 0;
+  protected _roomCfgId: number = 0;
 
   protected onLoad(): void {
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
@@ -32,11 +32,11 @@ export default class MapDrawUnitBase extends cc.Component {
   }
 
   public updateRoomId(roomId: number) {
-    this._roomId = roomId;
+    this._roomCfgId = roomId;
   }
 
   public getRoomId(): number {
-    return this._roomId;
+    return this._roomCfgId;
   }
 
   /**

@@ -58,6 +58,7 @@ export interface MapDrawDatPathPoint {
 }
 
 export interface MapDrawDatRoom {
+    uid: string;
     cfgId: number;
     layer: number;
     pos: MapDrawDatVec2;

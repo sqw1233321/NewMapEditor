@@ -26,11 +26,11 @@ export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
     public init(roomId: number, refreshId: number, param: string) {
         this.refreshId = refreshId;
         this.param = param;
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
     }
 
     public setRoomId(roomId: number) {
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
     }
 
     public setParam(param: string) {
@@ -45,7 +45,7 @@ export default class MapDrawEnemyRefresh extends MapDrawUnitBase {
         const dat: MapDrawDatEnemyRefreshData = {
             refreshId: this.refreshId,
             param: this.param,
-            roomId: this._roomId,
+            roomId: this._roomCfgId,
             pos: this.getPos()
         }
         return dat;

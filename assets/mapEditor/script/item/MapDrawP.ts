@@ -86,7 +86,7 @@ export default class MapDrawP extends MapDrawUnitBase {
     public init(pData: MapDrawDatPathPoint) {
         this._pDat = pData;
         this._pid = pData.id;
-        this._roomId = pData.roomId;
+        this._roomCfgId = pData.roomId;
         this.initUI();
     }
 
@@ -110,7 +110,7 @@ export default class MapDrawP extends MapDrawUnitBase {
     public getDat(): MapDrawDatPathPoint {
         const dat: MapDrawDatPathPoint = {
             id: this._pid,
-            roomId: this._roomId,
+            roomId: this._roomCfgId,
             pos: this.getPos(),
             links: this.links?.filter((link: cc.Node) => link && cc.isValid(link)).map((link: cc.Node) => link.getComponent(MapDrawP).getId()) || [],
         }

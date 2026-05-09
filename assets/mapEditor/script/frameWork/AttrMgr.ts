@@ -168,7 +168,13 @@ export class AttrMgr extends Singleton<AttrMgr> {
             case UnitType.Room:
                 dat = attrDat.dat as attrPanelTypeRoom;
                 const size = dat.size;
-                this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
+                const hasNd = this._mapLoader.getRoomNode(Number(dat.roomId));
+                if (hasNd) {
+                    console.log("有重名的房间！！！");
+                }
+                else{
+                    this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
+                }
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
                 this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);
                 this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);

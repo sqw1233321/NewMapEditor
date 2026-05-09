@@ -24,7 +24,7 @@ export default class MapDrawDoor extends MapDrawUnitBase {
 
     public init(roomId: number, hp: number) {
         this.hp = hp;
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
     }
 
     public setHp(hp: number) {
@@ -34,7 +34,7 @@ export default class MapDrawDoor extends MapDrawUnitBase {
     public getDat(): MapDrawDatDoor {
         const dat: MapDrawDatDoor = {
             hp: this.hp,
-            roomId: this._roomId,
+            roomId: this._roomCfgId,
             pos: this.getPos()
         }
         return dat;

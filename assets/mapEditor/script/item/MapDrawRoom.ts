@@ -36,6 +36,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private _roomDat: MapDrawDatRoom = null;
     private _color: cc.Color = null;
     private _layer: number = 0;
+    private _uid: string = null;  // 稳定唯一标识，创建后不变
     private _points: MapDrawP[] = [];
     private _pointIds: string[] = [];
     private _unLockPointIds: string[] = [];
@@ -81,11 +82,15 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     public init(roomDat: MapDrawDatRoom, color: cc.Color) {
         this._roomDat = roomDat;
-        this._roomId = roomDat.cfgId;
+        this._roomCfgId = roomDat.cfgId;
         this._layer = roomDat.layer;
         this._color = color;
         this._pointCont = this.node.getChildByName("pointCont");
         this._unitCont = this.node.getChildByName("unitCont");
+        // 从已有 cfgId 派生 uid（保证历史数据兼容性），新建房间由 generateUid 生成
+        if (!this._uid && roomDat.cfgId > 0) {
+            this._uid = `room_${roomDat.cfgId}`;
+        }
         this.initUI();
         this.setDat();
     }
@@ -95,7 +100,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     public updateRoomId(roomId: number) {
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
         this.refreshDat();
         this.setRoomNameLb();
     }
@@ -112,8 +117,32 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         return this._points;
     }
 
-    public getId() {
-        return this._roomId;
+    public getRoomCfgId() {
+        return this._roomCfgId;
+    }
+
+    /** 获取房间唯一标识（稳定，创建后不变） */
+    public getUid(): string {
+        if(!this._uid) this.generateUid();
+        return this._uid;
+    }
+
+    /** 生成唯一标识，已存在则直接返回 */
+    private generateUid(): string {
+        if (this._uid) return this._uid;
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substring(2, 6);
+        this._uid = `room_${timestamp}_${random}`;
+    }
+
+    /** 从 uid 提取数字编号，用于自动命名时同步 roomId */
+    public extractUidNumber(): number {
+        if (!this._uid) return -1;
+        // 支持纯数字 uid 或 room_xxx 格式
+        const num = parseInt(this._uid, 10);
+        if (!isNaN(num)) return num;
+        const match = /room_(\d+)/.exec(this._uid);
+        return match ? parseInt(match[1], 10) : -1;
     }
 
     public setSize(size: { width: number; height: number }) {
@@ -127,7 +156,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
 
     private initUI() {
-        this.node.name = `room_${this._roomId}`;
+        this.node.name = `room_${this._roomCfgId}`;
         this.node.setContentSize(
             this._roomDat.size.width,
             this._roomDat.size.height,
@@ -139,11 +168,11 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     private setRoomNameLb() {
-        this.node.name = `room_${this._roomId}`;
+        this.node.name = `room_${this._roomCfgId}`;
         const roomName = this.node.getChildByName("name");
         roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
         const label = roomName.getComponent(cc.Label);
-        const nameStr = `${this._roomId}`;
+        const nameStr = `${this._roomCfgId}`;
         label.string = nameStr;
     }
 
@@ -244,8 +273,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     //刷新房间内数据
     public refreshDat() {
-        const roomId = this._roomId;
-
+        const roomId = this._roomCfgId;
         this.node
             .getComponentsInChildren(MapDrawUnitBase)
             .forEach((unit: MapDrawUnitBase) => {
@@ -265,7 +293,8 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     public getDat(): MapDrawDatRoom {
         const dat: MapDrawDatRoom = {
-            cfgId: this._roomId,
+            uid: this._uid,
+            cfgId: this._roomCfgId,
             layer: this._layer,
             pos: this.getPos(),
             size: this.node.getContentSize(),

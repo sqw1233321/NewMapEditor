@@ -89,8 +89,13 @@ export default class MapLoader extends cc.Component {
   private _size: cc.Vec2;
   private _data: MapDrawDatType;
   private _layerCont: cc.Node;
+  //层级节点map
   private _layerNodeMap = new Map<number, cc.Node>();
+  //房间节点map (cfgId → node)
   private _roomNodeMap = new Map<number, cc.Node>();
+  //房间 UID map (uid → node)，uid 稳定不变，用于内部引用
+  private _roomUidMap = new Map<string, cc.Node>();
+  //路径点节点map
   private _pointMap = new Map<string, cc.Node>();
   private _playerCreateNd: cc.Node;
   private _playerExitNd: cc.Node;
@@ -139,7 +144,7 @@ export default class MapLoader extends cc.Component {
     this.buildFightSoul();
     //所有节点创建完毕后，往Room中填数据
     this.initRooms();
-    //房间外item
+    //房间外item(机制点)
     this.buildPortalUnit();
     this.buildStoneUnit();
     this.buildCableUnit();
@@ -192,6 +197,11 @@ export default class MapLoader extends cc.Component {
       roomNd.setPosition(localPos);
       this.addRoomToLayer(roomNd, room.layer);
       this._roomNodeMap.set(room.cfgId, roomNd);
+      // 同步注册 uid
+      const roomCom = roomNd.getComponent(MapDrawRoom);
+      if (roomCom && roomCom.getUid()) {
+        this._roomUidMap.set(roomCom.getUid(), roomNd);
+      }
     });
   }
 
@@ -203,22 +213,20 @@ export default class MapLoader extends cc.Component {
       const roomNd = this._roomNodeMap.get(cfgId);
       const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
       mapDrawRoom.init(room, this.ROOM_COLORS[index % this.ROOM_COLORS.length]);
+      // 注册 uid（init 中已派生或生成）
+      const uid = mapDrawRoom.getUid();
+      if (uid) {
+        this._roomUidMap.set(uid, roomNd);
+      }
       mapDrawRoom.unLockPoints = room.unlockPointIds.map((id) =>
         this._pointMap.get(id),
       );
     });
-
     // 此时 room 的 contentSize 已由 MapDrawRoom.init 设置完成，重新计算每个 Layer 的 bounds
     this.updateAllLayerBounds();
   }
 
-  private updateAllLayerBounds() {
-    if (!this._layerCont) return;
-    this._layerCont.children.forEach((layerNd) => {
-      this.updateLayerBounds(layerNd);
-    });
-  }
-
+  //路径点
   private buildPathPoints() {
     const pathPoints = this._data.pathPoints;
     pathPoints.forEach((p: MapDrawDatPathPoint) => {
@@ -240,6 +248,7 @@ export default class MapLoader extends cc.Component {
     this.refreshPointLinkDrawer();
   }
 
+  //划线工具
   private refreshPointLinkDrawer() {
     if (!this._pointLineDrawer || !cc.isValid(this._pointLineDrawer)) return;
     this._pointLineDrawer.clear();
@@ -433,6 +442,7 @@ export default class MapLoader extends cc.Component {
     });
   }
 
+  //机制点
   private buildPortalUnit() {
     let nameId = 0;
     const portals: MapDrawDatPortal[] = this._data.portalDatas;
@@ -499,7 +509,7 @@ export default class MapLoader extends cc.Component {
     });
   }
 
-  //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
+  //刷新所有数据（保证数据是新的）
   private refreshDat() {
     this._layerCont.children.forEach((layer) => {
       const roomNds = layer.children;
@@ -510,6 +520,7 @@ export default class MapLoader extends cc.Component {
     });
   }
 
+  //TODO：很有问题啊，这个刷新
   public updatePointMap(pointId: string, pointNd: cc.Node) {
     if (this._pointMap.has(pointId)) return;
     this._pointMap.set(pointId, pointNd);
@@ -573,24 +584,31 @@ export default class MapLoader extends cc.Component {
     return out;
   }
 
-  /** 新建房间时，注册到 _roomNodeMap，确保导出 getJson() 包含该房间 */
+  /** 新建房间时，注册到 _roomNodeMap 和 _roomUidMap，确保导出 getJson() 包含该房间 */
   public registerRoomNode(cfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
     this._roomNodeMap.set(cfgId, roomNd);
+    const roomCom = roomNd.getComponent(MapDrawRoom);
+    if (roomCom) {
+      const uid = roomCom.getUid();
+      if (uid) {
+        this._roomUidMap.set(uid, roomNd);
+      }
+    }
   }
 
-  /** 房间 cfgId 变更时：更新 _roomNodeMap 键，避免导出重复/旧房间残留 */
+  /** 根据 uid 获取房间节点 */
+  public getRoomNodeByUid(uid: string): cc.Node {
+    return this._roomUidMap.get(uid);
+  }
+
+  /** 房间 cfgId 变更时：更新 _roomNodeMap 键，uid 保持不变 */
   public renameRoomNode(oldCfgId: number, newCfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
     if (oldCfgId !== newCfgId) {
       this._roomNodeMap.delete(oldCfgId);
     }
     this._roomNodeMap.set(newCfgId, roomNd);
-  }
-
-  /** 外部刷新某个 Layer{n} 的 bounds（contentSize/position） */
-  public refreshLayerBoundsByNode(layerNd: cc.Node) {
-    this.updateLayerBounds(layerNd);
   }
 
   /**
@@ -693,7 +711,7 @@ export default class MapLoader extends cc.Component {
           if (!roomNd) return;
           const roomCom = roomNd.getComponent(MapDrawRoom);
           if (!roomCom) return;
-          const oldId = roomCom.getId();
+          const oldId = roomCom.getRoomCfgId();
           const oldMapNo = Math.floor(oldId / 100);
           const roomNo = oldId - oldMapNo * 100 - (no - 1) * 10;
           const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + roomNo;
@@ -733,8 +751,12 @@ export default class MapLoader extends cc.Component {
     const roomComp = roomNode.getComponent(MapDrawRoom);
     if (!roomComp) return;
 
-    const cfgId = roomComp.getId();
+    const cfgId = roomComp.getRoomCfgId();
+    const uid = roomComp.getUid();
     this._roomNodeMap.delete(cfgId);
+    if (uid) {
+      this._roomUidMap.delete(uid);
+    }
 
     // 清理该房间下的路径点（含 links / bind / unlock 引用）
     const pointCont = roomNode.getChildByName("pointCont");
@@ -835,12 +857,12 @@ export default class MapLoader extends cc.Component {
       item.node.name = `Layer${newNo}`;
       this._layerNodeMap.set(newNo, item.node);
 
-      // 同步房间内 layer 字段与显示（避免导出 layer 号不一致）
+      // 同步房间内 layer 字段与显示（uid 不变，只更新 cfgId）
       item.node.children.forEach((roomNd) => {
         if (!roomNd) return;
         const roomCom = roomNd.getComponent(MapDrawRoom);
         if (!roomCom) return;
-        const oldId = roomCom.getId();
+        const oldId = roomCom.getRoomCfgId();
         const oldMapNo = Math.floor(oldId / 100);
         const oldRoomNo = oldId - oldMapNo * 100 - (item.no - 1) * 10;
         const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + oldRoomNo;
@@ -848,6 +870,7 @@ export default class MapLoader extends cc.Component {
         roomCom.changeLayer(newLayer);
         if (EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
         roomCom.refreshDat();
+        // renameRoomNode 会更新 _roomNodeMap，uid 映射保持不变
         this.renameRoomNode(oldId, newCfgId, roomNd);
       });
     });
@@ -857,6 +880,19 @@ export default class MapLoader extends cc.Component {
       this.updateLayerBounds(layerNd);
     });
     this.rebuildPointIdsByLayer();
+  }
+
+  /** 外部刷新某个 Layer{n} 的 bounds（contentSize/position） */
+  public refreshLayerBoundsByNode(layerNd: cc.Node) {
+    this.updateLayerBounds(layerNd);
+  }
+
+  //刷新所有layer的bounds
+  private updateAllLayerBounds() {
+    if (!this._layerCont) return;
+    this._layerCont.children.forEach((layerNd) => {
+      this.updateLayerBounds(layerNd);
+    });
   }
 
   //刷新layer的bounds
@@ -874,13 +910,11 @@ export default class MapLoader extends cc.Component {
     const mapScale = EditorSetting.Instance.getMapScale();
     roomNds.forEach((roomNd) => {
       if (!roomNd) return;
-
       // 仅用 room 自身 contentSize 计算 bounds，避免 room 子节点（点/门/单位等）超出背景导致 layer 高度不一致
       const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO); // room 左下角世界坐标（room anchor=0,0）
       const size = roomNd.getContentSize();
       yMin = Math.min(yMin, worldAnchor.y);
       yMax = Math.max(yMax, worldAnchor.y + size.height * mapScale);
-
       childWorldPosMap.set(roomNd, worldAnchor);
     });
 
@@ -911,6 +945,7 @@ export default class MapLoader extends cc.Component {
     });
   }
 
+  //添加路径点到房间
   public addPathPointToRoom(pData: MapDrawDatPathPoint, pointNd: cc.Node) {
     this._pointMap.set(pData.id, pointNd);
     const roomNd = this._roomNodeMap.get(pData.roomId);
@@ -1110,6 +1145,7 @@ export default class MapLoader extends cc.Component {
     this._outRoomUnitCont.destroyAllChildren();
     this.pointLineCont.getComponent(cc.Graphics).clear();
     this._roomNodeMap.clear();
+    this._roomUidMap.clear();
     this._pointMap.clear();
     this._layerNodeMap.clear();
     this._areaInfo = [];
@@ -1204,9 +1240,14 @@ export default class MapLoader extends cc.Component {
   }
 
   public saveDat() {
+    //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
     this.refreshDat();
     const json = this.getJson();
     return json;
+  }
+
+  public getRoomNode(cfgId: number): cc.Node {
+    return this._roomNodeMap.get(cfgId);
   }
 }
 

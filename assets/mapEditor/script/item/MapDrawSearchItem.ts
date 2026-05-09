@@ -21,12 +21,12 @@ export default class MapDrawSearchItem extends MapDrawUnitBase {
     }
 
     public init(roomId: number) {
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
     }
 
     public getDat() {
         const dat: MapDrawDatSearchItemData = {
-            roomId: this._roomId,
+            roomId: this._roomCfgId,
             param: "",
             pos: this.getPos()
         }

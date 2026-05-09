@@ -26,7 +26,7 @@ export default class MapDrawLadder extends MapDrawUnitBase {
     }
 
     public init(roomId: number, bindPoints: cc.Node[], isExit: boolean): void {
-        this._roomId = roomId;
+        this._roomCfgId = roomId;
         this.bindPoints = bindPoints;
         this._isExitLadder = isExit;
     }
@@ -47,7 +47,7 @@ export default class MapDrawLadder extends MapDrawUnitBase {
             .map((pointCom) => pointCom.getId());
 
         const dat: MapDrawDatLadder = {
-            roomId: this._roomId,
+            roomId: this._roomCfgId,
             pos: this.getPos(),
             bindPointIds: bindPointIds,
             unlockMethod: 0,

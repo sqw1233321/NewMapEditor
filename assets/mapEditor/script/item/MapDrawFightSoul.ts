@@ -13,13 +13,13 @@ export default class MapDrawFightSoul extends MapDrawUnitBase {
   private weight: number = 0;
 
   public init(dat: MapDrawDatFightSoulData) {
-    this._roomId = dat.roomId;
+    this._roomCfgId = dat.roomId;
     this.weight = dat.weight;
   }
 
   public getDat() {
     const dat: MapDrawDatFightSoulData = {
-      roomId: this._roomId,
+      roomId: this._roomCfgId,
       weight: this.weight,
       pos: this.getPos(),
       isGuide: false
@@ -28,7 +28,7 @@ export default class MapDrawFightSoul extends MapDrawUnitBase {
   }
 
   public setRoomId(roomId: number) {
-    this._roomId = roomId;
+    this._roomCfgId = roomId;
   }
 
   public setWeight(weight: number) {
