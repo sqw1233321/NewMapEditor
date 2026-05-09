@@ -1,7 +1,7 @@
 //地图工具类
 interface RoomLike {
     node: cc.Node;
-    getId: () => number;
+    getRoomCfgId: () => number;
     refreshDat?: () => void;
 }
 
@@ -79,7 +79,7 @@ export default class MapTool {
         const rooms = this._mapLoader.getComponentsInChildren("MapDrawRoom") as any as RoomLike[];
         for (let i = rooms.length - 1; i >= 0; i--) {
             const room = rooms[i];
-            if (hoverRoomId !== undefined && room.getId() === hoverRoomId)
+            if (hoverRoomId !== undefined && room.getRoomCfgId() === hoverRoomId)
                 return room;
             if (hoverRoomName && room.node.name === hoverRoomName) return room;
         }
@@ -101,8 +101,8 @@ export default class MapTool {
     /** 根据任意子节点找到其所属房间 */
     static findOwnerRoomByNode(nd: cc.Node): RoomLike | null {
         let cur = nd;
-        while (cur) {
-            const room = cur.getComponent("MapDrawRoom") as any as RoomLike;
+        while (cur && cur instanceof cc.Node) {
+            const room = cur.getComponent?.("MapDrawRoom") as any as RoomLike;
             if (room) return room;
             cur = cur.parent;
         }

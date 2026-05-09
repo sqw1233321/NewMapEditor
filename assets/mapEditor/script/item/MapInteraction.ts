@@ -389,7 +389,7 @@ export default class MapInteraction {
 
   /** 获取房间关联的路径线段（世界坐标） */
   public getPathLinkWorldSegmentsForRoom(roomCfgId: number): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
-    return this._mapLoaderComp?.getPathLinkWorldSegmentsForRoomOwner(roomCfgId) ?? [];
+    return this._mapLoaderComp?.getPathLinkWorldSegmentsForRoom(roomCfgId) ?? [];
   }
 
   /** 获取路径点关联的线段（世界坐标） */

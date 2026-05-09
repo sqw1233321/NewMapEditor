@@ -79,7 +79,7 @@ export default class MapDrawUnitBase extends cc.Component {
     return { width: size.width * mapScale, height: size.height * mapScale };
   }
 
-  protected getDat() {
+  public getDat() {
 
   }
 }

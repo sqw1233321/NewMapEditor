@@ -1,48 +1,30 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapTool from "../tool/MapTool";
-import { UnitType } from "../type/mapTypes";
-import MapDrawCable from "./MapDrawCable";
-import {
-  MapDrawDatType,
-  MapDrawDatEnemyRefreshData,
-  MapDrawDatPathPoint,
-  MapDrawDatPortalData as MapDrawDatPortal,
-  MapDrawDatRoom,
-  MapDrawDatSize,
-  PortalType,
-  MapDrawDat,
-  MapDrawDatCableData,
-  MapDrawDatStoneData,
-} from "./MapDrawDat";
-import MapDrawDoor from "./MapDrawDoor";
-import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
-import MapDrawFightSoul from "./MapDrawFightSoul";
 import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
 import MapDrawPortal from "./MapDrawPortal";
 import MapDrawRoom from "./MapDrawRoom";
-import MapDrawSearchItem from "./MapDrawSearchItem";
-import MapDrawStone from "./MapDrawStone";
-import MapDrawSurvive from "./MapDrawSurvive";
 import MapDrawUnitBase from "./MapDrawUnitBase";
+import MapTool from "../tool/MapTool";
+import { UnitType } from "../type/mapTypes";
+import MapSerializer from "./MapSerializer";
+import MapLineDrawer from "./MapLineDrawer";
+import MapBuilder from "./MapBuilder";
 
 const { ccclass, property } = cc._decorator;
 
+/**
+ * 地图数据加载器
+ * 核心职责：
+ * - 节点映射管理（room/point/layer）
+ * - Layer CRUD
+ * - 节点查询
+ * - 删除操作
+ */
 @ccclass
-// @executeInEditMode
 export default class MapLoader extends cc.Component {
-  @property(cc.Node)
-  pointLineCont: cc.Node;
-
+  // ==================== Prefab 属性 ====================
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
 
@@ -80,529 +62,184 @@ export default class MapLoader extends cc.Component {
   shipPrefab: cc.Prefab = null;
 
   @property(cc.Prefab)
-  cablePrefab: cc.Prefab;
+  cablePrefab: cc.Prefab = null;
 
   @property(cc.Prefab)
-  stonePrefab: cc.Prefab;
+  stonePrefab: cc.Prefab = null;
 
+  // ==================== 容器节点 ====================
+  private _layerCont: cc.Node = null;
+  private _outRoomUnitCont: cc.Node = null;
+  private _playerCreateNd: cc.Node = null;
+  private _playerExitNd: cc.Node = null;
+  private _pointLineCont: cc.Node = null;
 
-  private _size: cc.Vec2;
-  private _data: MapDrawDatType;
-  private _layerCont: cc.Node;
-  //层级节点map
+  // ==================== 节点映射 ====================
   private _layerNodeMap = new Map<number, cc.Node>();
-  //房间节点map (cfgId → node)
   private _roomNodeMap = new Map<number, cc.Node>();
-  //房间 UID map (uid → node)，uid 稳定不变，用于内部引用
   private _roomUidMap = new Map<string, cc.Node>();
-  //路径点节点map
   private _pointMap = new Map<string, cc.Node>();
-  private _playerCreateNd: cc.Node;
-  private _playerExitNd: cc.Node;
-  private _outRoomUnitCont: cc.Node;
-  private _pointLineDrawer: cc.Graphics;
-  private _areaInfo: number[] = [];
 
-  private _fileName = "";
+  // ==================== 其他数据 ====================
+  private _size: cc.Vec2 = null;
+  private _areaInfo: number[] = [];
+  private _fileName: string = "";
 
   static ins: MapLoader = null;
 
-  private ROOM_COLORS = [
-    new cc.Color(255, 80, 80), // 红
-    new cc.Color(80, 255, 80), // 绿
-    new cc.Color(80, 160, 255), // 蓝
-    new cc.Color(255, 200, 80), // 黄
-    new cc.Color(200, 80, 255), // 紫
-    new cc.Color(80, 255, 220), // 青
-  ];
+  // ==================== 子模块 ====================
+  private _mapSerializer: MapSerializer = null;
+  private _mapLineDrawer: MapLineDrawer = null;
+  private _mapBuilder: MapBuilder = null;
+
+  // ==================== 生命周期 ====================
 
   onLoad(): void {
     MapLoader.ins = this;
-  }
 
-  build(json, size: cc.Vec2) {
-    const mapJson = json;
-    this._size = size;
-    if (!mapJson) return;
-    this._fileName = mapJson.name;
-    this._data = mapJson.json;
-    this.node.removeAllChildren();
-    this._data.areaInfo?.forEach((info) => {
-      this._areaInfo.push(info);
+    // 初始化子模块
+    this._mapSerializer = new MapSerializer();
+    this._mapSerializer.init({
+      getPathPoints: () => this._pointMap,
+      getRoomNodes: () => this._roomNodeMap,
+      getOutRoomUnits: () => this._outRoomUnitCont,
+      getPlayerCreate: () => this._playerCreateNd,
+      getPlayerExit: () => this._playerExitNd,
+      getAreaInfo: () => this._areaInfo,
+      getSize: () => this._size,
     });
-    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
-    //基础节点
-    this.buildBaseNd();
-    //房间内item
-    this.buildRooms();
-    this.buildPathPoints();
-    this.buildLadders();
-    this.buildDoors();
-    this.buildSearchItems();
-    this.buildEnemyRefres();
-    this.buildSurvives();
-    this.buildFightSoul();
-    //所有节点创建完毕后，往Room中填数据
-    this.initRooms();
-    //房间外item(机制点)
-    this.buildPortalUnit();
-    this.buildStoneUnit();
-    this.buildCableUnit();
 
-  }
-
-  private buildBaseNd() {
-    this._layerCont = new cc.Node("LayerCont");
-    this._layerCont.parent = this.node;
-    this._outRoomUnitCont = new cc.Node("outRoomUnitCont");
-    this._outRoomUnitCont.parent = this.node;
-    this._playerCreateNd = new cc.Node("playerCreate");
-    this._playerCreateNd.parent = this.node;
-    this._playerExitNd = new cc.Node("playerExit");
-    this._playerExitNd.parent = this.node;
-    //路径线划线工具
-    this.pointLineCont = new cc.Node("pointLineCont");
-    this.pointLineCont.group = "pathPoint";
-    this.pointLineCont.parent = this.node;
-    this._pointLineDrawer = this.pointLineCont.addComponent(cc.Graphics);
-    this._pointLineDrawer.lineWidth = 5;
-    this._pointLineDrawer.strokeColor = new cc.Color(255, 220, 60, 220);
-    //出生点和出生点
-    [this._playerCreateNd, this._playerExitNd].forEach((nd, index) => {
-      const isCreate = index == 0;
-      nd.name = isCreate ? "playerCreate" : "playerExit";
-      const sp = nd.addComponentSafe(cc.Sprite);
-      sp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-      sp.spriteFrame = this.defaultSp;
-      nd.setContentSize(50, 50);
-      nd.color = isCreate ? cc.Color.ORANGE : cc.Color.CYAN;
-      const dat = isCreate
-        ? this._data.playerCreatePos
-        : this._data.playerExitPos;
-      const worldPos = cc.v2(dat.x, dat.y);
-      const localPos = nd.parent.convertToNodeSpaceAR(worldPos);
-      nd.setPosition(localPos);
-      nd.addComponentSafe(MapDrawUnitBase);
-    });
-  }
-
-  private buildRooms() {
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom, index) => {
-      const roomNd = cc.instantiate(this.roomPrefab);
-      roomNd.parent = this._layerCont;
-      roomNd.setAnchorPoint(0, 0);
-      const worldPos = cc.v2(room.pos.x, room.pos.y);
-      const localPos = roomNd.parent.convertToNodeSpaceAR(worldPos);
-      roomNd.setPosition(localPos);
-      this.addRoomToLayer(roomNd, room.layer);
-      this._roomNodeMap.set(room.cfgId, roomNd);
-      // 同步注册 uid
-      const roomCom = roomNd.getComponent(MapDrawRoom);
-      if (roomCom && roomCom.getUid()) {
-        this._roomUidMap.set(roomCom.getUid(), roomNd);
-      }
-    });
-  }
-
-  //所有子节点创建完毕后再来初始化房间
-  private initRooms() {
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom, index: number) => {
-      const cfgId = room.cfgId;
-      const roomNd = this._roomNodeMap.get(cfgId);
-      const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
-      mapDrawRoom.init(room, this.ROOM_COLORS[index % this.ROOM_COLORS.length]);
-      // 注册 uid（init 中已派生或生成）
-      const uid = mapDrawRoom.getUid();
-      if (uid) {
-        this._roomUidMap.set(uid, roomNd);
-      }
-      mapDrawRoom.unLockPoints = room.unlockPointIds.map((id) =>
-        this._pointMap.get(id),
-      );
-    });
-    // 此时 room 的 contentSize 已由 MapDrawRoom.init 设置完成，重新计算每个 Layer 的 bounds
-    this.updateAllLayerBounds();
-  }
-
-  //路径点
-  private buildPathPoints() {
-    const pathPoints = this._data.pathPoints;
-    pathPoints.forEach((p: MapDrawDatPathPoint) => {
-      const pointNd = cc.instantiate(this.pathPointPrefab);
-      pointNd.name = `${p.id}`;
-      const pointCom = pointNd.addComponentSafe(MapDrawP);
-      pointCom.init(p);
-      this.addPathPointToRoom(p, pointNd);
-    });
-    pathPoints.forEach((p: MapDrawDatPathPoint) => {
-      const node = this._pointMap.get(p.id);
-      const comp = node.addComponentSafe(MapDrawP);
-      comp.setLinks(
-        p.links.map((id) => {
-          return this._pointMap.get(id);
-        }),
-      );
-    });
-    this.refreshPointLinkDrawer();
-  }
-
-  //划线工具
-  private refreshPointLinkDrawer() {
-    if (!this._pointLineDrawer || !cc.isValid(this._pointLineDrawer)) return;
-    this._pointLineDrawer.clear();
-    if (this._pointMap.size === 0) return;
-
-    const drawn = new Set<string>();
-    this._pointMap.forEach((pointNd) => {
-      if (!pointNd || !cc.isValid(pointNd)) return;
-      const pointCom = pointNd.getComponent(MapDrawP);
-      if (!pointCom) return;
-      const fromId = pointCom.getId();
-      const fromWorld = pointNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-      const fromLocal = this.pointLineCont.convertToNodeSpaceAR(fromWorld);
-      pointCom.links?.forEach((toNd) => {
-        if (!toNd || !cc.isValid(toNd)) return;
-        const toCom = toNd.getComponent(MapDrawP);
-        if (!toCom) return;
-        const toId = toCom.getId();
-        if (!fromId || !toId || fromId === toId) return;
-        const edgeKey =
-          fromId < toId ? `${fromId}->${toId}` : `${toId}->${fromId}`;
-        if (drawn.has(edgeKey)) return;
-        drawn.add(edgeKey);
-        const toWorld = toNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        const toLocal = this.pointLineCont.convertToNodeSpaceAR(toWorld);
-        this._pointLineDrawer.moveTo(fromLocal.x, fromLocal.y);
-        this._pointLineDrawer.lineTo(toLocal.x, toLocal.y);
-      });
-    });
-    this._pointLineDrawer.stroke();
-  }
-
-  update() {
-    this.refreshPointLinkDrawer();
-  }
-
-  private buildLadders() {
-    let ladderId = 0;
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const ladders = room.ladders;
-      ladders.forEach((ladder) => {
-        const roomNd = this._roomNodeMap.get(ladder.roomId);
-        if (!roomNd) {
-          console.log(`roomId ${ladder.roomId} not found`);
-          return;
-        }
-        const ladderNd = cc.instantiate(this.ladderPrefab);
-        ladderNd.name = `Ladder${ladderId++}`;
-        ladderNd.parent = roomNd.getChildByName("unitCont");
-        ladderNd.setAnchorPoint(0.5, 0);
-        const worldPos = cc.v2(ladder.pos.x, ladder.pos.y);
-        const localPos = ladderNd.parent.convertToNodeSpaceAR(worldPos);
-        ladderNd.setPosition(localPos);
-        const startNd = this._pointMap
-          .get(ladder.bindPointIds[0])
-          ?.addComponentSafe(MapDrawP);
-        const endNd = this._pointMap
-          .get(ladder.bindPointIds[1])
-          ?.addComponentSafe(MapDrawP);
-
-        if (endNd && startNd) {
-          const height = endNd.getPos().y - startNd.getPos().y;
-          ladderNd.setContentSize(ladderNd.width, height);
-        }
-
-        const control = ladderNd.addComponentSafe(MapDrawLadder);
-        const bindPoint: cc.Node[] = ladder.bindPointIds.map((id) =>
-          this._pointMap.get(id),
-        );
-        control.init(ladder.roomId, bindPoint, ladder.isExitLadder);
-      });
-    });
-  }
-
-  private buildDoors() {
-    let doorId = 0;
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const doors = room.doors;
-      doors.forEach((door) => {
-        const roomNd = this._roomNodeMap.get(door.roomId);
-        if (!roomNd) {
-          console.log(`roomId ${door.roomId} not found`);
-          return;
-        }
-        const doorNd = cc.instantiate(this.doorPrefab);
-        doorNd.name = `Door${doorId++}`;
-        doorNd.parent = roomNd.getChildByName("unitCont");
-        const worldPos = cc.v2(door.pos.x, door.pos.y);
-        const localPos = doorNd.parent.convertToNodeSpaceAR(worldPos);
-        doorNd.setPosition(localPos);
-
-        const control = doorNd.addComponentSafe(MapDrawDoor);
-        control.init(door.roomId, door.hp);
-      });
-    });
-  }
-
-  private buildSearchItems() {
-    let nameId = 0;
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const searchItems = room.searchItemDatas;
-      searchItems.forEach((item) => {
-        const roomNd = this._roomNodeMap.get(item.roomId);
-        if (!roomNd) {
-          console.log(`roomId ${item.roomId} not found`);
-          return;
-        }
-        const itemNd = cc.instantiate(this.searchItemPrefab);
-        itemNd.name = `SearchItem${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-        const worldPos = cc.v2(item.pos.x, item.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
-        const control = itemNd.addComponentSafe(MapDrawSearchItem);
-        control.init(item.roomId);
-      });
-    });
-  }
-
-  private buildEnemyRefres() {
-    let nameId = 0;
-    const rooms = this._data.rooms;
-    const enemyRefreshDatas: MapDrawDatEnemyRefreshData[] = rooms.flatMap(
-      (room: MapDrawDatRoom) => room.enemyRefreshDatas,
+    this._mapLineDrawer = new MapLineDrawer();
+    this._mapLineDrawer.init(
+      () => this._pointMap,
+      () => this._pointLineCont
     );
-    enemyRefreshDatas.forEach((refreshDat) => {
-      const roomNd = this._roomNodeMap.get(refreshDat.roomId);
-      if (!roomNd) {
-        console.log(`roomId ${refreshDat.roomId} not found`);
-        return;
-      }
-      const itemNd = cc.instantiate(this.enemyRefreshPrefab);
-      itemNd.name = `EnemyRefresh${nameId++}`;
-      itemNd.parent = roomNd.getChildByName("unitCont");
-      const worldPos = cc.v2(refreshDat.pos.x, refreshDat.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
 
-      const control = itemNd.addComponentSafe(MapDrawEnemyRefresh);
-      control.init(refreshDat.roomId, refreshDat.refreshId, refreshDat.param);
+    this._mapBuilder = new MapBuilder();
+    this._mapBuilder.init(this, {
+      defaultSp: this.defaultSp,
+      roomPrefab: this.roomPrefab,
+      pathPointPrefab: this.pathPointPrefab,
+      ladderPrefab: this.ladderPrefab,
+      doorPrefab: this.doorPrefab,
+      searchItemPrefab: this.searchItemPrefab,
+      enemyRefreshPrefab: this.enemyRefreshPrefab,
+      survivePrefab: this.survivePrefab,
+      fightSoulPrefab: this.fightSoulPrefab,
+      defaultPortalPrefab: this.defaultPortalPrefab,
+      portalPrefab: this.portalPrefab,
+      shipPrefab: this.shipPrefab,
+      cablePrefab: this.cablePrefab,
+      stonePrefab: this.stonePrefab,
     });
-  }
-
-  private buildSurvives() {
-    let nameId = 0;
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const surviveDatas = room.survivorDatas;
-      surviveDatas.forEach((survive) => {
-        const roomNd = this._roomNodeMap.get(survive.roomId);
-        if (!roomNd) {
-          console.log(`roomId ${survive.roomId} not found`);
-          return;
-        }
-        const itemNd = cc.instantiate(this.survivePrefab);
-        itemNd.name = `Survive${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-        const worldPos = cc.v2(survive.pos.x, survive.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
-        const control = itemNd.addComponentSafe(MapDrawSurvive);
-        control.init(survive);
-      });
-    });
-  }
-
-  private buildFightSoul() {
-    let nameId = 0;
-    const rooms = this._data.rooms;
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const fightSoulDatas = room.fightSoulDatas;
-      if (!fightSoulDatas) return;
-      fightSoulDatas.forEach((fightSoul) => {
-        const roomNd = this._roomNodeMap.get(fightSoul.roomId);
-        if (!roomNd) {
-          console.log(`roomId ${fightSoul.roomId} not found`);
-          return;
-        }
-        const itemNd = cc.instantiate(this.fightSoulPrefab);
-        itemNd.name = `FightSoul${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-        const worldPos = cc.v2(fightSoul.pos.x, fightSoul.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
-        const control = itemNd.addComponentSafe(MapDrawFightSoul);
-        control.init(fightSoul);
-      });
-    });
-  }
-
-  //机制点
-  private buildPortalUnit() {
-    let nameId = 0;
-    const portals: MapDrawDatPortal[] = this._data.portalDatas;
-    portals?.forEach((portal: MapDrawDatPortal) => {
-      const type = portal.portalType ?? PortalType.Default;
-      const prefab = this.getPortalPrefab(type);
-      const itemNd = cc.instantiate(prefab);
-      itemNd.name = `Portal${nameId++}`;
-      itemNd.parent = this._outRoomUnitCont;
-      const worldPos = cc.v2(portal.pos.x, portal.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
-      const control = itemNd.addComponentSafe(MapDrawPortal);
-      const linkP = this._pointMap.get(portal.linkId)
-      const animPs = portal.animPIds.map((id) => this._pointMap.get(id));
-      control.init(portal, linkP, animPs);
-    });
-  }
-
-  private getPortalPrefab(type: PortalType) {
-    switch (type) {
-      case PortalType.Default:
-        return this.defaultPortalPrefab;
-      case PortalType.Drop:
-        return this.portalPrefab;
-      case PortalType.Ship:
-        return this.shipPrefab;
-      default:
-        return this.defaultPortalPrefab;
-    }
-  }
-
-  private buildStoneUnit() {
-    let nameId = 0;
-    const datArr: MapDrawDatStoneData[] = this._data.rockDatas;
-    datArr?.forEach((dat: MapDrawDatStoneData) => {
-      const itemNd = cc.instantiate(this.stonePrefab);
-      itemNd.name = `Stone${nameId++}`;
-      itemNd.parent = this._outRoomUnitCont;
-      const worldPos = cc.v2(dat.pos.x, dat.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
-      const control = itemNd.addComponentSafe(MapDrawStone);
-      control.init(dat);
-    });
-  }
-
-  private buildCableUnit() {
-    let nameId = 0;
-    const datArr: MapDrawDatCableData[] = this._data.scooterDatas;
-    datArr?.forEach((dat: MapDrawDatCableData) => {
-      const itemNd = cc.instantiate(this.cablePrefab);
-      itemNd.name = `Cable${nameId++}`;
-      itemNd.parent = this._outRoomUnitCont;
-      const startP: cc.Node = this._pointMap.get(dat.point1);
-      const endP: cc.Node = this._pointMap.get(dat.point2);
-      const pointInfo = this._pointMap.get(startP.getComponent(MapDrawP).getId());
-      const worldPos = cc.v2(pointInfo.position.x, pointInfo.position.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
-      const points = dat.points.map((id) => this._pointMap.get(id));
-      const control = itemNd.addComponentSafe(MapDrawCable);
-      control.init(startP, endP, points, dat);
-    });
-  }
-
-  //刷新所有数据（保证数据是新的）
-  private refreshDat() {
-    this._layerCont.children.forEach((layer) => {
-      const roomNds = layer.children;
-      roomNds.forEach((roomNd) => {
-        const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
-        mapDrawRoom.refreshDat();
-      });
-    });
-  }
-
-  //TODO：很有问题啊，这个刷新
-  public updatePointMap(pointId: string, pointNd: cc.Node) {
-    if (this._pointMap.has(pointId)) return;
-    this._pointMap.set(pointId, pointNd);
   }
 
   /**
-   * 路径边归属房间 = 两端点 roomId（cfgId）的较小值。
-   * 返回世界坐标线段（无向边去重），用于悬停高亮。
+   * 构建地图
    */
-  public getPathLinkWorldSegmentsForRoomOwner(
-    ownerCfgId: number,
-  ): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
-    const out: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> = [];
-    const seen = new Set<string>();
-    this._pointMap.forEach((nodeA) => {
-      if (!nodeA || !cc.isValid(nodeA)) return;
-      const compA = nodeA.getComponent(MapDrawP);
-      if (!compA) return;
-      const ra = compA.getRoomId();
-      const links = compA.links || [];
-      for (let i = 0; i < links.length; i++) {
-        const nodeB = links[i];
-        if (!nodeB || !cc.isValid(nodeB)) continue;
-        const compB = nodeB.getComponent(MapDrawP);
-        if (!compB) continue;
-        const rb = compB.getRoomId();
-        const owner = Math.min(ra, rb);
-        if (owner !== ownerCfgId) continue;
-        const ida = compA.getId();
-        const idb = compB.getId();
-        const key = ida < idb ? `${ida}_${idb}` : `${idb}_${ida}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push({
-          p0: nodeA.convertToWorldSpaceAR(cc.Vec2.ZERO),
-          p1: nodeB.convertToWorldSpaceAR(cc.Vec2.ZERO),
-        });
+  build(json: any, size: cc.Vec2) {
+    if (!json) return;
+
+    this._size = size;
+    this._fileName = json.name;
+    this.node.removeAllChildren();
+    this.clearMaps();
+
+    // 创建基础容器
+    this.createContainers();
+
+    // 构建地图
+    this._mapBuilder.build(
+      json,
+      {
+        layerCont: this._layerCont,
+        outRoomUnitCont: this._outRoomUnitCont,
+        playerCreate: this._playerCreateNd,
+        playerExit: this._playerExitNd,
       }
-    });
-    return out;
+    );
   }
 
-  /** 悬停单个路径点时，画出其所有连边（世界坐标） */
-  public getPathLinkWorldSegmentsFromPoint(
-    pointNode: cc.Node,
-  ): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
-    if (!pointNode || !cc.isValid(pointNode)) return [];
-    const comp = pointNode.getComponent(MapDrawP);
-    if (!comp) return [];
-    const w0 = pointNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    const out: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> = [];
-    const links = comp.links || [];
-    for (let i = 0; i < links.length; i++) {
-      const nodeB = links[i];
-      if (!nodeB || !cc.isValid(nodeB)) continue;
-      out.push({
-        p0: w0.clone(),
-        p1: nodeB.convertToWorldSpaceAR(cc.Vec2.ZERO),
-      });
+  private createContainers() {
+    this._layerCont = new cc.Node("LayerCont");
+    this._layerCont.parent = this.node;
+
+    this._outRoomUnitCont = new cc.Node("outRoomUnitCont");
+    this._outRoomUnitCont.parent = this.node;
+
+    this._playerCreateNd = new cc.Node("playerCreate");
+    this._playerCreateNd.parent = this.node;
+
+    this._playerExitNd = new cc.Node("playerExit");
+    this._playerExitNd.parent = this.node;
+
+    this._pointLineCont = new cc.Node("pointLineCont");
+    this._pointLineCont.group = "pathPoint";
+    this._pointLineCont.parent = this.node;
+  }
+
+  private clearMaps() {
+    this._roomNodeMap.clear();
+    this._roomUidMap.clear();
+    this._pointMap.clear();
+    this._layerNodeMap.clear();
+    this._areaInfo = [];
+  }
+
+  public initRoom(
+    cfgId: number,
+    roomDat: any,
+    color: cc.Color,
+    uid: string,
+    unlockPointIds: string[]
+  ) {
+    const roomNd = this._roomNodeMap.get(cfgId);
+    if (!roomNd) return;
+
+    const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
+    mapDrawRoom.init(roomDat, color);
+
+    // 注册 uid
+    if (uid) {
+      this._roomUidMap.set(uid, roomNd);
     }
-    return out;
+
+    // 设置解锁点
+    mapDrawRoom.unLockPoints = unlockPointIds
+      .map((id) => this._pointMap.get(id))
+      .filter(Boolean);
   }
 
-  /** 新建房间时，注册到 _roomNodeMap 和 _roomUidMap，确保导出 getJson() 包含该房间 */
+  // ==================== 每帧更新 ====================
+
+  update() {
+    this._mapLineDrawer?.refresh();
+  }
+
+  // ==================== 节点注册 ====================
+
   public registerRoomNode(cfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
     this._roomNodeMap.set(cfgId, roomNd);
     const roomCom = roomNd.getComponent(MapDrawRoom);
     if (roomCom) {
       const uid = roomCom.getUid();
-      if (uid) {
-        this._roomUidMap.set(uid, roomNd);
-      }
+      if (uid) this._roomUidMap.set(uid, roomNd);
     }
   }
 
-  /** 根据 uid 获取房间节点 */
+  public registerRoomUid(uid: string, roomNd: cc.Node) {
+    this._roomUidMap.set(uid, roomNd);
+  }
+
+  public registerPoint(id: string, pointNd: cc.Node) {
+    this._pointMap.set(id, pointNd);
+  }
+
   public getRoomNodeByUid(uid: string): cc.Node {
     return this._roomUidMap.get(uid);
   }
 
-  /** 房间 cfgId 变更时：更新 _roomNodeMap 键，uid 保持不变 */
   public renameRoomNode(oldCfgId: number, newCfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
     if (oldCfgId !== newCfgId) {
@@ -611,73 +248,37 @@ export default class MapLoader extends cc.Component {
     this._roomNodeMap.set(newCfgId, roomNd);
   }
 
-  /**
-   * 按层号重排路径点ID：
-   * 规则：P(layer-1)_id，每个layer内id从0递增
-   */
-  public rebuildPointIdsByLayer() {
-    if (!this._layerCont) return;
-    const layerItems: Array<{ no: number; node: cc.Node }> = [];
-    this._layerCont.children.forEach((layerNd) => {
-      if (!layerNd || !cc.isValid(layerNd)) return;
-      const m = /^Layer(\d+)$/.exec(layerNd.name || "");
-      if (!m) return;
-      const no = Number(m[1]);
-      if (!isFinite(no)) return;
-      layerItems.push({ no, node: layerNd });
-    });
-    layerItems.sort((a, b) => a.no - b.no);
+  public updatePointMap(pointId: string, pointNd: cc.Node) {
+    if (this._pointMap.has(pointId)) return;
+    this._pointMap.set(pointId, pointNd);
+  }
 
-    const nextPointMap = new Map<string, cc.Node>();
-    layerItems.forEach(({ no, node: layerNd }) => {
-      const layerIndex = Math.max(0, no - 1);
-      let localId = 0;
-      const sortedRooms = layerNd.children
-        .filter((roomNd) => !!roomNd && cc.isValid(roomNd))
-        .sort((a, b) => {
-          const ax = a.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-          const bx = b.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-          return ax - bx;
-        });
-      sortedRooms.forEach((roomNd) => {
-        if (!roomNd || !cc.isValid(roomNd)) return;
-        const roomCom = roomNd.getComponent(MapDrawRoom);
-        if (!roomCom) return;
-        const points = (roomCom.getPoints() || [])
-          .filter((pointCom) => !!pointCom && cc.isValid(pointCom.node))
-          .sort((a, b) => {
-            const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-            const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-            return ax - bx;
-          });
-        points.forEach((pointCom) => {
-          if (!pointCom || !cc.isValid(pointCom.node)) return;
-          const newPid = `P${layerIndex}_${localId++}`;
-          pointCom.setId(newPid);
-          nextPointMap.set(newPid, pointCom.node);
-        });
-        roomCom.refreshDat();
-      });
-    });
-    this._pointMap = nextPointMap;
+  // ==================== Layer 管理 ====================
+
+  public addRoomToLayer(roomNd: cc.Node, layer: number) {
+    let layerNd = this._layerNodeMap.get(layer);
+    if (!layerNd) {
+      layerNd = new cc.Node(`Layer${layer}`);
+      layerNd.parent = this._layerCont;
+      this._layerNodeMap.set(layer, layerNd);
+    }
+
+    const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+    roomNd.parent = layerNd;
+    roomNd.setPosition(layerNd.convertToNodeSpaceAR(worldAnchor));
   }
 
   /**
-   * 拖拽房间落点不在现有 layer 上时，按 worldY 相对位置插入新 layer
-   * - 会把插入位置及其上方层号顺延（LayerN -> LayerN+1）
-   * - 会同步更新这些层中房间的 roomId/layer
+   * 创建新 Layer（拖拽房间落点不在现有 layer 上时）
    */
-  public createLayerForRoomDrop(
-    worldY: number,
-    defaultHeight: number = 320,
-  ): cc.Node {
+  public createLayerForRoomDrop(worldY: number, defaultHeight: number = 320): cc.Node {
     if (!this._layerCont) return null;
 
     const existing = Array.from(this._layerNodeMap.entries())
       .map(([no, node]) => ({ no, node }))
       .filter((it) => it.node && cc.isValid(it.node));
 
-    // 根据当前层的底边 worldY 计算插入层号（越上层号越大）
+    // 计算插入层号
     let insertNo = 1;
     if (existing.length > 0) {
       const byBottom = existing
@@ -696,7 +297,7 @@ export default class MapLoader extends cc.Component {
       }
     }
 
-    // 先把 >= insertNo 的层号整体上移一位（倒序避免覆盖）
+    // 上移 >= insertNo 的层号
     existing
       .sort((a, b) => b.no - a.no)
       .forEach(({ no, node }) => {
@@ -705,197 +306,64 @@ export default class MapLoader extends cc.Component {
         node.name = `Layer${newNo}`;
         this._layerNodeMap.delete(no);
         this._layerNodeMap.set(newNo, node);
-
-        // 同步该层房间的 roomId/layer
-        node.children.forEach((roomNd) => {
-          if (!roomNd) return;
-          const roomCom = roomNd.getComponent(MapDrawRoom);
-          if (!roomCom) return;
-          const oldId = roomCom.getRoomCfgId();
-          const oldMapNo = Math.floor(oldId / 100);
-          const roomNo = oldId - oldMapNo * 100 - (no - 1) * 10;
-          const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + roomNo;
-          roomCom.changeLayer(newNo);
-          if (EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
-          roomCom.refreshDat();
-          this.renameRoomNode(oldId, newCfgId, roomNd);
-        });
+        this.syncLayerRoomIds(node, newNo);
       });
 
-    // 创建新 layer 并放到对应 y 位置
+    // 创建新 layer
     const layerNd = new cc.Node(`Layer${insertNo}`);
     layerNd.parent = this._layerCont;
     layerNd.setAnchorPoint(0, 0);
     this._layerNodeMap.set(insertNo, layerNd);
 
     const mapWidth = MapTool.getSize().x;
-    const width = Math.max(1, mapWidth);
-    const height = Math.max(1, defaultHeight);
-    layerNd.setContentSize(width, height);
+    layerNd.setContentSize(Math.max(1, mapWidth), Math.max(1, defaultHeight));
 
     const mapLeftWorld =
       mapWidth > 0
         ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
         : layerNd.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-    const targetBottomY = worldY - height * 0.5;
+    const targetBottomY = worldY - defaultHeight * 0.5;
     const worldAnchor = cc.v2(mapLeftWorld, targetBottomY);
     const localPos = this._layerCont.convertToNodeSpaceAR(worldAnchor);
     layerNd.setPosition(localPos);
+
     this.rebuildPointIdsByLayer();
     return layerNd;
   }
 
-  /** 删除一个房间节点（以及其下所有内容），同时维护内部 room / point 映射与 layer 大小 */
-  public deleteRoom(roomNode: cc.Node) {
-    if (!roomNode) return;
-    const roomComp = roomNode.getComponent(MapDrawRoom);
-    if (!roomComp) return;
+  //同步layer的所有房间id
+  private syncLayerRoomIds(layerNd: cc.Node, newLayerNo: number) {
+    layerNd.children.forEach((roomNd) => {
+      if (!roomNd) return;
+      const roomCom = roomNd.getComponent(MapDrawRoom);
+      if (!roomCom) return;
 
-    const cfgId = roomComp.getRoomCfgId();
-    const uid = roomComp.getUid();
-    this._roomNodeMap.delete(cfgId);
-    if (uid) {
-      this._roomUidMap.delete(uid);
-    }
+      const oldId = roomCom.getRoomCfgId();
+      const oldMapNo = Math.floor(oldId / 100);
+      const roomNo = oldId - oldMapNo * 100 - (newLayerNo - 1) * 10;
+      const newCfgId = oldMapNo * 100 + (newLayerNo - 1) * 10 + roomNo;
 
-    // 清理该房间下的路径点（含 links / bind / unlock 引用）
-    const pointCont = roomNode.getChildByName("pointCont");
-    if (pointCont) {
-      const points = pointCont.children.slice();
-      points.forEach((pNd) => {
-        this.deletePathPoint(pNd, false);
-      });
-    }
-
-    const parentLayer = roomNode.parent;
-    // 先从层级树摘除，再销毁；后续逻辑统一放到下一帧执行
-    roomNode.removeFromParent();
-    roomNode.destroy();
-
-    if (parentLayer && cc.isValid(parentLayer)) {
-      if (!cc.isValid(parentLayer)) return;
-      if (parentLayer.childrenCount === 0) {
-        const m = /^Layer(\d+)$/.exec(parentLayer.name || "");
-        if (m) this._layerNodeMap.delete(Number(m[1]));
-        parentLayer.removeFromParent();
-        parentLayer.destroy();
-        // layer 销毁同样是延迟生效，层级重排再延后一帧
-        this.scheduleOnce(() => {
-          this.compactLayersAfterDelete();
-        }, 0);
-      } else {
-        this.updateLayerBounds(parentLayer);
+      roomCom.changeLayer(newLayerNo);
+      if (EditorSetting.Instance.getAutoRename()) {
+        roomCom.updateRoomId(newCfgId);
       }
-    }
-
-    // 房间删除后，统一重排一次点ID（避免每删一个点都重排）
-    this.scheduleOnce(() => {
-      this.rebuildPointIdsByLayer();
-    })
+      roomCom.refreshDat();
+      this.renameRoomNode(oldId, newCfgId, roomNd);
+    });
   }
 
-  /** 房间移动后，清理空 Layer（childrenCount==0），并在下一帧重排层级编号 */
-  public cleanupEmptyLayersAfterMove() {
-    if (!this._layerCont) return;
-    let hasDelete = false;
-    this._layerCont.children.forEach((layerNd) => {
-      if (!layerNd || !cc.isValid(layerNd)) return;
-      if (!/^Layer\d+$/.test(layerNd.name || "")) return;
-      if (layerNd.childrenCount > 0) return;
-      const m = /^Layer(\d+)$/.exec(layerNd.name || "");
-      if (m) this._layerNodeMap.delete(Number(m[1]));
-      layerNd.removeFromParent();
-      layerNd.destroy();
-      hasDelete = true;
-    });
-
-    if (hasDelete) {
-      this.scheduleOnce(() => {
-        this.compactLayersAfterDelete();
-      }, 0);
-    }
-  }
-
-  public addRoomToLayer(roomNd: cc.Node, layer: number) {
-    let layerNd = this._layerNodeMap.get(layer);
-    if (!layerNd) {
-      layerNd = new cc.Node(`Layer${layer}`);
-      layerNd.parent = this._layerCont;
-      this._layerNodeMap.set(layer, layerNd);
-    }
-
-    // 换父节点前先缓存世界坐标，避免因为 layer 自身 transform 改变导致 room 漂移
-    const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    roomNd.parent = layerNd;
-    roomNd.setPosition(layerNd.convertToNodeSpaceAR(worldAnchor));
-  }
-
-  /** 删除某个 layer 后，把上层顺次下移并重建 layer 编号映射 */
-  private compactLayersAfterDelete() {
-    if (!this._layerCont) return;
-
-    // 收集现有 Layer{n}
-    const layerList: Array<{ no: number; node: cc.Node }> = [];
-    this._layerCont.children.forEach((nd) => {
-      if (!nd || !cc.isValid(nd)) return;
-      const m = /^Layer(\d+)$/.exec(nd.name || "");
-      if (!m) return;
-      const no = Number(m[1]);
-      if (isNaN(no)) return;
-      layerList.push({ no, node: nd });
-    });
-    if (layerList.length === 0) {
-      this._layerNodeMap.clear();
-      return;
-    }
-
-    // 按旧层号排序，重命名为连续层号 Layer1..LayerN
-    layerList.sort((a, b) => a.no - b.no);
-    this._layerNodeMap.clear();
-    layerList.forEach((item, idx) => {
-      const newNo = idx + 1;
-      item.node.name = `Layer${newNo}`;
-      this._layerNodeMap.set(newNo, item.node);
-
-      // 同步房间内 layer 字段与显示（uid 不变，只更新 cfgId）
-      item.node.children.forEach((roomNd) => {
-        if (!roomNd) return;
-        const roomCom = roomNd.getComponent(MapDrawRoom);
-        if (!roomCom) return;
-        const oldId = roomCom.getRoomCfgId();
-        const oldMapNo = Math.floor(oldId / 100);
-        const oldRoomNo = oldId - oldMapNo * 100 - (item.no - 1) * 10;
-        const newCfgId = oldMapNo * 100 + (newNo - 1) * 10 + oldRoomNo;
-        const newLayer = newNo;
-        roomCom.changeLayer(newLayer);
-        if (EditorSetting.Instance.getAutoRename()) roomCom.updateRoomId(newCfgId);
-        roomCom.refreshDat();
-        // renameRoomNode 会更新 _roomNodeMap，uid 映射保持不变
-        this.renameRoomNode(oldId, newCfgId, roomNd);
-      });
-    });
-
-    // 重新按内容计算每个 layer 的 bounds
-    this._layerNodeMap.forEach((layerNd) => {
-      this.updateLayerBounds(layerNd);
-    });
-    this.rebuildPointIdsByLayer();
-  }
-
-  /** 外部刷新某个 Layer{n} 的 bounds（contentSize/position） */
   public refreshLayerBoundsByNode(layerNd: cc.Node) {
     this.updateLayerBounds(layerNd);
   }
 
-  //刷新所有layer的bounds
-  private updateAllLayerBounds() {
+  public updateAllLayerBounds() {
     if (!this._layerCont) return;
     this._layerCont.children.forEach((layerNd) => {
       this.updateLayerBounds(layerNd);
     });
   }
 
-  //刷新layer的bounds
+  //刷新layer的大小
   private updateLayerBounds(layerNd: cc.Node) {
     if (!layerNd || !/^Layer\d+$/.test(layerNd.name)) return;
 
@@ -905,48 +373,98 @@ export default class MapLoader extends cc.Component {
     let yMin = Number.POSITIVE_INFINITY;
     let yMax = Number.NEGATIVE_INFINITY;
 
-    // 先缓存每个子节点的世界锚点位置，避免调整 layer 后子节点整体漂移
     const childWorldPosMap = new Map<cc.Node, cc.Vec2>();
     const mapScale = EditorSetting.Instance.getMapScale();
+
     roomNds.forEach((roomNd) => {
       if (!roomNd) return;
-      // 仅用 room 自身 contentSize 计算 bounds，避免 room 子节点（点/门/单位等）超出背景导致 layer 高度不一致
-      const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO); // room 左下角世界坐标（room anchor=0,0）
+      const worldAnchor = roomNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
       const size = roomNd.getContentSize();
       yMin = Math.min(yMin, worldAnchor.y);
       yMax = Math.max(yMax, worldAnchor.y + size.height * mapScale);
       childWorldPosMap.set(roomNd, worldAnchor);
     });
 
-    // 宽度固定为整张地图宽度（不随子节点变化）
-    // 取值优先级：json.size.width > inspector.size.x > 当前layer宽度（兜底）
     const mapWidth = MapTool.getSize().x;
     const width = Math.max(1, mapWidth);
     const height = Math.max(1, (yMax - yMin) / mapScale);
 
-    // 让 layer 的本地原点(0,0) 对齐到 children bounds 的最小角
     layerNd.setAnchorPoint(0, 0);
     layerNd.setContentSize(width, height);
-    // 地图坐标系以中心为原点，左边界 = -mapWidth/2（先转世界坐标，避免与 yMin 的世界坐标混用）
+
     const prevWorldAnchor = layerNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
     const mapLeftWorld =
       mapWidth > 0
         ? this.node.convertToWorldSpaceAR(cc.v2(-mapWidth / 2, 0)).x
         : prevWorldAnchor.x;
     const newLayerWorldAnchor = cc.v2(mapLeftWorld, yMin);
-    const newLayerLocalPos =
-      this._layerCont.convertToNodeSpaceAR(newLayerWorldAnchor);
+    const newLayerLocalPos = this._layerCont.convertToNodeSpaceAR(newLayerWorldAnchor);
     layerNd.setPosition(newLayerLocalPos);
 
-    // 把子节点本地坐标重新算回去，保证世界位置不变
     childWorldPosMap.forEach((worldAnchorPos, childNd) => {
       const newLocal = layerNd.convertToNodeSpaceAR(worldAnchorPos);
       childNd.setPosition(newLocal);
     });
   }
 
-  //添加路径点到房间
-  public addPathPointToRoom(pData: MapDrawDatPathPoint, pointNd: cc.Node) {
+  //删除空的layer
+  public cleanupEmptyLayersAfterMove() {
+    if (!this._layerCont) return;
+    let hasDelete = false;
+
+    this._layerCont.children.forEach((layerNd) => {
+      if (!layerNd || !cc.isValid(layerNd)) return;
+      if (!/^Layer\d+$/.test(layerNd.name || "")) return;
+      if (layerNd.childrenCount > 0) return;
+
+      const m = /^Layer(\d+)$/.exec(layerNd.name || "");
+      if (m) this._layerNodeMap.delete(Number(m[1]));
+      layerNd.removeFromParent();
+      layerNd.destroy();
+      hasDelete = true;
+    });
+
+    if (hasDelete) {
+      this.scheduleOnce(() => this.compactLayersAfterDelete(), 0);
+    }
+  }
+
+  //删除空的layer后，重新排序layer
+  private compactLayersAfterDelete() {
+    if (!this._layerCont) return;
+
+    const layerList: Array<{ no: number; node: cc.Node }> = [];
+    this._layerCont.children.forEach((nd) => {
+      if (!nd || !cc.isValid(nd)) return;
+      const m = /^Layer(\d+)$/.exec(nd.name || "");
+      if (!m) return;
+      const no = Number(m[1]);
+      if (isNaN(no)) return;
+      layerList.push({ no, node: nd });
+    });
+
+    if (layerList.length === 0) {
+      this._layerNodeMap.clear();
+      return;
+    }
+
+    layerList.sort((a, b) => a.no - b.no);
+    this._layerNodeMap.clear();
+
+    layerList.forEach((item, idx) => {
+      const newNo = idx + 1;
+      item.node.name = `Layer${newNo}`;
+      this._layerNodeMap.set(newNo, item.node);
+      this.syncLayerRoomIds(item.node, newNo);
+    });
+
+    this._layerNodeMap.forEach((layerNd) => this.updateLayerBounds(layerNd));
+    this.rebuildPointIdsByLayer();
+  }
+
+  // ==================== 路径点管理 ====================
+
+  public addPathPointToRoom(pData: any, pointNd: cc.Node) {
     this._pointMap.set(pData.id, pointNd);
     const roomNd = this._roomNodeMap.get(pData.roomId);
     if (!roomNd) {
@@ -959,34 +477,91 @@ export default class MapLoader extends cc.Component {
     pointNd.setPosition(localPos);
   }
 
-  /** 把路径点 ID 列表解析成节点（忽略不存在项） */
+  /**
+   * 按层号重排路径点ID
+   */
+  public rebuildPointIdsByLayer() {
+    if (!this._layerCont) return;
+
+    const layerItems: Array<{ no: number; node: cc.Node }> = [];
+    this._layerCont.children.forEach((layerNd) => {
+      if (!layerNd || !cc.isValid(layerNd)) return;
+      const m = /^Layer(\d+)$/.exec(layerNd.name || "");
+      if (!m) return;
+      const no = Number(m[1]);
+      if (!isFinite(no)) return;
+      layerItems.push({ no, node: layerNd });
+    });
+    layerItems.sort((a, b) => a.no - b.no);
+
+    const nextPointMap = new Map<string, cc.Node>();
+    layerItems.forEach(({ no, node: layerNd }) => {
+      const layerIndex = Math.max(0, no - 1);
+      let localId = 0;
+
+      const sortedRooms = layerNd.children
+        .filter((roomNd) => !!roomNd && cc.isValid(roomNd))
+        .sort((a, b) => {
+          const ax = a.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+          const bx = b.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+          return ax - bx;
+        });
+
+      sortedRooms.forEach((roomNd) => {
+        if (!roomNd || !cc.isValid(roomNd)) return;
+        const roomCom = roomNd.getComponent(MapDrawRoom);
+        if (!roomCom) return;
+
+        const points = (roomCom.getPoints() || [])
+          .filter((pointCom) => !!pointCom && cc.isValid(pointCom.node))
+          .sort((a, b) => {
+            const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+            const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+            return ax - bx;
+          });
+
+        points.forEach((pointCom) => {
+          if (!pointCom || !cc.isValid(pointCom.node)) return;
+          const newPid = `P${layerIndex}_${localId++}`;
+          pointCom.setId(newPid);
+          nextPointMap.set(newPid, pointCom.node);
+        });
+
+        roomCom.refreshDat();
+      });
+    });
+
+    this._pointMap = nextPointMap;
+  }
+
+  // ==================== 节点移动 ====================
+
   public resolvePathPointNodes(ids: string[] | string): cc.Node[] {
     if (Array.isArray(ids)) {
-      const list = ids || [];
-      return list
+      return (ids || [])
         .map((id) => this._pointMap.get(id))
         .filter((nd) => !!nd && cc.isValid(nd));
     } else {
       const point = this._pointMap.get(ids);
       return point ? [point] : [];
-
     }
   }
 
-  /**
-   * 路径点房间变更：切换到目标房间 pointCont，保持世界坐标不变，并刷新相关房间数据。
-   */
+  //移动item到房间内（区分了路径点和普通房间内item）
   public moveUnitToRoom(
     unitNode: cc.Node,
     targetRoomId: number,
-    rebuildIds: boolean = true,
+    rebuildIds: boolean = true
   ): boolean {
     if (!unitNode || !cc.isValid(unitNode)) return false;
     if (!isFinite(targetRoomId)) return false;
+
     const unitCom = unitNode.getComponent(MapDrawUnitBase);
     if (!unitCom) return false;
+
     const targetRoomNd = this._roomNodeMap.get(targetRoomId);
     if (!targetRoomNd || !cc.isValid(targetRoomNd)) return false;
+
     const isPoint = unitCom.getType() == UnitType.PathPoint;
     const parentName = isPoint ? "pointCont" : "unitCont";
     const targetPointCont = targetRoomNd.getChildByName(parentName);
@@ -994,6 +569,7 @@ export default class MapLoader extends cc.Component {
 
     const prevParent = unitNode.parent;
     unitCom.updateRoomId(targetRoomId);
+
     if (prevParent === targetPointCont) {
       const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
       targetRoomCom?.refreshDat();
@@ -1004,41 +580,42 @@ export default class MapLoader extends cc.Component {
     const oldOwnerRoom = this.findOwnerRoomByNode(prevParent);
     unitNode.parent = targetPointCont;
     unitNode.setPosition(targetPointCont.convertToNodeSpaceAR(prevWorldPos));
+
     oldOwnerRoom?.refreshDat();
     targetRoomNd.getComponent(MapDrawRoom)?.refreshDat();
+
     if (rebuildIds) {
       this.rebuildPointIdsByLayer();
     }
+
     return true;
   }
 
-  /** 按世界坐标命中房间并迁移路径点父节点 */
+  //移动路径点到房间内，通过世界坐标
   public movePathPointToRoomByWorldPos(
     pointNode: cc.Node,
     worldPos: cc.Vec2,
-    rebuildIds: boolean = true,
+    rebuildIds: boolean = true
   ): boolean {
     if (!pointNode || !cc.isValid(pointNode) || !worldPos) return false;
     let hitRoomId: number = null;
+
     this._roomNodeMap.forEach((roomNd, cfgId) => {
       if (hitRoomId !== null) return;
       if (!roomNd || !cc.isValid(roomNd)) return;
-      // 先转到房间本地坐标再判断，避免 world AABB 在缩放层级下出现误差
+
       const local = roomNd.convertToNodeSpaceAR(worldPos);
       const size = roomNd.getContentSize();
       const left = -roomNd.anchorX * size.width;
       const right = left + size.width;
       const bottom = -roomNd.anchorY * size.height;
       const top = bottom + size.height;
-      if (
-        local.x >= left &&
-        local.x <= right &&
-        local.y >= bottom &&
-        local.y <= top
-      ) {
+
+      if (local.x >= left && local.x <= right && local.y >= bottom && local.y <= top) {
         hitRoomId = cfgId;
       }
     });
+
     if (hitRoomId === null) return false;
     return this.moveUnitToRoom(pointNode, hitRoomId, rebuildIds);
   }
@@ -1053,15 +630,45 @@ export default class MapLoader extends cc.Component {
     return null;
   }
 
-  public getPathPointById(id: string) {
-    return this._pointMap.get(id);
+  // ==================== 删除操作 ====================
+
+  public deleteRoom(roomNode: cc.Node) {
+    if (!roomNode) return;
+    const roomComp = roomNode.getComponent(MapDrawRoom);
+    if (!roomComp) return;
+
+    const cfgId = roomComp.getRoomCfgId();
+    const uid = roomComp.getUid();
+    this._roomNodeMap.delete(cfgId);
+    if (uid) this._roomUidMap.delete(uid);
+
+    // 清理路径点
+    const pointCont = roomNode.getChildByName("pointCont");
+    if (pointCont) {
+      pointCont.children.slice().forEach((pNd) => {
+        this.deletePathPoint(pNd, false);
+      });
+    }
+
+    const parentLayer = roomNode.parent;
+    roomNode.removeFromParent();
+    roomNode.destroy();
+
+    if (parentLayer && cc.isValid(parentLayer)) {
+      if (parentLayer.childrenCount === 0) {
+        const m = /^Layer(\d+)$/.exec(parentLayer.name || "");
+        if (m) this._layerNodeMap.delete(Number(m[1]));
+        parentLayer.removeFromParent();
+        parentLayer.destroy();
+        this.scheduleOnce(() => this.compactLayersAfterDelete(), 0);
+      } else {
+        this.updateLayerBounds(parentLayer);
+      }
+    }
+
+    this.scheduleOnce(() => this.rebuildPointIdsByLayer(), 0);
   }
 
-  public getOutRoomUnitParent() {
-    return this._outRoomUnitCont;
-  }
-
-  /** 删除一个路径点，并维护 links / 梯子绑定 / unlockPoints / 点映射 */
   public deletePathPoint(pointNd: cc.Node, rebuildIds: boolean = true) {
     if (!pointNd || !cc.isValid(pointNd)) return;
     const pointCom = pointNd.getComponent(MapDrawP);
@@ -1069,30 +676,29 @@ export default class MapLoader extends cc.Component {
 
     const oldId = pointCom.getId();
 
-    // 1) 清理被删除点所连接点的“反向 link”（双向一致）
+    // 1) 清理链接
     const linked = (pointCom.links || []).slice();
     linked.forEach((toNd) => {
       if (!toNd || !cc.isValid(toNd)) return;
       toNd.getComponent(MapDrawP)?.removeLink(pointNd);
     });
 
-    // 2) 清理其它点的 links（兜底：确保所有点都不再引用该点）
     this._pointMap.forEach((otherNd) => {
       if (!otherNd || !cc.isValid(otherNd)) return;
       if (otherNd === pointNd) return;
-      const otherCom = otherNd.getComponent(MapDrawP);
-      otherCom?.removeLink(pointNd);
+      otherNd.getComponent(MapDrawP)?.removeLink(pointNd);
     });
 
-    // 3) 清理梯子绑定点
+    // 2) 清理梯子绑定
     this._roomNodeMap.forEach((roomNd) => {
       if (!roomNd || !cc.isValid(roomNd)) return;
       const unitCont = roomNd.getChildByName("unitCont");
       if (!unitCont) return;
+
       const ladders = unitCont.getComponentsInChildren(MapDrawLadder);
       ladders.forEach((ladder) => {
         const binds = (ladder.bindPoints || []).filter(
-          (n) => n && cc.isValid(n) && n !== pointNd,
+          (n) => n && cc.isValid(n) && n !== pointNd
         );
         if (binds.length !== (ladder.bindPoints || []).length) {
           ladder.setBinds(binds);
@@ -1100,11 +706,12 @@ export default class MapLoader extends cc.Component {
       });
     });
 
-    // 4) 清理房间 unlockPoints 引用
+    // 3) 清理房间 unlockPoints
     this._roomNodeMap.forEach((roomNd) => {
       if (!roomNd || !cc.isValid(roomNd)) return;
       const roomCom = roomNd.getComponent(MapDrawRoom);
       if (!roomCom) return;
+
       const prev = roomCom.unLockPoints || [];
       const next = prev.filter((p) => p && cc.isValid(p) && p !== pointNd);
       if (next.length !== prev.length) {
@@ -1113,142 +720,72 @@ export default class MapLoader extends cc.Component {
       }
     });
 
-    // 5) 删除点映射 & 节点
+    // 4) 删除节点
     if (oldId) this._pointMap.delete(oldId);
     pointNd.removeFromParent();
     pointNd.destroy();
 
-    // 6) 删除后重排 ID（也会重建 _pointMap / 刷新 roomDat）
+    // 5) 重排 ID
     if (rebuildIds) {
-      this.scheduleOnce(() => {
-        this.rebuildPointIdsByLayer();
-      })
+      this.scheduleOnce(() => this.rebuildPointIdsByLayer(), 0);
     }
   }
 
-  /** 删除一个 Portal */
   public deletePortal(portalNd: cc.Node) {
     if (!portalNd || !cc.isValid(portalNd)) return;
     portalNd.removeFromParent();
     portalNd.destroy();
   }
 
-  public setAreaInfo(areaInfo: number[]) {
-    this._areaInfo = areaInfo;
-  }
-
-  //编辑器操作
+  // ==================== 清空 & 导出 ====================
 
   public clear() {
-    const children = this._layerCont.children.slice();
-    children.forEach((n) => n.destroy());
-    this._outRoomUnitCont.destroyAllChildren();
-    this.pointLineCont.getComponent(cc.Graphics).clear();
-    this._roomNodeMap.clear();
-    this._roomUidMap.clear();
-    this._pointMap.clear();
-    this._layerNodeMap.clear();
-    this._areaInfo = [];
+    this._pointLineCont?.destroyAllChildren();
+    this._layerCont?.destroyAllChildren();
+    this._outRoomUnitCont?.destroyAllChildren();
+    this._mapLineDrawer?.clear();
+    this.clearMaps();
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
     EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
   }
 
-  private getJson() {
-    const mapDat = new MapDrawDat();
-    const size: MapDrawDatSize = {
-      width: this._size.x,
-      height: this._size.y,
-    };
-
-    console.log(`getJson`);
-
-    //路径数据
-    const pathPoints: MapDrawDatPathPoint[] = [];
-    this._pointMap.forEach((point) => {
-      if (!point || !cc.isValid(point)) return;
-      pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
-    });
-    pathPoints.sort((a, b) => {
-      const ma = /^P(\d+)_(\d+)$/.exec(a.id || "");
-      const mb = /^P(\d+)_(\d+)$/.exec(b.id || "");
-      if (ma && mb) {
-        const la = Number(ma[1]);
-        const lb = Number(mb[1]);
-        if (la !== lb) return la - lb;
-        const na = Number(ma[2]);
-        const nb = Number(mb[2]);
-        return na - nb;
-      }
-      return String(a.id || "").localeCompare(String(b.id || ""));
-    });
-
-    //房间数据
-    const rooms: MapDrawDatRoom[] = [];
-    this._roomNodeMap.forEach((room) => {
-      rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
-    });
-    rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));
-
-    //房间外物体数据
-    const portalDatas: MapDrawDatPortal[] = [];
-    const cableDatas: MapDrawDatCableData[] = [];
-    const stoneDatas: MapDrawDatStoneData[] = [];
-    this._outRoomUnitCont.children.forEach((unit) => {
-      const controller = unit.getComponent(MapDrawUnitBase);
-      if (!controller) return;
-      let container = null;
-      switch (controller.getType()) {
-        case UnitType.Portal:
-          container = portalDatas;
-          break;
-        case UnitType.Cable:
-          container = cableDatas;
-          break;
-        case UnitType.Stone:
-          container = stoneDatas;
-          break;
-      }
-      container.push(controller.getDat());
-    });
-
-    const playerCreatePos = this._playerCreateNd
-      .addComponentSafe(MapDrawUnitBase)
-      .getPos();
-    const playerExitPos = this._playerExitNd
-      .addComponentSafe(MapDrawUnitBase)
-      .getPos();
-
-    const areaInfo: number[] = [];
-    this._areaInfo.forEach((info) => {
-      areaInfo.push(Number(info));
-    });
-
-    //导出数据
-    const outDat: MapDrawDatType = {
-      size: size,
-      pathPoints: pathPoints,
-      rooms: rooms,
-      playerCreatePos: playerCreatePos,
-      playerExitPos: playerExitPos,
-      portalDatas: portalDatas,
-      scooterDatas: cableDatas,
-      rockDatas: stoneDatas,
-      areaInfo: areaInfo
-    }
-    mapDat.setDat(outDat);
-    return mapDat.createJson();
-  }
-
-  public saveDat() {
-    //节点结构可能变化，刷新一下最新的layer信息(父节点，或者新建节点)
+  public saveDat(): string {
     this.refreshDat();
-    const json = this.getJson();
-    return json;
+    return this._mapSerializer.export();
   }
+
+  private refreshDat() {
+    this._layerCont?.children.forEach((layer) => {
+      layer.children.forEach((roomNd) => {
+        const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
+        mapDrawRoom.refreshDat();
+      });
+    });
+  }
+
+  // ==================== Getter ====================
 
   public getRoomNode(cfgId: number): cc.Node {
     return this._roomNodeMap.get(cfgId);
   }
-}
 
-declare var require: any;
+  public getPathPointById(id: string): cc.Node {
+    return this._pointMap.get(id);
+  }
+
+  public getOutRoomUnitParent(): cc.Node {
+    return this._outRoomUnitCont;
+  }
+
+  public setAreaInfo(areaInfo: number[]) {
+    this._areaInfo = areaInfo;
+  }
+
+  public getPathLinkWorldSegmentsForRoom(ownerCfgId: number): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
+    return this._mapLineDrawer?.getPathLinkWorldSegmentsForRoom(ownerCfgId) ?? [];
+  }
+
+  public getPathLinkWorldSegmentsFromPoint(pointNode: cc.Node): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
+    return this._mapLineDrawer?.getPathLinkWorldSegmentsFromPoint(pointNode) ?? [];
+  }
+}

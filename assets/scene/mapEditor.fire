@@ -1864,7 +1864,6 @@
       "__id__": 43
     },
     "_enabled": true,
-    "pointLineCont": null,
     "defaultSp": {
       "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
     },
@@ -32681,7 +32680,7 @@
       "__id__": 4
     },
     "levelJson": {
-      "__uuid__": "995c97f4-4547-4c7c-9152-3771d877e456"
+      "__uuid__": "47c9eb89-13ce-4656-addf-88c0eb2dfaec"
     },
     "mapCanvasNd": {
       "__id__": 10

@@ -361,13 +361,13 @@ export default class LevelScene extends cc.Component {
         targetParent = this._dragDat.hoverLayerNode;
       } else {
         const roomWorldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        const newLayer = this._mapInteraction['_mapLoaderComp']?.createLayerForRoomDrop(roomWorldPos.y);
+        const newLayer = this._mapInteraction.getMapLoaderComp()?.createLayerForRoomDrop(roomWorldPos.y);
         if (newLayer) targetParent = newLayer;
       }
     }
     //房间外item 
     else if (this._mapInteraction.isOutRoomUnitType(type)) {
-      targetParent = this._mapInteraction['_mapLoaderComp']?.getOutRoomUnitParent() ?? null;
+      targetParent = this._mapInteraction.getMapLoaderComp()?.getOutRoomUnitParent() ?? null;
     }
     //特殊点如起始点，撤离点
     else if (itemDat.name === "playerExit" || itemDat.name === "playerCreate") {
@@ -426,9 +426,11 @@ export default class LevelScene extends cc.Component {
     if (draggedRoom && /^Layer\d+$/.test(targetParent.name)) {
       this.handleRoomDragEnd(draggedRoom, targetParent, itemParent);
     }
-
+    else if(itemDat.name == "playerExit" || itemDat.name == "playerCreate") {
+      itemDat.parent = targetParent;
+    }
     // 房间内item 刷新来源/目标房间数据
-    if (!this._mapInteraction.isOutRoomUnitType(type)) {
+    else if (!this._mapInteraction.isOutRoomUnitType(type)) {
       this.refreshRoomDataOnMove(itemDat.parent, itemParent, targetParent);
     }
 
@@ -581,13 +583,20 @@ export default class LevelScene extends cc.Component {
     const type = trackNd.getComponent(MapDrawUnitBase).getType();
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
 
+    //删除房间
     if (type === UnitType.Room) {
       mapLoaderComp?.deleteRoom(trackNd);
-    } else if (type === UnitType.PathPoint) {
+    } 
+    //删除路径点
+    else if (type === UnitType.PathPoint) {
       mapLoaderComp?.deletePathPoint(trackNd);
-    } else if (this._mapInteraction.isOutRoomUnitType(type)) {
+    } 
+    //删除房间外物体
+    else if (this._mapInteraction.isOutRoomUnitType(type)) {
       mapLoaderComp?.deletePortal(trackNd);
-    } else {
+    } 
+    //删除房间内物体
+    else {
       const ownerRoom = MapTool.findOwnerRoomByNode(trackNd.parent);
       const ownerLayer = ownerRoom?.node?.parent ?? null;
       trackNd.removeFromParent();
@@ -615,10 +624,10 @@ export default class LevelScene extends cc.Component {
   public onCLickExport() {
     this._mapExporter?.export();
   }
-  
+
   //清空当前工作地图
   public onClickClear() {
-    this._mapInteraction['_mapLoaderComp']?.clear();
+    this._mapInteraction.getMapLoaderComp()?.clear();
   }
 
 
