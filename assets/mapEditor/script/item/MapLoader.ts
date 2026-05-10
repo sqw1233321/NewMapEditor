@@ -859,7 +859,7 @@ export default class MapLoader extends cc.Component {
   }
 
   /**
-   * 从 JSON 恢复地图（用于撤销/重做）
+   * 从 JSON 创建地图
    * @param jsonStr JSON 字符串
    */
   public restoreFromJson(jsonStr: string): void {

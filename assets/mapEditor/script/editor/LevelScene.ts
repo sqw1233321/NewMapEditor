@@ -534,22 +534,41 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
   }
 
-  // ==================== 保存 & 导出 ====================
+  // ==================== 编辑器操作 ====================
 
-  //保存当前工作地图
+  //新建
+  public onClickCreate(){
+
+  }
+
+  //更换背景
+  public onClickChangeBg(){
+
+  }
+
+  //导入
+  public async onClickImport() {
+    const result = await this._mapExporter?.import();
+    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+    mapLoaderComp.restoreFromJson(result);
+  }
+
+
+  //保存
   public onClickSave() {
     this._mapExporter?.save();
   }
 
-  //导出当前工作地图（下载）
+  //导出
   public onCLickExport() {
     this._mapExporter?.export();
   }
 
-  //清空当前工作地图
+  //清空
   public onClickClear() {
     this._mapInteraction.getMapLoaderComp()?.clear();
   }
+
 
 
   //TODO：===================撤销功能===================

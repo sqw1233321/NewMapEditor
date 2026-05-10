@@ -15,6 +15,17 @@ export default class MapExporter {
     this._levelJson = levelJson;
   }
 
+  //==================== 导入 ====================
+  public async import() {
+    const result = await window.electronAPI.openFileDialog();
+    if (result.success) {
+      const mapData = JSON.parse(result.content);
+      console.log('导入文件:', result.path);
+      console.log('导入文件内容:', mapData);
+    }
+    return result.content;
+  }
+
   // ==================== 导出 & 保存 ====================
 
   /** 保存（仅编辑器环境写盘） */
@@ -98,7 +109,7 @@ declare global {
   interface Window {
     electronAPI: {
       writeFile: (path: string, content: string) => Promise<{ success: boolean; error?: string }>;
-      readFile: (path: string) => Promise<{ success: boolean; content?: string; error?: string }>;
+      openFileDialog: () => Promise<{ success: boolean; path?: string; content?: string; error?: string }>;
     };
   }
 }
