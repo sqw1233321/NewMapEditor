@@ -58,6 +58,9 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private _unlockBindHighlight = false;
     private _savedBgColor: cc.Color = null;
 
+    //是否真正改名过
+    private _cfgIdManuallySet = false;
+
     public getType() {
         return UnitType.Room;
     }
@@ -91,12 +94,22 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         if (!this._uid && roomDat.cfgId > 0) {
             this._uid = `room_${roomDat.cfgId}`;
         }
+        this._cfgIdManuallySet = roomDat.isManualSet;
         this.initUI();
         this.setDat();
     }
 
     public changeLayer(newLayer: number) {
         this._layer = newLayer;
+    }
+
+    public setManulSet(isManual: boolean) {
+        if (this._cfgIdManuallySet) return;
+        this._cfgIdManuallySet = isManual;
+    }
+
+    public getManulSet() {
+        return this._cfgIdManuallySet;
     }
 
     public updateRoomId(roomId: number) {
@@ -123,7 +136,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     /** 获取房间唯一标识（稳定，创建后不变） */
     public getUid(): string {
-        if(!this._uid) this.generateUid();
+        if (!this._uid) this.generateUid();
         return this._uid;
     }
 
@@ -132,7 +145,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         if (this._uid) return this._uid;
         const timestamp = Date.now().toString(36);
         const random = Math.random().toString(36).substring(2, 6);
-        this._uid = `room_${timestamp}_${random}`;
+        this._uid = `${Date.now()}_${timestamp}_${random}`;
     }
 
     /** 从 uid 提取数字编号，用于自动命名时同步 roomId */
@@ -294,6 +307,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     public getDat(): MapDrawDatRoom {
         const dat: MapDrawDatRoom = {
             uid: this._uid,
+            isManualSet: this._cfgIdManuallySet ?? false,
             cfgId: this._roomCfgId,
             layer: this._layer,
             pos: this.getPos(),

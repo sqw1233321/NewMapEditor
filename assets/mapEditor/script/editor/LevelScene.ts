@@ -435,7 +435,7 @@ export default class LevelScene extends cc.Component {
     if (draggedRoom && /^Layer\d+$/.test(targetParent.name)) {
       this.handleRoomDragEnd(draggedRoom, targetParent, itemParent);
     }
-    else if(itemDat.name == "playerExit" || itemDat.name == "playerCreate") {
+    else if (itemDat.name == "playerExit" || itemDat.name == "playerCreate") {
       itemDat.parent = targetParent;
     }
     // 房间内item 刷新来源/目标房间数据
@@ -444,10 +444,10 @@ export default class LevelScene extends cc.Component {
     }
 
     AttrMgr.instance.refreshAttrPanel();
-    
+
     // 保存撤销快照（拖拽完成）
     this.saveUndoSnapshot();
-    
+
     this._dragDat = null;
   }
 
@@ -456,8 +456,8 @@ export default class LevelScene extends cc.Component {
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
     if (!mapLoaderComp) return;
 
-    // 刷新房间命名
-    this.syncRoomNameAndIdForLayer(roomCom, targetParent, oldParent);
+    //刷新房间命名
+    mapLoaderComp.syncRoomNameAndIdForLayer(roomCom, targetParent, oldParent, this.levelJson?.name ?? "");
 
     // 刷新 layer bounds
     if (oldParent && /^Layer\d+$/.test(oldParent.name)) {
@@ -492,101 +492,6 @@ export default class LevelScene extends cc.Component {
     this._mapInteraction.clearDragHover(this._dragDat, this._hoverDat, this.hoverDrawer);
   }
 
-  // ==================== 房间命名同步 ====================
-
-  private syncRoomNameAndIdForLayer(
-    roomCom: MapDrawRoom,
-    newLayerNd: cc.Node,
-    oldLayerNd: cc.Node,
-  ) {
-    if (!roomCom || !newLayerNd) return;
-
-    const mapName = this.levelJson?.name ?? "";
-    const mapNoMatch = /(\d+)$/.exec(mapName);
-    const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
-    const oldCfgId = roomCom.getRoomCfgId();
-    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
-
-    const reorderLayerNames = (layerNd: cc.Node): MapDrawRoom[] => {
-      if (!layerNd || !cc.isValid(layerNd)) return [];
-      const m = /^Layer(\d+)$/.exec(layerNd.name);
-      if (!m) return [];
-      const layerNo = Number(m[1]);
-      if (!isFinite(layerNo)) return [];
-
-      const rooms = layerNd.children
-        .map((nd) => nd?.getComponent(MapDrawRoom))
-        .filter((r) => !!r && cc.isValid(r.node))
-        .sort((a, b) => {
-          const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-          const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-          return ax - bx;
-        });
-
-      rooms.forEach((r, index) => {
-        const roomNo = index + 1;
-        const renamedId = mapNo * 100 + (layerNo - 1) * 10 + roomNo;
-        const controller = r.node.getComponent(MapDrawRoom);
-        if (EditorSetting.Instance.getAutoRename()) {
-          mapLoaderComp.renameRoomNode(controller.getRoomId(), renamedId, r.node);
-          controller.updateRoomId(renamedId);
-        }
-      });
-      return rooms;
-    };
-
-    const newLayerRooms = reorderLayerNames(newLayerNd);
-    if (oldLayerNd && oldLayerNd !== newLayerNd) {
-      reorderLayerNames(oldLayerNd);
-    }
-
-    const layerMatch = /^Layer(\d+)$/.exec(newLayerNd.name);
-    if (!layerMatch) return;
-    const layer = Number(layerMatch[1]);
-    if (!isFinite(layer)) return;
-
-    const idx = newLayerRooms.findIndex((r) => r === roomCom);
-    if (idx < 0) return;
-    const newRoomNo = idx + 1;
-    const newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
-
-    const worldPos = roomCom.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    const size = roomCom.node.getContentSize();
-    const uid = roomCom.getUid();
-
-    // 颜色保留
-    let color = cc.Color.WHITE;
-    const bgNd = roomCom.node.getChildByName("bg");
-    if (bgNd) color = bgNd.color;
-
-    // 重新 init
-    const roomDat: MapDrawDatRoom = {
-      uid: uid,
-      cfgId: newCfgId,
-      layer: layer,
-      pos: { x: worldPos.x, y: worldPos.y },
-      size: { width: size.width, height: size.height },
-      pathPointIds: [],
-      unlockPointIds: [],
-      doors: [],
-      ladders: [],
-      enemyRefreshDatas: [],
-      enemyCreateDatas: [],
-      baseItemDatas: [],
-      searchItemDatas: [],
-      survivorDatas: [],
-      fightSoulDatas: [],
-    };
-
-    if (oldCfgId === 0) {
-      roomCom.unLockPoints = [];
-    }
-
-    roomCom.init(roomDat, color);
-    roomCom.refreshDat();
-    mapLoaderComp?.renameRoomNode(oldCfgId, newCfgId, roomCom.node);
-  }
-
   // ==================== 节点操作 ====================
 
   public deleteNd() {
@@ -602,15 +507,15 @@ export default class LevelScene extends cc.Component {
     //删除房间
     if (type === UnitType.Room) {
       mapLoaderComp?.deleteRoom(trackNd);
-    } 
+    }
     //删除路径点
     else if (type === UnitType.PathPoint) {
       mapLoaderComp?.deletePathPoint(trackNd);
-    } 
+    }
     //删除房间外物体
     else if (this._mapInteraction.isOutRoomUnitType(type)) {
       mapLoaderComp?.deletePortal(trackNd);
-    } 
+    }
     //删除房间内物体
     else {
       const ownerRoom = MapTool.findOwnerRoomByNode(trackNd.parent);
@@ -648,7 +553,7 @@ export default class LevelScene extends cc.Component {
 
 
   //TODO：===================撤销功能===================
-  
+
   /**
    * 保存撤销快照（供外部调用）
    */
@@ -674,7 +579,7 @@ export default class LevelScene extends cc.Component {
       // 清除当前追踪节点（恢复快照后旧节点引用可能失效）
       AttrMgr.instance.setTrackNd(null);
       EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
-      
+
       mapLoaderComp.restoreFromJson(snapshot);
       console.log("[Undo] Undo success");
     }
@@ -695,7 +600,7 @@ export default class LevelScene extends cc.Component {
       // 清除当前追踪节点（恢复快照后旧节点引用可能失效）
       AttrMgr.instance.setTrackNd(null);
       EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
-      
+
       mapLoaderComp.restoreFromJson(snapshot);
       console.log("[Undo] Redo success");
     }

@@ -177,6 +177,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 }
                 else{
                     this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
+                    this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
                 }
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
                 this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);

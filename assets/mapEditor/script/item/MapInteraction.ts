@@ -403,38 +403,4 @@ export default class MapInteraction {
   public isOutRoomUnitType(type: UnitType): boolean {
     return [UnitType.Portal, UnitType.Cable, UnitType.Stone].includes(type);
   }
-
-  /** 获取拖拽落点的目标父节点 */
-  public getDropTargetParent(
-    dragDat: DragType,
-    itemParent: cc.Node
-  ): cc.Node | null {
-    if (!dragDat) return null;
-
-    const itemDat = dragDat.itemNode;
-    const type = itemDat.getComponent(MapDrawUnitBase)?.getType();
-
-    // 房间
-    if (type === UnitType.Room) {
-      if (dragDat.hoverLayerNode && cc.isValid(dragDat.hoverLayerNode)) {
-        return dragDat.hoverLayerNode;
-      } else {
-        const roomWorldPos = itemDat.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        return this._mapLoaderComp?.createLayerForRoomDrop(roomWorldPos.y) ?? null;
-      }
-    }
-
-    // 房间外物品
-    if (this.isOutRoomUnitType(type)) {
-      return this._mapLoaderComp?.getOutRoomUnitParent() ?? null;
-    }
-
-    // 出生点/出口点
-    if (itemDat.name === "playerExit" || itemDat.name === "playerCreate") {
-      return itemParent;
-    }
-
-    // 房间内物品
-    return null;
-  }
 }

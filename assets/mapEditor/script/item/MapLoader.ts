@@ -11,6 +11,7 @@ import { UnitType } from "../type/mapTypes";
 import MapSerializer from "./MapSerializer";
 import MapLineDrawer from "./MapLineDrawer";
 import MapBuilder from "./MapBuilder";
+import { MapDrawDatRoom } from "./MapDrawDat";
 
 const { ccclass, property } = cc._decorator;
 
@@ -268,6 +269,35 @@ export default class MapLoader extends cc.Component {
     roomNd.setPosition(layerNd.convertToNodeSpaceAR(worldAnchor));
   }
 
+  //重命名layer中的所有房间id
+  private reorderLayerNames(mapNo: number, layerNd: cc.Node): MapDrawRoom[] {
+    if (!layerNd || !cc.isValid(layerNd)) return [];
+    const m = /^Layer(\d+)$/.exec(layerNd.name);
+    if (!m) return [];
+    const layerNo = Number(m[1]);
+    if (!isFinite(layerNo)) return [];
+
+    const rooms = layerNd.children
+      .map((nd) => nd?.getComponent(MapDrawRoom))
+      .filter((r) => !!r && cc.isValid(r.node))
+      .sort((a, b) => {
+        const ax = a.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+        const bx = b.node.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
+        return ax - bx;
+      });
+
+    rooms.forEach((r, index) => {
+      const roomNo = index + 1;
+      const renamedId = mapNo * 100 + (layerNo - 1) * 10 + roomNo;
+      const controller = r.node.getComponent(MapDrawRoom);
+      if (EditorSetting.Instance.getAutoRename()) {
+        this.renameRoomNode(controller.getRoomId(), renamedId, r.node);
+        controller.updateRoomId(renamedId);
+      }
+    });
+    return rooms;
+  };
+
   /**
    * 创建新 Layer（拖拽房间落点不在现有 layer 上时）
    */
@@ -337,18 +367,18 @@ export default class MapLoader extends cc.Component {
       if (!roomNd) return;
       const roomCom = roomNd.getComponent(MapDrawRoom);
       if (!roomCom) return;
-
-      const oldId = roomCom.getRoomCfgId();
-      const oldMapNo = Math.floor(oldId / 100);
-      const roomNo = oldId - oldMapNo * 100 - (newLayerNo - 1) * 10;
-      const newCfgId = oldMapNo * 100 + (newLayerNo - 1) * 10 + roomNo;
-
+      //更新层级
       roomCom.changeLayer(newLayerNo);
+
+      //自动命名功能，当层级变化时，自动更新房间id
       if (EditorSetting.Instance.getAutoRename()) {
+        const oldId = roomCom.getRoomCfgId();
+        const oldMapNo = Math.floor(oldId / 100);
+        const roomNo = oldId - oldMapNo * 100 - (newLayerNo - 1) * 10;
+        const newCfgId = oldMapNo * 100 + (newLayerNo - 1) * 10 + roomNo;
         roomCom.updateRoomId(newCfgId);
+        this.renameRoomNode(oldId, newCfgId, roomNd);
       }
-      roomCom.refreshDat();
-      this.renameRoomNode(oldId, newCfgId, roomNd);
     });
   }
 
@@ -461,6 +491,80 @@ export default class MapLoader extends cc.Component {
     this._layerNodeMap.forEach((layerNd) => this.updateLayerBounds(layerNd));
     this.rebuildPointIdsByLayer();
   }
+
+  // ==================== 房间命名同步 ====================
+
+  //房间拖拽结束后的命名规则
+  public syncRoomNameAndIdForLayer(
+    roomCom: MapDrawRoom,
+    newLayerNd: cc.Node,
+    oldLayerNd: cc.Node,
+    mapName: string,
+  ) {
+    if (!roomCom || !newLayerNd) return;
+    const mapNoMatch = /(\d+)$/.exec(mapName);
+    const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
+    const layerMatch = /^Layer(\d+)$/.exec(newLayerNd.name);
+    if (!layerMatch) return;
+    const layer = Number(layerMatch[1]);
+    if (!isFinite(layer)) return;
+
+    const oldCfgId = roomCom.getRoomCfgId();
+    const isNewRoom = oldCfgId == 0;
+    const uid = roomCom.getUid();
+    let newCfgId = Number(uid.split("_")[0]);
+
+    //自动命名
+    if (EditorSetting.Instance.getAutoRename()) {
+      //自动命名时，需要重新排序新旧两个layer的所有房间id
+      const newLayerRooms = this.reorderLayerNames(mapNo, newLayerNd);
+      if (oldLayerNd && oldLayerNd !== newLayerNd) {
+        this.reorderLayerNames(mapNo, oldLayerNd);
+      }
+      const idx = newLayerRooms.findIndex((r) => r === roomCom);
+      if (idx < 0) return;
+      const newRoomNo = idx + 1;
+      //自动命名后的roomId
+      newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
+    }
+
+    // 新房间重新 init
+    if (isNewRoom) {
+      const worldPos = roomCom.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+      const size = roomCom.node.getContentSize();
+      const roomDat: MapDrawDatRoom = {
+        uid: uid,
+        isManualSet: false,
+        cfgId: newCfgId,
+        layer: layer,
+        pos: { x: worldPos.x, y: worldPos.y },
+        size: { width: size.width, height: size.height },
+        pathPointIds: [],
+        unlockPointIds: [],
+        doors: [],
+        ladders: [],
+        enemyRefreshDatas: [],
+        enemyCreateDatas: [],
+        baseItemDatas: [],
+        searchItemDatas: [],
+        survivorDatas: [],
+        fightSoulDatas: [],
+      };
+      // 颜色
+      let color = cc.Color.WHITE;
+      const bgNd = roomCom.node.getChildByName("bg");
+      if (bgNd) color = bgNd.color;
+      roomCom.init(roomDat, color);
+    }
+    //旧房间
+    else {
+      const isManuallySet = roomCom.getManulSet();
+      //没有手动改过，刷新id以及所有房间内id
+      if (!isManuallySet) roomCom.updateRoomId(newCfgId);
+    }
+    this.renameRoomNode(oldCfgId, newCfgId, roomCom.node);
+  }
+
 
   // ==================== 路径点管理 ====================
 

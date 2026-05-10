@@ -58,7 +58,11 @@ export interface MapDrawDatPathPoint {
 }
 
 export interface MapDrawDatRoom {
-    uid: string;
+    //编辑器自用数据
+    uid: string;//uid
+    isManualSet: boolean; //是否手动改过roomId
+    
+    //导出数据
     cfgId: number;
     layer: number;
     pos: MapDrawDatVec2;
