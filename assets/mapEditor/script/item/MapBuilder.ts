@@ -20,6 +20,7 @@ import {
   MapDrawDatStoneData,
 } from "./MapDrawDat";
 import MapLoader from "./MapLoader";
+import MapTool from "../tool/MapTool";
 
 const { ccclass, property } = cc._decorator;
 
@@ -105,6 +106,10 @@ export default class MapBuilder {
     return this._mapLoader.getRoomNode(cfgId);
   }
 
+  private applyOffset(pos: { x: number; y: number }, parentNd: cc.Node): cc.Vec2 {
+    return parentNd?.convertToNodeSpaceAR(cc.v2(MapTool.converMapPosToWorldPos(cc.v2(pos.x, pos.y))));
+  }
+
   // ==================== 构建 ====================
 
   public build(
@@ -167,8 +172,7 @@ export default class MapBuilder {
       nd.color = isCreate ? cc.Color.ORANGE : cc.Color.CYAN;
 
       const dat = isCreate ? mapData.playerCreatePos : mapData.playerExitPos;
-      const worldPos = cc.v2(dat.x, dat.y);
-      const localPos = nd.parent.convertToNodeSpaceAR(worldPos);
+      const localPos = this.applyOffset(dat, nd.parent);
       nd.setPosition(localPos);
       nd.addComponentSafe(MapDrawUnitBase);
     });
@@ -184,8 +188,7 @@ export default class MapBuilder {
       roomNd.parent = layerCont;
       roomNd.setAnchorPoint(0, 0);
 
-      const worldPos = cc.v2(room.pos.x, room.pos.y);
-      const localPos = roomNd.parent.convertToNodeSpaceAR(worldPos);
+      const localPos = this.applyOffset(room.pos, roomNd.parent);
       roomNd.setPosition(localPos);
 
       this._mapLoader.addRoomToLayer(roomNd, room.layer);
@@ -235,8 +238,7 @@ export default class MapBuilder {
         pointNd.name = p.id;
         pointNd.parent = pointCont;
 
-        const worldPos = cc.v2(p.pos.x, p.pos.y);
-        const localPos = pointCont.convertToNodeSpaceAR(worldPos);
+        const localPos = this.applyOffset(p.pos, pointCont);
         pointNd.setPosition(localPos);
 
         const pointCom = pointNd.addComponentSafe(MapDrawP);
@@ -281,9 +283,8 @@ export default class MapBuilder {
         ladderNd.parent = roomNd.getChildByName("unitCont");
         ladderNd.setAnchorPoint(0.5, 0);
 
-        const worldPos = cc.v2(ladder.pos.x, ladder.pos.y);
-        const localPos = ladderNd.parent.convertToNodeSpaceAR(worldPos);
-        ladderNd.setPosition(localPos);
+        const adjustedPos = this.applyOffset(ladder.pos, ladderNd.parent);
+        ladderNd.setPosition(adjustedPos.x, adjustedPos.y);
 
         // 设置高度
         const startNd = this.getPointById(ladder.bindPointIds?.[0]);
@@ -321,9 +322,8 @@ export default class MapBuilder {
         doorNd.name = `Door${doorId++}`;
         doorNd.parent = roomNd.getChildByName("unitCont");
 
-        const worldPos = cc.v2(door.pos.x, door.pos.y);
-        const localPos = doorNd.parent.convertToNodeSpaceAR(worldPos);
-        doorNd.setPosition(localPos);
+        const adjustedPos = this.applyOffset(door.pos, doorNd.parent);
+        doorNd.setPosition(adjustedPos.x, adjustedPos.y);
 
         const control = doorNd.addComponentSafe(MapDrawDoor);
         control.init(door.roomId, door.hp);
@@ -345,9 +345,8 @@ export default class MapBuilder {
         itemNd.name = `SearchItem${nameId++}`;
         itemNd.parent = roomNd.getChildByName("unitCont");
 
-        const worldPos = cc.v2(item.pos.x, item.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
+        const adjustedPos = this.applyOffset(item.pos, itemNd.parent);
+        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
         const control = itemNd.addComponentSafe(MapDrawSearchItem);
         control.init(item.roomId);
@@ -370,9 +369,8 @@ export default class MapBuilder {
       itemNd.name = `EnemyRefresh${nameId++}`;
       itemNd.parent = roomNd.getChildByName("unitCont");
 
-      const worldPos = cc.v2(refreshDat.pos.x, refreshDat.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
+      const adjustedPos = this.applyOffset(refreshDat.pos, itemNd.parent);
+      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
       const control = itemNd.addComponentSafe(MapDrawEnemyRefresh);
       control.init(refreshDat.roomId, refreshDat.refreshId, refreshDat.param);
@@ -393,9 +391,8 @@ export default class MapBuilder {
         itemNd.name = `Survive${nameId++}`;
         itemNd.parent = roomNd.getChildByName("unitCont");
 
-        const worldPos = cc.v2(survive.pos.x, survive.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
+        const adjustedPos = this.applyOffset(survive.pos, itemNd.parent);
+        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
         const control = itemNd.addComponentSafe(MapDrawSurvive);
         control.init(survive);
@@ -417,9 +414,8 @@ export default class MapBuilder {
         itemNd.name = `FightSoul${nameId++}`;
         itemNd.parent = roomNd.getChildByName("unitCont");
 
-        const worldPos = cc.v2(fightSoul.pos.x, fightSoul.pos.y);
-        const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-        itemNd.setPosition(localPos);
+        const adjustedPos = this.applyOffset(fightSoul.pos, itemNd.parent);
+        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
         const control = itemNd.addComponentSafe(MapDrawFightSoul);
         control.init(fightSoul);
@@ -440,9 +436,8 @@ export default class MapBuilder {
       itemNd.name = `Portal${nameId++}`;
       itemNd.parent = outRoomUnitCont;
 
-      const worldPos = cc.v2(portal.pos.x, portal.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
+      const adjustedPos = this.applyOffset(portal.pos, itemNd.parent);
+      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
       const control = itemNd.addComponentSafe(MapDrawPortal);
       const linkP = this.getPointById(portal.linkId);
@@ -475,9 +470,8 @@ export default class MapBuilder {
       itemNd.name = `Stone${nameId++}`;
       itemNd.parent = outRoomUnitCont;
 
-      const worldPos = cc.v2(dat.pos.x, dat.pos.y);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
+      const adjustedPos = this.applyOffset(dat.pos, itemNd.parent);
+      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
       const control = itemNd.addComponentSafe(MapDrawStone);
       control.init(dat);
@@ -500,10 +494,9 @@ export default class MapBuilder {
       itemNd.name = `Cable${nameId++}`;
       itemNd.parent = outRoomUnitCont;
 
-      const pointInfo = this.getPointById(startCom.getId());
-      const worldPos = cc.v2(pointInfo?.position.x || 0, pointInfo?.position.y || 0);
-      const localPos = itemNd.parent.convertToNodeSpaceAR(worldPos);
-      itemNd.setPosition(localPos);
+      // 使用起始点的世界坐标转换为 outRoomUnitCont 的本地坐标
+      const adjustedPos = this.applyOffset(startCom.getPos(), itemNd.parent);
+      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
       const points = (dat.points || [])
         .map((id: string) => this.getPointById(id))

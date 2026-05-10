@@ -20,6 +20,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
     private _trackNd: cc.Node;
     private _mapLoader: MapLoader;
 
+    /** 属性变更回调（用于撤销功能） */
+    public onAttrChanged?: () => void;
+
     public static get instance(): AttrMgr {
         return super.instance as AttrMgr;
     }
@@ -252,6 +255,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 this._mapLoader.moveUnitToRoom(this._trackNd, nextRoomId);
             }
         }
+
+        // 属性变更回调
+        this.onAttrChanged?.();
     }
 
     //更新区域信息

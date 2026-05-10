@@ -28,7 +28,7 @@ export default class MapTool {
     }
 
     /**
-     * 世界坐标转地图坐标
+     * 地图坐标转世界坐标
      */
     static converMapPosToWorldPos(mapPos: cc.Vec2) {
         return this._mapLoader.convertToWorldSpaceAR(mapPos);

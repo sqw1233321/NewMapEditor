@@ -137,6 +137,7 @@ export default class EditPanel extends cc.Component {
         break;
       case UnitType.EnemyRefresh:
         this.showEnemyRefreshAttrNd();
+        break;
       case UnitType.SurviveDat:
         this.showSurviveRefreshAttrNd();
         break;

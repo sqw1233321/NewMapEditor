@@ -1,5 +1,6 @@
 ﻿import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import { UndoManager } from "../frameWork/UndoManager";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
@@ -81,6 +82,7 @@ export default class LevelScene extends cc.Component {
   private _mapInteraction: MapInteraction = null;
   private _mapExporter: MapExporter = null;
   private _keyInputHandler: KeyInputHandler = null;
+  private _undoManager: UndoManager = null;
 
   // ==================== 生命周期 ====================
 
@@ -110,11 +112,16 @@ export default class LevelScene extends cc.Component {
     this._keyInputHandler.onShiftUp = () => this._isShiftDown = false;
     this._keyInputHandler.onCtrlS = () => this.onClickSave();
     this._keyInputHandler.onCtrlZ = () => this.onUndo();
+    this._keyInputHandler.onCtrlY = () => this.onRedo();
     this._keyInputHandler.startListen();
+
+    // 初始化撤销管理器
+    this._undoManager = new UndoManager();
 
     // 初始化管理器
     ModeMgr.instance.init();
     AttrMgr.instance.init(this.mapLoader.getComponent(MapLoader));
+    AttrMgr.instance.onAttrChanged = () => this.saveUndoSnapshot();
     MapTool.init(this.mapLoader, this.mapSize);
 
     // 初始化地图
@@ -124,6 +131,8 @@ export default class LevelScene extends cc.Component {
 
   protected start(): void {
     this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
+    //一开始先存一次快照
+    this.saveUndoSnapshot();
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
   }
@@ -435,6 +444,10 @@ export default class LevelScene extends cc.Component {
     }
 
     AttrMgr.instance.refreshAttrPanel();
+    
+    // 保存撤销快照（拖拽完成）
+    this.saveUndoSnapshot();
+    
     this._dragDat = null;
   }
 
@@ -580,6 +593,9 @@ export default class LevelScene extends cc.Component {
     const trackNd = AttrMgr.instance.getTrachNd();
     if (!trackNd || !cc.isValid(trackNd)) return;
 
+    // 保存删除前的快照
+    this.saveUndoSnapshot();
+
     const type = trackNd.getComponent(MapDrawUnitBase).getType();
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
 
@@ -632,9 +648,57 @@ export default class LevelScene extends cc.Component {
 
 
   //TODO：===================撤销功能===================
+  
+  /**
+   * 保存撤销快照（供外部调用）
+   */
+  public saveUndoSnapshot() {
+    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+    if (!mapLoaderComp) return;
+    const snapshot = mapLoaderComp.saveDat();
+    this._undoManager?.saveSnapshot(snapshot);
+  }
+
+  /**
+   * 撤销 (Ctrl+Z)
+   */
   private onUndo() {
-    // TODO: 实现撤销功能
-    console.log("撤销");
+    const snapshot = this._undoManager?.undo();
+    if (!snapshot) {
+      console.log("[Undo] No snapshot to undo");
+      return;
+    }
+
+    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+    if (mapLoaderComp) {
+      // 清除当前追踪节点（恢复快照后旧节点引用可能失效）
+      AttrMgr.instance.setTrackNd(null);
+      EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
+      
+      mapLoaderComp.restoreFromJson(snapshot);
+      console.log("[Undo] Undo success");
+    }
+  }
+
+  /**
+   * 重做 (Ctrl+Y)
+   */
+  private onRedo() {
+    const snapshot = this._undoManager?.redo();
+    if (!snapshot) {
+      console.log("[Undo] No snapshot to redo");
+      return;
+    }
+
+    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+    if (mapLoaderComp) {
+      // 清除当前追踪节点（恢复快照后旧节点引用可能失效）
+      AttrMgr.instance.setTrackNd(null);
+      EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
+      
+      mapLoaderComp.restoreFromJson(snapshot);
+      console.log("[Undo] Redo success");
+    }
   }
 
   // ==================== 缩放 ====================

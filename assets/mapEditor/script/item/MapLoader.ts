@@ -754,6 +754,32 @@ export default class MapLoader extends cc.Component {
     return this._mapSerializer.export();
   }
 
+  /**
+   * 从 JSON 恢复地图（用于撤销/重做）
+   * @param jsonStr JSON 字符串
+   */
+  public restoreFromJson(jsonStr: string): void {
+    if (!jsonStr) return;
+
+    try {
+      const json = JSON.parse(jsonStr);
+      if (!json) return;
+
+      // 1. 清空当前地图
+      this.clear();
+
+      // 2. 重新构建地图
+      this._mapBuilder.build({ json: json }, {
+        layerCont: this._layerCont,
+        outRoomUnitCont: this._outRoomUnitCont,
+        playerCreate: this._playerCreateNd,
+        playerExit: this._playerExitNd,
+      });
+    } catch (e) {
+      console.error("[MapLoader] restoreFromJson failed:", e);
+    }
+  }
+
   private refreshDat() {
     this._layerCont?.children.forEach((layer) => {
       layer.children.forEach((roomNd) => {

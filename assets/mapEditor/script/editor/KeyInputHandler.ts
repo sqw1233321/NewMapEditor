@@ -11,6 +11,7 @@ export default class KeyInputHandler {
   public onShiftUp?: () => void;
   public onCtrlS?: () => void;
   public onCtrlZ?: () => void;
+  public onCtrlY?: () => void;
   public onEscape?: () => void;
 
   // ==================== 生命周期 ====================
@@ -39,15 +40,27 @@ export default class KeyInputHandler {
       return;
     }
 
+    // Ctrl 键
+    if (this.isCtrlKey(keyCode)) {
+      this._isCtrlDown = true;
+      // 不 return，继续检测 Ctrl+其他键
+    }
+
     // Ctrl + S 保存
-    if (this.isCtrlKey(keyCode) && keyCode === cc.macro.KEY.s) {
+    if (this._isCtrlDown && keyCode === cc.macro.KEY.s) {
       this.onCtrlS?.();
       return;
     }
 
     // Ctrl + Z 撤销
-    if (this.isCtrlKey(keyCode) && keyCode === cc.macro.KEY.z) {
+    if (this._isCtrlDown && keyCode === cc.macro.KEY.z) {
       this.onCtrlZ?.();
+      return;
+    }
+
+    // Ctrl + Y 重做
+    if (this._isCtrlDown && keyCode === cc.macro.KEY.y) {
+      this.onCtrlY?.();
       return;
     }
 
@@ -60,19 +73,31 @@ export default class KeyInputHandler {
   }
 
   private onKeyUp(event: cc.Event.EventKeyboard) {
-    if (this.isShiftKey(event.keyCode)) {
+    const keyCode = event.keyCode;
+
+    if (this.isShiftKey(keyCode)) {
       this._isShiftDown = false;
       this.onShiftUp?.();
+    }
+
+    if (this.isCtrlKey(keyCode)) {
+      this._isCtrlDown = false;
     }
   }
 
   // ==================== 辅助方法 ====================
 
   private _isShiftDown: boolean = false;
+  private _isCtrlDown: boolean = false;
 
   /** 当前 Shift 键是否按下 */
   public get isShiftDown(): boolean {
     return this._isShiftDown;
+  }
+
+  /** 当前 Ctrl 键是否按下 */
+  public get isCtrlDown(): boolean {
+    return this._isCtrlDown;
   }
 
   /** 判断是否是 Shift 键 */
