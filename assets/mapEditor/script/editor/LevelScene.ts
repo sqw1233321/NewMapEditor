@@ -22,6 +22,7 @@ import MapExporter from "../item/MapExporter";
 import KeyInputHandler from "./KeyInputHandler";
 import PopManager from "./PopManager";
 import MapBgPrefab from "./MapBgPrefab";
+import { MapBgManager } from "./MapBgManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -93,7 +94,7 @@ export default class LevelScene extends cc.Component {
 
   // ==================== 生命周期 ====================
 
-  protected onLoad(): void {
+  protected async onLoad() {
     // 初始化子模块
     this._mapInteraction = new MapInteraction();
     this._mapInteraction.init(this.mapLoader);
@@ -142,11 +143,13 @@ export default class LevelScene extends cc.Component {
     this.adapterMap();
   }
 
-  protected start(): void {
+  protected async start() {
     //初始化mapLoader
     this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
+    // 加载图集配置
+    await MapBgManager.instance.loadMapData();
     //切换背景图
-    this.changeMapBg();
+    await this.changeMapBg();
     //一开始先存一次快照
     this.saveUndoSnapshot();
     this.autoRenameTog.isChecked = true;
@@ -562,17 +565,22 @@ export default class LevelScene extends cc.Component {
   //新建
   public async onClickCreate() {
     PopManager.ins.showCreateFilePop({
-      exporter: this._mapExporter, cb: (jsonContent, fileName) => {
+      exporter: this._mapExporter, cb: async (jsonContent, fileName) => {
         const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
         mapLoaderComp.restoreFromJson(jsonContent, fileName);
-        this.changeMapBg();
+        await this.changeMapBg();
       }
     });
   }
 
   //更换背景
-  public onClickChangeBg() {
-
+  public async onClickChangeBg() {
+    //TODO:测试数据
+    const mapDta = "Level1";
+    const ok = await MapBgManager.instance.selectAndImportAtlas(mapDta);
+    if (ok) {
+      await this.changeMapBg();
+    }
   }
 
   //导入
@@ -580,7 +588,7 @@ export default class LevelScene extends cc.Component {
     const result = await this._mapExporter?.import();
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
     mapLoaderComp.restoreFromJson(result.content, result.fileName);
-    this.changeMapBg();
+    await this.changeMapBg();
   }
 
 
@@ -684,19 +692,32 @@ export default class LevelScene extends cc.Component {
     this.fileNameLb.string = fileName;
   }
 
-  private changeMapBg() {
+  private async changeMapBg() {
     //如果当前没有背景图，则创建一个
-    if(this.mapCanvasNd.childrenCount == 0){
+    if (this.mapCanvasNd.childrenCount == 0) {
       const prefab = cc.instantiate(this.magBgPrefab);
       prefab.parent = this.mapCanvasNd;
       prefab.setPosition(0, 0);
     }
     const mapBg = this.mapCanvasNd.children[0];
-    mapBg.getComponent(MapBgPrefab).init({
-      areaNumber: 1,
-      oneAreaSize: new cc.Vec2(100, 100),
-      areaOffset: 100,
-      sps: [[]]
-    });
+
+
+    // 从 MapBgManager 获取当前地图对应的背景图数据
+    // const mapDta = this.levelJson?.name ?? "Level1";
+    //TODO:测试数据
+    const mapDta = "Level1";
+    const bgData = await MapBgManager.instance.loadBgByMapDta(mapDta);
+
+    if (bgData) {
+      mapBg.getComponent(MapBgPrefab).init(bgData);
+    } else {
+      // 没有配置时使用默认空数据
+      mapBg.getComponent(MapBgPrefab).init({
+        areaNumber: 1,
+        oneAreaSize: new cc.Vec2(100, 100),
+        areaOffset: 100,
+        sps: [[]]
+      });
+    }
   }
 }

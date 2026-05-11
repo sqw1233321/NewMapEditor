@@ -33,7 +33,7 @@ export default class MapBgPrefab extends cc.Component {
     private setUI() {
         this.areaCont.getComponent(cc.Layout).spacingY = this._dat.areaOffset - this._dat.oneAreaSize.y;
         NodeUtil.autoRefreshChildrenNum(this.areaCont, this._dat.areaNumber, (nd, index, dat) => {
-            const bgCont = this.areaCont.children[0];
+            const bgCont = this.areaCont.children[index];
             bgCont.setContentSize(this._dat.oneAreaSize.x, this._dat.oneAreaSize.y);
             NodeUtil.autoRefreshChildren(bgCont, this._dat.sps[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
                 const sp = bgNd.getComponent(cc.Sprite);
@@ -41,7 +41,7 @@ export default class MapBgPrefab extends cc.Component {
             });
         });
         //保证区域一的中心在原点
-        this.areaCont.setPosition(this.areaCont.position.x, -this.areaCont.children[0].position.y);
+        this.areaCont.setPosition(this.areaCont.position.x, -this._dat.oneAreaSize.y / 2);
 
     }
 

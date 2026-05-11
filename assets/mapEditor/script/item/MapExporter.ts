@@ -90,13 +90,4 @@ export default class MapExporter {
 
 declare var require: any;
 declare var Editor: any;
-declare global {
-  interface Window {
-    electronAPI: {
-      writeFile: (fileName: string, content: string) => Promise<{ success: boolean; error?: string }>;
-      openFileDialog: () => Promise<{ success: boolean; path?: string; content?: string; fileName: string, error?: string }>;
-      createFile: (...param) => Promise<{ success: boolean; path?: string; reason?: string; error?: string }>;
-    };
-  }
-}
 

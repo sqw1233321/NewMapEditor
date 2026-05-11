@@ -2690,10 +2690,12 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
+    "target": {
+      "__id__": 2
+    },
     "component": "",
     "_componentId": "364fdherv5JGLd0eEX1Q89+",
-    "handler": "onClickSave",
+    "handler": "onClickChangeBg",
     "customEventData": ""
   },
   {
