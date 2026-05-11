@@ -148,17 +148,8 @@ export default class MapLoader extends cc.Component {
 
     // 创建基础容器
     this.createContainers();
-
-    // 构建地图
-    this._mapBuilder.build(
-      json,
-      {
-        layerCont: this._layerCont,
-        outRoomUnitCont: this._outRoomUnitCont,
-        playerCreate: this._playerCreateNd,
-        playerExit: this._playerExitNd,
-      }
-    );
+    //构建地图
+    this.restoreFromJson(JSON.stringify(json.json), json.name);
   }
 
   private createContainers() {
@@ -862,10 +853,15 @@ export default class MapLoader extends cc.Component {
    * 从 JSON 创建地图
    * @param jsonStr JSON 字符串
    */
-  public restoreFromJson(jsonStr: string): void {
+  public restoreFromJson(jsonStr: string, fileName: string = ``): void {
     if (!jsonStr) return;
 
     try {
+      //改一下文件名
+      if (fileName) {
+        this.changeFileName(fileName)
+      }
+
       const json = JSON.parse(jsonStr);
       if (!json) return;
 
@@ -918,4 +914,18 @@ export default class MapLoader extends cc.Component {
   public getPathLinkWorldSegmentsFromPoint(pointNode: cc.Node): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
     return this._mapLineDrawer?.getPathLinkWorldSegmentsFromPoint(pointNode) ?? [];
   }
+
+
+  private changeFileName(fileName: string) {
+    this._fileName = fileName;
+    EventManager.instance.emit(
+      MapEditorEvent.updateFile,
+      fileName
+    );
+  }
+
+  public getFileName(): string {
+    return this._fileName;
+  }
+
 }

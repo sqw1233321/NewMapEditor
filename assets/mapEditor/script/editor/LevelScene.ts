@@ -19,8 +19,9 @@ import { AttrMgr } from "../frameWork/AttrMgr";
 import { ModeMgr } from "../frameWork/ModeMgr";
 import MapInteraction from "../item/MapInteraction";
 import MapExporter from "../item/MapExporter";
-import { MapDrawDatRoom } from "../item/MapDrawDat";
 import KeyInputHandler from "./KeyInputHandler";
+import PopManager from "./PopManager";
+import MapBgPrefab from "./MapBgPrefab";
 
 const { ccclass, property } = cc._decorator;
 
@@ -65,6 +66,12 @@ export default class LevelScene extends cc.Component {
   @property(cc.Toggle)
   autoRenameTog: cc.Toggle;
 
+  @property(cc.Label)
+  fileNameLb: cc.Label;
+
+  @property(cc.Prefab)
+  magBgPrefab: cc.Prefab;
+
   // ==================== 私有变量 ====================
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
@@ -106,6 +113,12 @@ export default class LevelScene extends cc.Component {
       this
     );
 
+    EventManager.instance.on(
+      MapEditorEvent.updateFile,
+      this.updateFile,
+      this
+    );
+
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
     this._keyInputHandler.onShiftDown = () => this._isShiftDown = true;
@@ -130,7 +143,10 @@ export default class LevelScene extends cc.Component {
   }
 
   protected start(): void {
+    //初始化mapLoader
     this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
+    //切换背景图
+    this.changeMapBg();
     //一开始先存一次快照
     this.saveUndoSnapshot();
     this.autoRenameTog.isChecked = true;
@@ -148,6 +164,13 @@ export default class LevelScene extends cc.Component {
       this.updateCurModeDisplay,
       this
     );
+
+    EventManager.instance.off(
+      MapEditorEvent.updateFile,
+      this.updateFile,
+      this
+    );
+
 
     this._keyInputHandler?.stopListen();
 
@@ -537,12 +560,18 @@ export default class LevelScene extends cc.Component {
   // ==================== 编辑器操作 ====================
 
   //新建
-  public onClickCreate(){
-
+  public async onClickCreate() {
+    PopManager.ins.showCreateFilePop({
+      exporter: this._mapExporter, cb: (jsonContent, fileName) => {
+        const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+        mapLoaderComp.restoreFromJson(jsonContent, fileName);
+        this.changeMapBg();
+      }
+    });
   }
 
   //更换背景
-  public onClickChangeBg(){
+  public onClickChangeBg() {
 
   }
 
@@ -550,7 +579,8 @@ export default class LevelScene extends cc.Component {
   public async onClickImport() {
     const result = await this._mapExporter?.import();
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
-    mapLoaderComp.restoreFromJson(result);
+    mapLoaderComp.restoreFromJson(result.content, result.fileName);
+    this.changeMapBg();
   }
 
 
@@ -648,5 +678,25 @@ export default class LevelScene extends cc.Component {
 
   onTogAutoReanme(event) {
     EditorSetting.Instance.setAutoRename(event.isChecked);
+  }
+
+  private updateFile(fileName: string) {
+    this.fileNameLb.string = fileName;
+  }
+
+  private changeMapBg() {
+    //如果当前没有背景图，则创建一个
+    if(this.mapCanvasNd.childrenCount == 0){
+      const prefab = cc.instantiate(this.magBgPrefab);
+      prefab.parent = this.mapCanvasNd;
+      prefab.setPosition(0, 0);
+    }
+    const mapBg = this.mapCanvasNd.children[0];
+    mapBg.getComponent(MapBgPrefab).init({
+      areaNumber: 1,
+      oneAreaSize: new cc.Vec2(100, 100),
+      areaOffset: 100,
+      sps: [[]]
+    });
   }
 }

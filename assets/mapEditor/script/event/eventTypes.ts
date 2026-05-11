@@ -22,5 +22,8 @@ export enum MapEditorEvent {
     UpdateAreaInfoFormPanel = "UpdateAreaInfoFormPanel",
 
     //当前模式显示
-    UpdateCurModeDisplay = "UpdateCurModeDisplay"
+    UpdateCurModeDisplay = "UpdateCurModeDisplay",
+
+    //更换文件
+    updateFile = "updateFile"
 }

@@ -15,6 +15,11 @@ export default class MapExporter {
     this._levelJson = levelJson;
   }
 
+  //==================== 新建 ====================
+  public async createFile(fileName, jsonContent) {
+    return await window.electronAPI.createFile(fileName, jsonContent);
+  }
+
   //==================== 导入 ====================
   public async import() {
     const result = await window.electronAPI.openFileDialog();
@@ -23,7 +28,7 @@ export default class MapExporter {
       console.log('导入文件:', result.path);
       console.log('导入文件内容:', mapData);
     }
-    return result.content;
+    return { content: result.content, fileName: result.fileName };
   }
 
   // ==================== 导出 & 保存 ====================
@@ -56,35 +61,15 @@ export default class MapExporter {
   /** 把当前 levelJson 覆盖写回 assets 下对应 json 文件（仅编辑器环境） */
   private persistToDisk(json: string) {
     if (!this._levelJson) return;
-    if (typeof CC_EDITOR != "undefined" && CC_EDITOR) {
-      try {
-        const fs = require("fs");
-        const path = require("path");
-        const assetAny = this._levelJson as any;
-        const uuid = assetAny?._uuid;
-        if (!uuid) return;
-
-        const filePath = (Editor as any)?.assetdb?.uuidToFspath(uuid);
-        if (!filePath) return;
-
-        const normalizedPath = path.normalize(filePath);
-        fs.writeFileSync(normalizedPath, json, "utf8");
-        console.log("Level JSON 已保存：", normalizedPath);
-        (Editor as any)?.assetdb?.refresh("db://assets");
-      } catch (err) {
-        console.error("Level JSON 保存失败:", err);
-      }
-    }
-
     // Electron IPC 方式（web-desktop + Electron）
     if (typeof window.electronAPI !== "undefined") {
       console.log("开始保存");
-      const filePath = "D:/fork/myEditor/mapDat/mapDatTest.json"
-      console.log("准备写入文件:", filePath);
+      const fileName = this._mapLoaderComp.getFileName();
+      console.log("准备写入文件:", fileName);
       console.log("window.electronAPI:", window.electronAPI)
-      if (filePath) {
-        window.electronAPI.writeFile(filePath, json)
-          .then(() => console.log("Level JSON 已保存：", filePath))
+      if (fileName) {
+        window.electronAPI.writeFile(fileName, json)
+          .then(() => console.log("Level JSON 已保存：", fileName))
           .catch((err: any) => console.error("保存失败:", err));
       }
     }
@@ -108,8 +93,9 @@ declare var Editor: any;
 declare global {
   interface Window {
     electronAPI: {
-      writeFile: (path: string, content: string) => Promise<{ success: boolean; error?: string }>;
-      openFileDialog: () => Promise<{ success: boolean; path?: string; content?: string; error?: string }>;
+      writeFile: (fileName: string, content: string) => Promise<{ success: boolean; error?: string }>;
+      openFileDialog: () => Promise<{ success: boolean; path?: string; content?: string; fileName: string, error?: string }>;
+      createFile: (...param) => Promise<{ success: boolean; path?: string; reason?: string; error?: string }>;
     };
   }
 }
