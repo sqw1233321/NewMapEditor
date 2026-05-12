@@ -16,7 +16,7 @@ export default class MapBgPrefab extends cc.Component {
     areaCont: cc.Node;
 
     private _dat;
-
+    private _spArr: cc.SpriteFrame[][] = [];
     /**
      * 
      * @param dat { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[][] }
@@ -25,8 +25,14 @@ export default class MapBgPrefab extends cc.Component {
      * areaOffset: 区域之间的偏移量
      * sps: 背景图集
      */
-    init(dat: { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[][] }) {
+    init(dat: { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[] }) {
         this._dat = dat;
+        //分成二维数组
+        const count = this._dat.sps.length / dat.areaNumber;
+        this._spArr = Array.from(
+            { length: dat.areaNumber },
+            (_, i) => dat.sps.slice(i * count, (i + 1) * count)
+        );
         this.setUI();
     }
 
@@ -35,7 +41,7 @@ export default class MapBgPrefab extends cc.Component {
         NodeUtil.autoRefreshChildrenNum(this.areaCont, this._dat.areaNumber, (nd, index, dat) => {
             const bgCont = this.areaCont.children[index];
             bgCont.setContentSize(this._dat.oneAreaSize.x, this._dat.oneAreaSize.y);
-            NodeUtil.autoRefreshChildren(bgCont, this._dat.sps[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
+            NodeUtil.autoRefreshChildren(bgCont, this._spArr[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
                 const sp = bgNd.getComponent(cc.Sprite);
                 sp.spriteFrame = bgSprite;
             });

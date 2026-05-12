@@ -6,6 +6,12 @@ export default class EditorSetting {
     private _minScale: number = 0;
     private _autoRename = false;
 
+    // ===================当前地图数据========================
+    private _fileInfo: {
+        fileName: string,
+        fileJson: string
+    }
+
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
             EditorSetting._ins = new EditorSetting();
@@ -31,6 +37,19 @@ export default class EditorSetting {
 
     public getAutoRename() {
         return this._autoRename;
+    }
+
+    //设置当前地图数据
+    public setFileInfo(fileInfo: {
+        fileName: string,
+        fileJson: string
+    }) {
+        this._fileInfo = fileInfo;
+    }
+
+    //获取当前房间数据
+    public getFileInfo() {
+        return this._fileInfo;
     }
 
 }

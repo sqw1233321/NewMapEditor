@@ -37,9 +37,6 @@ export default class LevelScene extends cc.Component {
   @property(cc.Camera)
   camera: cc.Camera = null;
 
-  @property(cc.JsonAsset)
-  levelJson: cc.JsonAsset = null;
-
   @property(cc.Node)
   mapCanvasNd: cc.Node;
 
@@ -51,9 +48,6 @@ export default class LevelScene extends cc.Component {
 
   @property(cc.Node)
   dragLayer: cc.Node = null;
-
-  @property(cc.Vec2)
-  mapSize: cc.Vec2 = new cc.Vec2(0, 0);
 
   @property(cc.Node)
   itemPanelNd: cc.Node = null;
@@ -100,7 +94,7 @@ export default class LevelScene extends cc.Component {
     this._mapInteraction.init(this.mapLoader);
 
     this._mapExporter = new MapExporter();
-    this._mapExporter.init(this.mapLoader, this.levelJson);
+    this._mapExporter.init(this.mapLoader);
 
     // 事件监听
     this.node.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
@@ -136,22 +130,17 @@ export default class LevelScene extends cc.Component {
     ModeMgr.instance.init();
     AttrMgr.instance.init(this.mapLoader.getComponent(MapLoader));
     AttrMgr.instance.onAttrChanged = () => this.saveUndoSnapshot();
-    MapTool.init(this.mapLoader, this.mapSize);
 
-    // 初始化地图
-    this.createLevel();
+    // 适配地图
     this.adapterMap();
   }
 
   protected async start() {
     //初始化mapLoader
-    this.mapLoader.getComponent(MapLoader).build(this.levelJson, this.mapSize);
+    this.mapLoader.getComponent(MapLoader).init();
     // 加载图集配置
     await MapBgManager.instance.loadMapData();
-    //切换背景图
-    await this.changeMapBg();
-    //一开始先存一次快照
-    this.saveUndoSnapshot();
+    //自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
   }
@@ -182,13 +171,6 @@ export default class LevelScene extends cc.Component {
   }
 
   // ==================== 初始化 ====================
-
-  private createLevel() {
-    const graphSize = this.mapGraph.getContentSize();
-    const scaleX = graphSize.width / this.mapSize.x;
-    const scaleY = graphSize.height / this.mapSize.y;
-    EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
-  }
 
   private adapterMap() {
     const canvasNd = cc.Canvas.instance.node;
@@ -483,7 +465,7 @@ export default class LevelScene extends cc.Component {
     if (!mapLoaderComp) return;
 
     //刷新房间命名
-    mapLoaderComp.syncRoomNameAndIdForLayer(roomCom, targetParent, oldParent, this.levelJson?.name ?? "");
+    mapLoaderComp.syncRoomNameAndIdForLayer(roomCom, targetParent, oldParent);
 
     // 刷新 layer bounds
     if (oldParent && /^Layer\d+$/.test(oldParent.name)) {
@@ -566,18 +548,18 @@ export default class LevelScene extends cc.Component {
   public async onClickCreate() {
     PopManager.ins.showCreateFilePop({
       exporter: this._mapExporter, cb: async (jsonContent, fileName) => {
-        const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
-        mapLoaderComp.restoreFromJson(jsonContent, fileName);
-        await this.changeMapBg();
+        await this.changeMap(jsonContent, fileName);
       }
     });
   }
 
   //更换背景
   public async onClickChangeBg() {
-    //TODO:测试数据
-    const mapDta = "Level1";
-    const ok = await MapBgManager.instance.selectAndImportAtlas(mapDta);
+    //打开弹窗
+    const fileInfo = EditorSetting.Instance.getFileInfo();
+    if (!fileInfo) return;
+    const fileName = fileInfo.fileName;
+    const ok = await MapBgManager.instance.selectAndImportAtlas(fileName);
     if (ok) {
       await this.changeMapBg();
     }
@@ -586,9 +568,7 @@ export default class LevelScene extends cc.Component {
   //导入
   public async onClickImport() {
     const result = await this._mapExporter?.import();
-    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
-    mapLoaderComp.restoreFromJson(result.content, result.fileName);
-    await this.changeMapBg();
+    await this.changeMap(result.content, result.fileName);
   }
 
 
@@ -605,6 +585,7 @@ export default class LevelScene extends cc.Component {
   //清空
   public onClickClear() {
     this._mapInteraction.getMapLoaderComp()?.clear();
+    this.saveUndoSnapshot();
   }
 
 
@@ -637,7 +618,7 @@ export default class LevelScene extends cc.Component {
       AttrMgr.instance.setTrackNd(null);
       EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
 
-      mapLoaderComp.restoreFromJson(snapshot);
+      mapLoaderComp.createMapFromJson(snapshot);
       console.log("[Undo] Undo success");
     }
   }
@@ -658,7 +639,7 @@ export default class LevelScene extends cc.Component {
       AttrMgr.instance.setTrackNd(null);
       EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
 
-      mapLoaderComp.restoreFromJson(snapshot);
+      mapLoaderComp.createMapFromJson(snapshot);
       console.log("[Undo] Redo success");
     }
   }
@@ -692,6 +673,41 @@ export default class LevelScene extends cc.Component {
     this.fileNameLb.string = fileName;
   }
 
+  //切换地图
+  private async changeMap(jsonContent: string, fileName: string) {
+    //设置当前地图数据
+    EditorSetting.Instance.setFileInfo({
+      //去掉.json
+      fileName: fileName.split(".")[0],
+      fileJson: jsonContent,
+    })
+    const mapDat = JSON.parse(jsonContent);
+    //初始化工具类
+    const width = mapDat.size.width;
+    const height = mapDat.size.height;
+    MapTool.init(this.mapLoader, cc.v2(width, height));
+
+    //设置地图缩放范围
+    const graphSize = this.mapGraph.getContentSize();
+    const scaleX = graphSize.width / width;
+    const scaleY = graphSize.height / height;
+    EditorSetting.Instance.setMinScale(Math.max(scaleX, scaleY));
+
+    //TODO:加个菊花
+
+    //创建地图
+    const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
+    mapLoaderComp.createMapFromJson(jsonContent, fileName);
+    //一开始先存一次快照
+    this.saveUndoSnapshot();
+    //更换背景
+    await this.changeMapBg();
+    //清除快照
+    this._undoManager.clear();
+  }
+
+
+  //切换背景图片
   private async changeMapBg() {
     //如果当前没有背景图，则创建一个
     if (this.mapCanvasNd.childrenCount == 0) {
@@ -703,9 +719,7 @@ export default class LevelScene extends cc.Component {
 
 
     // 从 MapBgManager 获取当前地图对应的背景图数据
-    // const mapDta = this.levelJson?.name ?? "Level1";
-    //TODO:测试数据
-    const mapDta = "Level1";
+    const mapDta = this.fileNameLb.string ?? "Level1";
     const bgData = await MapBgManager.instance.loadBgByMapDta(mapDta);
 
     if (bgData) {
@@ -716,7 +730,7 @@ export default class LevelScene extends cc.Component {
         areaNumber: 1,
         oneAreaSize: new cc.Vec2(100, 100),
         areaOffset: 100,
-        sps: [[]]
+        sps: []
       });
     }
   }

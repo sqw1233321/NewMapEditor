@@ -82,7 +82,6 @@ export default class MapLoader extends cc.Component {
   private _pointMap = new Map<string, cc.Node>();
 
   // ==================== 其他数据 ====================
-  private _size: cc.Vec2 = null;
   private _areaInfo: number[] = [];
   private _fileName: string = "";
 
@@ -106,8 +105,7 @@ export default class MapLoader extends cc.Component {
       getOutRoomUnits: () => this._outRoomUnitCont,
       getPlayerCreate: () => this._playerCreateNd,
       getPlayerExit: () => this._playerExitNd,
-      getAreaInfo: () => this._areaInfo,
-      getSize: () => this._size,
+      getAreaInfo: () => this._areaInfo
     });
 
     this._mapLineDrawer = new MapLineDrawer();
@@ -136,22 +134,16 @@ export default class MapLoader extends cc.Component {
   }
 
   /**
-   * 构建地图
+   * 初始化地图数据管理器
    */
-  build(json: any, size: cc.Vec2) {
-    if (!json) return;
-
-    this._size = size;
-    this._fileName = json.name;
+  init() {
     this.node.removeAllChildren();
     this.clearMaps();
-
     // 创建基础容器
     this.createContainers();
-    //构建地图
-    this.restoreFromJson(JSON.stringify(json.json), json.name);
   }
 
+  //创建基础容器
   private createContainers() {
     this._layerCont = new cc.Node("LayerCont");
     this._layerCont.parent = this.node;
@@ -168,6 +160,33 @@ export default class MapLoader extends cc.Component {
     this._pointLineCont = new cc.Node("pointLineCont");
     this._pointLineCont.group = "pathPoint";
     this._pointLineCont.parent = this.node;
+  }
+
+  /**
+   * 从 JSON 创建地图
+   * @param jsonStr JSON 字符串
+   */
+  public createMapFromJson(jsonStr: string, fileName: string = ``): void {
+    if (!jsonStr) return;
+    try {
+      //改一下文件名
+      if (fileName) {
+        this.changeFileName(fileName.split(".")[0]);
+      }
+      const json = JSON.parse(jsonStr);
+      if (!json) return;
+      // 1. 清空当前地图
+      this.clear();
+      // 2. 重新构建地图
+      this._mapBuilder.build({ json: json }, {
+        layerCont: this._layerCont,
+        outRoomUnitCont: this._outRoomUnitCont,
+        playerCreate: this._playerCreateNd,
+        playerExit: this._playerExitNd,
+      });
+    } catch (e) {
+      console.error("[MapLoader] restoreFromJson failed:", e);
+    }
   }
 
   private clearMaps() {
@@ -490,8 +509,8 @@ export default class MapLoader extends cc.Component {
     roomCom: MapDrawRoom,
     newLayerNd: cc.Node,
     oldLayerNd: cc.Node,
-    mapName: string,
   ) {
+    const mapName = EditorSetting.Instance.getFileInfo().fileName;
     if (!roomCom || !newLayerNd) return;
     const mapNoMatch = /(\d+)$/.exec(mapName);
     const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
@@ -847,37 +866,6 @@ export default class MapLoader extends cc.Component {
   public saveDat(): string {
     this.refreshDat();
     return this._mapSerializer.export();
-  }
-
-  /**
-   * 从 JSON 创建地图
-   * @param jsonStr JSON 字符串
-   */
-  public restoreFromJson(jsonStr: string, fileName: string = ``): void {
-    if (!jsonStr) return;
-
-    try {
-      //改一下文件名
-      if (fileName) {
-        this.changeFileName(fileName)
-      }
-
-      const json = JSON.parse(jsonStr);
-      if (!json) return;
-
-      // 1. 清空当前地图
-      this.clear();
-
-      // 2. 重新构建地图
-      this._mapBuilder.build({ json: json }, {
-        layerCont: this._layerCont,
-        outRoomUnitCont: this._outRoomUnitCont,
-        playerCreate: this._playerCreateNd,
-        playerExit: this._playerExitNd,
-      });
-    } catch (e) {
-      console.error("[MapLoader] restoreFromJson failed:", e);
-    }
   }
 
   private refreshDat() {

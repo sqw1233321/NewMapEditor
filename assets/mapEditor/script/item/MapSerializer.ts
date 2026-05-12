@@ -1,3 +1,4 @@
+import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import { MapDrawDat, MapDrawDatType, MapDrawDatSize, MapDrawDatPathPoint, MapDrawDatRoom, MapDrawDatPortalData, MapDrawDatCableData, MapDrawDatStoneData } from "./MapDrawDat";
 import MapDrawP from "./MapDrawP";
@@ -16,7 +17,6 @@ export default class MapSerializer {
   private _getPlayerCreate: () => cc.Node;
   private _getPlayerExit: () => cc.Node;
   private _getAreaInfo: () => number[];
-  private _getSize: () => cc.Vec2;
 
   public init(config: {
     getPathPoints: () => Map<string, cc.Node>;
@@ -25,7 +25,6 @@ export default class MapSerializer {
     getPlayerCreate: () => cc.Node;
     getPlayerExit: () => cc.Node;
     getAreaInfo: () => number[];
-    getSize: () => cc.Vec2;
   }) {
     this._getPathPoints = config.getPathPoints;
     this._getRoomNodes = config.getRoomNodes;
@@ -33,7 +32,6 @@ export default class MapSerializer {
     this._getPlayerCreate = config.getPlayerCreate;
     this._getPlayerExit = config.getPlayerExit;
     this._getAreaInfo = config.getAreaInfo;
-    this._getSize = config.getSize;
   }
 
   /**
@@ -41,7 +39,8 @@ export default class MapSerializer {
    */
   public export(): string {
     const mapDat = new MapDrawDat();
-    const size = this.collectSize();
+    const s = MapTool.getSize();
+    const size = { width: s.x, height: s.y };
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
     const { portalDatas, cableDatas, stoneDatas } = this.collectOutRoomUnits();
@@ -67,10 +66,6 @@ export default class MapSerializer {
 
   // ==================== 收集方法 ====================
 
-  private collectSize(): MapDrawDatSize {
-    const size = this._getSize();
-    return { width: size.x, height: size.y };
-  }
 
   private collectPathPoints(): MapDrawDatPathPoint[] {
     const pathPoints: MapDrawDatPathPoint[] = [];

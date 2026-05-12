@@ -36,13 +36,9 @@ export default class CreateFilePop extends cc.Component {
 
     //选择现有图片集
     public onClickSelectBg() {
-
+        
     }
 
-    //新建图片集
-    public onClickCreateBg() {
-
-    }
 
     //新建文件
     public async onClickCreate() {

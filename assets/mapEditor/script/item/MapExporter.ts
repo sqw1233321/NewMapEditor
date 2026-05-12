@@ -1,3 +1,4 @@
+import EditorSetting from "../editor/EditorSetting";
 import MapLoader from "./MapLoader";
 
 declare var Editor: any;
@@ -8,11 +9,9 @@ declare var Editor: any;
  */
 export default class MapExporter {
   private _mapLoaderComp: MapLoader = null;
-  private _levelJson: cc.JsonAsset = null;
 
-  public init(mapLoader: cc.Node, levelJson: cc.JsonAsset) {
+  public init(mapLoader: cc.Node) {
     this._mapLoaderComp = mapLoader.getComponent(MapLoader);
-    this._levelJson = levelJson;
   }
 
   //==================== 新建 ====================
@@ -54,13 +53,19 @@ export default class MapExporter {
 
   /** 更新内存中的 levelJson 对象 */
   private updateLevelJson(json: string) {
-    if (!this._levelJson) return;
-    this._levelJson.json = JSON.parse(json);
+    const fileInfo = EditorSetting.Instance.getFileInfo();
+    if (!fileInfo) return;
+    const levelJson = fileInfo.fileJson;
+    if (!levelJson) return;
+    fileInfo.fileJson = JSON.parse(json);
   }
 
   /** 把当前 levelJson 覆盖写回 assets 下对应 json 文件（仅编辑器环境） */
   private persistToDisk(json: string) {
-    if (!this._levelJson) return;
+    const fileInfo = EditorSetting.Instance.getFileInfo();
+    if (!fileInfo) return;
+    const levelJson = fileInfo.fileJson;
+    if (!levelJson) return;
     // Electron IPC 方式（web-desktop + Electron）
     if (typeof window.electronAPI !== "undefined") {
       console.log("开始保存");
@@ -77,7 +82,11 @@ export default class MapExporter {
 
   /** 下载 JSON 文件（浏览器环境） */
   public downloadJson(filename = "mapData.json") {
-    const json = JSON.stringify(this._levelJson?.json ?? {});
+    const fileInfo = EditorSetting.Instance.getFileInfo();
+    if (!fileInfo) return;
+    const levelJson = fileInfo.fileJson;
+    if (!levelJson) return;
+    const json = JSON.stringify(levelJson ?? {});
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
