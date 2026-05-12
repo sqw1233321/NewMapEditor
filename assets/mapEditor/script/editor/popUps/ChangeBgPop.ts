@@ -34,16 +34,33 @@ export default class ChangeBgPop extends cc.Component {
 
     public showPop(dat: { cb }): void {
         this._dat = dat;
-        this.sizeX.string = `2906`;
-        this.sizeY.string = `3654`;
-        this.areaNumLb.string = `0`;
-        this.areaOffsetEdit.string = `4000`;
+        const curFileInfo = EditorSetting.Instance.getFileInfo();
+        const mapEditorDat = MapBgManager.instance.getMapEditorDat(curFileInfo?.fileName ?? "");
+        if (mapEditorDat) {
+            //有配置
+            this.sizeX.string = mapEditorDat.areaSize.split("|")[0];
+            this.sizeY.string = mapEditorDat.areaSize.split("|")[1];
+            this.areaNumLb.string = mapEditorDat.areaNumber.toString();
+            this.areaOffsetEdit.string = mapEditorDat.areaOffset.toString();
+            this.changeFileBgName(mapEditorDat.mapBg);
+        }
+        //无配置，初始值
+        else {
+            this.sizeX.string = `2906`;
+            this.sizeY.string = `3654`;
+            this.areaNumLb.string = `1`;
+            this.areaOffsetEdit.string = `4000`;
+        }
     }
 
     //选择现有图片集
     public async onClickSelectBg() {
         const path = await MapBgManager.instance.selectAndImportAtlas();
-        this._levelBgName = `${path}`
+        this.changeFileBgName(`${path}`);
+    }
+
+    private changeFileBgName(name: string) {
+        this._levelBgName = name;
         this.fileNameLb.string = this._levelBgName;
     }
 

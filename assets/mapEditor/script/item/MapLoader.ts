@@ -841,7 +841,6 @@ export default class MapLoader extends cc.Component {
     this._mapLineDrawer?.clear();
     this.clearMaps();
     EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
-    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
   }
 
   public saveDat(): string {
@@ -874,6 +873,7 @@ export default class MapLoader extends cc.Component {
 
   public setAreaInfo(areaInfo: number[]) {
     this._areaInfo = areaInfo;
+    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
   }
 
   public getPathLinkWorldSegmentsForRoom(ownerCfgId: number): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {

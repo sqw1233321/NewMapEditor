@@ -68,6 +68,11 @@ export class MapBgManager {
         return this._areas;
     }
 
+    //根据地图名获取当前的图集配置
+    public getMapEditorDat(maoFileName: string): EditorMapEntry {
+        return this._mapData.find(e => e.mapDta === maoFileName);
+    }
+
     // ==================== 加载配置 ====================
 
     /** 加载 editorMap.json */
