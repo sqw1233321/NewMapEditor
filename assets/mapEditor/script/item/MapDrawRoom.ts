@@ -36,7 +36,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private _roomDat: MapDrawDatRoom = null;
     private _color: cc.Color = null;
     private _layer: number = 0;
-    private _uid: string = null;  // 稳定唯一标识，创建后不变
+    private _singleName: string = null;  // 稳定唯一标识，用于新房间在非自动命名状态下的初始名字。
     private _points: MapDrawP[] = [];
     private _pointIds: string[] = [];
     private _unLockPointIds: string[] = [];
@@ -58,7 +58,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private _unlockBindHighlight = false;
     private _savedBgColor: cc.Color = null;
 
-    //是否真正改名过
+    //是否真正改名过（用于非自动命名状态时，是否将房间名置为uid）
     private _cfgIdManuallySet = false;
 
     public getType() {
@@ -90,11 +90,6 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         this._color = color;
         this._pointCont = this.node.getChildByName("pointCont");
         this._unitCont = this.node.getChildByName("unitCont");
-        // 从已有 cfgId 派生 uid（保证历史数据兼容性），新建房间由 generateUid 生成
-        if (!this._uid && roomDat.cfgId > 0) {
-            this._uid = `room_${roomDat.cfgId}`;
-        }
-        this._cfgIdManuallySet = roomDat.isManualSet;
         this.initUI();
         this.setDat();
     }
@@ -134,28 +129,18 @@ export default class MapDrawRoom extends MapDrawUnitBase {
         return this._roomCfgId;
     }
 
-    /** 获取房间唯一标识（稳定，创建后不变） */
-    public getUid(): string {
-        if (!this._uid) this.generateUid();
-        return this._uid;
+    /** 获取房间唯一标识，用于非自动命名状态的初始房间名） */
+    public getSingleName(): string {
+        if (!this._singleName) this.generateSingleName();
+        return this._singleName;
     }
 
-    /** 生成唯一标识，已存在则直接返回 */
-    private generateUid(): string {
-        if (this._uid) return this._uid;
+    /** 生成唯一名字*/
+    private generateSingleName(): string {
+        if (this._singleName) return this._singleName;
         const timestamp = Date.now().toString(36);
         const random = Math.random().toString(36).substring(2, 6);
-        this._uid = `${Date.now()}_${timestamp}_${random}`;
-    }
-
-    /** 从 uid 提取数字编号，用于自动命名时同步 roomId */
-    public extractUidNumber(): number {
-        if (!this._uid) return -1;
-        // 支持纯数字 uid 或 room_xxx 格式
-        const num = parseInt(this._uid, 10);
-        if (!isNaN(num)) return num;
-        const match = /room_(\d+)/.exec(this._uid);
-        return match ? parseInt(match[1], 10) : -1;
+        this._singleName = `${Date.now()}_${timestamp}_${random}`;
     }
 
     public setSize(size: { width: number; height: number }) {
@@ -306,8 +291,6 @@ export default class MapDrawRoom extends MapDrawUnitBase {
 
     public getDat(): MapDrawDatRoom {
         const dat: MapDrawDatRoom = {
-            uid: this._uid,
-            isManualSet: this._cfgIdManuallySet ?? false,
             cfgId: this._roomCfgId,
             layer: this._layer,
             pos: this.getPos(),

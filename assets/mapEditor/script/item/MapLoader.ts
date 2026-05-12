@@ -78,7 +78,6 @@ export default class MapLoader extends cc.Component {
   // ==================== 节点映射 ====================
   private _layerNodeMap = new Map<number, cc.Node>();
   private _roomNodeMap = new Map<number, cc.Node>();
-  private _roomUidMap = new Map<string, cc.Node>();
   private _pointMap = new Map<string, cc.Node>();
 
   // ==================== 其他数据 ====================
@@ -191,7 +190,6 @@ export default class MapLoader extends cc.Component {
 
   private clearMaps() {
     this._roomNodeMap.clear();
-    this._roomUidMap.clear();
     this._pointMap.clear();
     this._layerNodeMap.clear();
     this._areaInfo = [];
@@ -201,7 +199,6 @@ export default class MapLoader extends cc.Component {
     cfgId: number,
     roomDat: any,
     color: cc.Color,
-    uid: string,
     unlockPointIds: string[]
   ) {
     const roomNd = this._roomNodeMap.get(cfgId);
@@ -209,11 +206,6 @@ export default class MapLoader extends cc.Component {
 
     const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
     mapDrawRoom.init(roomDat, color);
-
-    // 注册 uid
-    if (uid) {
-      this._roomUidMap.set(uid, roomNd);
-    }
 
     // 设置解锁点
     mapDrawRoom.unLockPoints = unlockPointIds
@@ -232,23 +224,10 @@ export default class MapLoader extends cc.Component {
   public registerRoomNode(cfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
     this._roomNodeMap.set(cfgId, roomNd);
-    const roomCom = roomNd.getComponent(MapDrawRoom);
-    if (roomCom) {
-      const uid = roomCom.getUid();
-      if (uid) this._roomUidMap.set(uid, roomNd);
-    }
-  }
-
-  public registerRoomUid(uid: string, roomNd: cc.Node) {
-    this._roomUidMap.set(uid, roomNd);
   }
 
   public registerPoint(id: string, pointNd: cc.Node) {
     this._pointMap.set(id, pointNd);
-  }
-
-  public getRoomNodeByUid(uid: string): cc.Node {
-    return this._roomUidMap.get(uid);
   }
 
   public renameRoomNode(oldCfgId: number, newCfgId: number, roomNd: cc.Node) {
@@ -521,11 +500,15 @@ export default class MapLoader extends cc.Component {
 
     const oldCfgId = roomCom.getRoomCfgId();
     const isNewRoom = oldCfgId == 0;
-    const uid = roomCom.getUid();
-    let newCfgId = Number(uid.split("_")[0]);
+    //新房间，没有手动改过名，就用这个唯一名字
+    const singleName = roomCom.getSingleName();
+    let newCfgId = Number(singleName.split("_")[0]);
 
-    //自动命名
-    if (EditorSetting.Instance.getAutoRename()) {
+    //是否自动命名
+    const isAutoName = EditorSetting.Instance.getAutoRename();
+
+    //自动命名，计算新id
+    if (isAutoName) {
       //自动命名时，需要重新排序新旧两个layer的所有房间id
       const newLayerRooms = this.reorderLayerNames(mapNo, newLayerNd);
       if (oldLayerNd && oldLayerNd !== newLayerNd) {
@@ -543,8 +526,6 @@ export default class MapLoader extends cc.Component {
       const worldPos = roomCom.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
       const size = roomCom.node.getContentSize();
       const roomDat: MapDrawDatRoom = {
-        uid: uid,
-        isManualSet: false,
         cfgId: newCfgId,
         layer: layer,
         pos: { x: worldPos.x, y: worldPos.y },
@@ -565,6 +546,8 @@ export default class MapLoader extends cc.Component {
       const bgNd = roomCom.node.getChildByName("bg");
       if (bgNd) color = bgNd.color;
       roomCom.init(roomDat, color);
+      //新房间自动命名后也算手动命名
+      if (isAutoName) roomCom.setManulSet(true);
     }
     //旧房间
     else {
@@ -752,9 +735,7 @@ export default class MapLoader extends cc.Component {
     if (!roomComp) return;
 
     const cfgId = roomComp.getRoomCfgId();
-    const uid = roomComp.getUid();
     this._roomNodeMap.delete(cfgId);
-    if (uid) this._roomUidMap.delete(uid);
 
     // 清理路径点
     const pointCont = roomNode.getChildByName("pointCont");

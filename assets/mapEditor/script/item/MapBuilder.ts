@@ -195,9 +195,8 @@ export default class MapBuilder {
       this._mapLoader.registerRoomNode(room.cfgId, roomNd);
 
       const roomCom = roomNd.getComponent(MapDrawRoom);
-      if (roomCom && roomCom.getUid()) {
-        this._mapLoader.registerRoomUid(roomCom.getUid(), roomNd);
-      }
+      //静态房间，名称已经修改过
+      roomCom.setManulSet(true);
     });
   }
 
@@ -206,7 +205,7 @@ export default class MapBuilder {
 
     rooms.forEach((room: MapDrawDatRoom, index: number) => {
       const color = this._roomColors[index % this._roomColors.length];
-      this._mapLoader.initRoom(room.cfgId, room, color, room.uid, room.unlockPointIds || []);
+      this._mapLoader.initRoom(room.cfgId, room, color,room.unlockPointIds || []);
     });
   }
 
