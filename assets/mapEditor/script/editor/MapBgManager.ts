@@ -7,7 +7,6 @@ declare global {
             openFileDialog: () => Promise<any>;
             createFile: (fileName: string, jsonContent: string) => Promise<any>;
             selectAtlasFolder: () => Promise<{ success: boolean; path?: string }>;
-            readAtlasSubfolders: (parentPath: string) => Promise<{ success: boolean; subfolders?: string[]; error?: string }>;
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;
             loadAreaImages: (areaName: string) => Promise<{ success: boolean; images?: { name: string; data: string }[][]; error?: string }>;
@@ -218,7 +217,7 @@ export class MapBgManager {
      * 保存新的图集数据
      * @param mapDta 当前地图数据名称
      */
-    public async selectAndImportAtlas(mapDta: string): Promise<string> {
+    public async selectAndImportAtlas(): Promise<string> {
         // 1. 打开文件夹选择框
         const selectResult = await window.electronAPI.selectAtlasFolder();
         if (!selectResult.success) {

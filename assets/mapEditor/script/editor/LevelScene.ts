@@ -556,13 +556,11 @@ export default class LevelScene extends cc.Component {
   //更换背景
   public async onClickChangeBg() {
     //打开弹窗
-    const fileInfo = EditorSetting.Instance.getFileInfo();
-    if (!fileInfo) return;
-    const fileName = fileInfo.fileName;
-    const ok = await MapBgManager.instance.selectAndImportAtlas(fileName);
-    if (ok) {
-      await this.changeMapBg();
-    }
+    PopManager.ins.showChangeBgPop({
+      cb: async () => {
+        await this.changeMapBg();
+      }
+    });
   }
 
   //导入

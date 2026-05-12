@@ -26,13 +26,13 @@ export default class ChangeBgPop extends cc.Component {
     areaOffsetEdit: cc.EditBox = null;
 
     @property(cc.Label)
-    fileNameLb = "";
+    fileNameLb: cc.Label;
 
     private _dat;
 
     private _levelBgName: string = "";
 
-    public showPop(dat: { exporter: MapExporter, cb }): void {
+    public showPop(dat: { cb }): void {
         this._dat = dat;
         this.sizeX.string = `2906`;
         this.sizeY.string = `3654`;
@@ -41,8 +41,10 @@ export default class ChangeBgPop extends cc.Component {
     }
 
     //选择现有图片集
-    public onClickSelectBg() {
-
+    public async onClickSelectBg() {
+        const path = await MapBgManager.instance.selectAndImportAtlas();
+        this._levelBgName = `${path}`
+        this.fileNameLb.string = this._levelBgName;
     }
 
 
@@ -54,10 +56,12 @@ export default class ChangeBgPop extends cc.Component {
             mapDta: curFileInfo.fileName,
             mapBg: this._levelBgName,
             areaNumber: Number(this.areaNumLb.string),
-            areaOffset: Number(this.areaOffsetEdit),
+            areaOffset: Number(this.areaOffsetEdit.string),
             areaSize: `${this.sizeX.string}|${this.sizeY.string}`
         }
         MapBgManager.instance.updateMapDataEntry(dat);
+        //可以同步因为这个地方改的内存中的数据。
+        this._dat.cb?.();
         this.hidePop();
     }
 

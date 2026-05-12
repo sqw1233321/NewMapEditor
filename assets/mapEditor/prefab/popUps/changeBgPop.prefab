@@ -3373,8 +3373,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "level1",
-    "_N$string": "level1",
+    "_string": "",
+    "_N$string": "",
     "_fontSize": 25,
     "_lineHeight": 25,
     "_enableWrapText": true,
@@ -3811,7 +3811,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "587d7wUK7NI3Lx/JKdJK/rT",
+    "_componentId": "4f9dbqYzwpOHptdPxkDGXjU",
     "handler": "onClickSelectBg",
     "customEventData": ""
   },
@@ -4246,7 +4246,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "587d7wUK7NI3Lx/JKdJK/rT",
+    "_componentId": "4f9dbqYzwpOHptdPxkDGXjU",
     "handler": "onClickCreate",
     "customEventData": ""
   },
@@ -4438,7 +4438,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "587d7wUK7NI3Lx/JKdJK/rT",
+    "_componentId": "4f9dbqYzwpOHptdPxkDGXjU",
     "handler": "hidePop",
     "customEventData": ""
   },
@@ -4472,6 +4472,9 @@
     },
     "areaOffsetEdit": {
       "__id__": 84
+    },
+    "fileNameLb": {
+      "__id__": 92
     },
     "_id": ""
   },
