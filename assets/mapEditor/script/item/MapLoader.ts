@@ -285,6 +285,8 @@ export default class MapLoader extends cc.Component {
       if (EditorSetting.Instance.getAutoRename()) {
         this.renameRoomNode(controller.getRoomId(), renamedId, r.node);
         controller.updateRoomId(renamedId);
+        //刷新layer
+        controller.changeLayer(layerNo);
       }
     });
     return rooms;
@@ -328,6 +330,7 @@ export default class MapLoader extends cc.Component {
         node.name = `Layer${newNo}`;
         this._layerNodeMap.delete(no);
         this._layerNodeMap.set(newNo, node);
+        //重新命名上面的所有房间
         this.reorderLayerNames(node);
       });
 
@@ -349,31 +352,10 @@ export default class MapLoader extends cc.Component {
     const localPos = this._layerCont.convertToNodeSpaceAR(worldAnchor);
     layerNd.setPosition(localPos);
 
+    //重新命名所有点
     this.rebuildPointIdsByLayer();
     return layerNd;
   }
-
-  // //同步layer的所有房间id
-  // private syncLayerRoomIds(layerNd: cc.Node, newLayerNo: number) {
-  //   layerNd.children.forEach((roomNd) => {
-  //     if (!roomNd) return;
-  //     const roomCom = roomNd.getComponent(MapDrawRoom);
-  //     if (!roomCom) return;
-  //     //更新层级
-  //     const oldLayer = roomCom.getLayer();
-  //     roomCom.changeLayer(newLayerNo);
-
-  //     //自动命名功能，当层级变化时，自动更新房间id
-  //     if (EditorSetting.Instance.getAutoRename()) {
-  //       const oldId = roomCom.getRoomCfgId();
-  //       const oldMapNo = Math.floor(oldId / 100);
-  //       const roomNo = oldId - oldMapNo * 100 - (oldLayer - 1) * 10;
-  //       const newCfgId = oldMapNo * 100 + (newLayerNo - 1) * 10 + roomNo;
-  //       roomCom.updateRoomId(newCfgId);
-  //       this.renameRoomNode(oldId, newCfgId, roomNd);
-  //     }
-  //   });
-  // }
 
   public refreshLayerBoundsByNode(layerNd: cc.Node) {
     this.updateLayerBounds(layerNd);
