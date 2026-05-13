@@ -726,7 +726,7 @@ export default class LevelScene extends cc.Component {
       // 没有配置时使用默认空数据
       mapBg.getComponent(MapBgPrefab).init({
         areaNumber: 1,
-        oneAreaSize: new cc.Vec2(100, 100),
+        oneAreaSize: new cc.Vec2(2, 2),
         areaOffset: 100,
         sps: []
       });

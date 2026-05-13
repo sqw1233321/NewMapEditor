@@ -37,17 +37,22 @@ export default class MapBgPrefab extends cc.Component {
     }
 
     private setUI() {
-        this.areaCont.getComponent(cc.Layout).spacingY = this._dat.areaOffset - this._dat.oneAreaSize.y;
+        const oneSpSize = this._spArr[0][0]["_originalSize"];
+        const row = this._dat.oneAreaSize.y;
+        const col = this._dat.oneAreaSize.x;
+        const oneAreaSize = new cc.Size(col * oneSpSize.width, row * oneSpSize.height);
+
+        this.areaCont.getComponent(cc.Layout).spacingY = this._dat.areaOffset - oneAreaSize.height;
         NodeUtil.autoRefreshChildrenNum(this.areaCont, this._dat.areaNumber, (nd, index, dat) => {
             const bgCont = this.areaCont.children[index];
-            bgCont.setContentSize(this._dat.oneAreaSize.x, this._dat.oneAreaSize.y);
+            bgCont.setContentSize(oneAreaSize);
             NodeUtil.autoRefreshChildren(bgCont, this._spArr[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
                 const sp = bgNd.getComponent(cc.Sprite);
                 sp.spriteFrame = bgSprite;
             });
         });
         //保证区域一的中心在原点
-        this.areaCont.setPosition(this.areaCont.position.x, -this._dat.oneAreaSize.y / 2);
+        this.areaCont.setPosition(this.areaCont.position.x, -oneAreaSize.height / 2);
 
     }
 

@@ -46,8 +46,8 @@ export default class ChangeBgPop extends cc.Component {
         }
         //无配置，初始值
         else {
-            this.sizeX.string = `2906`;
-            this.sizeY.string = `3654`;
+            this.sizeX.string = `2`;
+            this.sizeY.string = `2`;
             this.areaNumLb.string = `1`;
             this.areaOffsetEdit.string = `4000`;
         }
@@ -68,7 +68,14 @@ export default class ChangeBgPop extends cc.Component {
     //保存配置
     public async onClickCreate() {
         const curFileInfo = EditorSetting.Instance.getFileInfo();
-        if (!curFileInfo) return;
+        if (!curFileInfo) {
+            console.log("当前没有选择的地图数据！！！");
+            return;
+        }
+        if (!this._levelBgName) {
+            console.log("当前没有选择的背景图！！！");
+            return;
+        }
         const dat: EditorMapEntry = {
             mapDta: curFileInfo.fileName,
             mapBg: this._levelBgName,
