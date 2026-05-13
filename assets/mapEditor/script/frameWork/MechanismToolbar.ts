@@ -4,6 +4,7 @@ import { EventManager } from "./EventManager";
 import { ModeType } from "../type/types";
 import { ModeMgr } from "./ModeMgr";
 import { MapEditorEvent } from "../event/eventTypes";
+import MechanismPrefab from "../item/MechanismPrefab";
 
 const { ccclass, property } = cc._decorator;
 
@@ -124,29 +125,30 @@ export default class MechanismToolbar extends cc.Component {
 
         // 设置名称
         button.name = `mechanism_btn_${def.id}`;
+        button.addComponentSafe(MechanismPrefab).init(def);
 
-        // 查找子节点
-        const labelNode = button.getChildByName("Label") || button.getChildByName("label");
-        const iconNode = button.getChildByName("Icon") || button.getChildByName("icon");
+        // // 查找子节点
+        // const labelNode = button.getChildByName("Label") || button.getChildByName("label");
+        // const iconNode = button.getChildByName("Icon") || button.getChildByName("icon");
 
-        // 设置标签文本
-        if (labelNode) {
-            const label = labelNode.getComponent(cc.Label);
-            if (label) {
-                label.string = def.name;
-            }
-        }
+        // // 设置标签文本
+        // if (labelNode) {
+        //     const label = labelNode.getComponent(cc.Label);
+        //     if (label) {
+        //         label.string = def.name;
+        //     }
+        // }
 
-        // 设置图标
-        if (iconNode && this.iconAtlas) {
-            const sprite = iconNode.getComponent(cc.Sprite);
-            if (sprite) {
-                const frame = this.iconAtlas.getSpriteFrame(def.atlasFrame);
-                if (frame) {
-                    sprite.spriteFrame = frame;
-                }
-            }
-        }
+        // // 设置图标
+        // if (iconNode && this.iconAtlas) {
+        //     const sprite = iconNode.getComponent(cc.Sprite);
+        //     if (sprite) {
+        //         const frame = this.iconAtlas.getSpriteFrame(def.atlasFrame);
+        //         if (frame) {
+        //             sprite.spriteFrame = frame;
+        //         }
+        //     }
+        // }
 
         // 设置按钮点击事件
         const buttonCom = button.getComponent(cc.Button) || button.addComponent(cc.Button);

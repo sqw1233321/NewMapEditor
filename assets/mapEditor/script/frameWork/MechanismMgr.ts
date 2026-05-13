@@ -42,13 +42,13 @@ export class MechanismMgr extends Singleton<MechanismMgr> {
     public loadConfig(config: MechanismConfig): void {
         this._config = config;
         this._defineMap.clear();
-        
+
         if (config && config.defines) {
             config.defines.forEach(def => {
                 this._defineMap.set(def.id, def);
             });
         }
-        
+
         EventManager.instance.emit(MECHANISM_EVENT.DefineUpdated, this._defineMap);
     }
 
@@ -64,14 +64,14 @@ export class MechanismMgr extends Singleton<MechanismMgr> {
                     resolve(false);
                     return;
                 }
-                
-                const config = resource as MechanismConfig;
+
+                const config = resource?.json as MechanismConfig;
                 if (!config || !config.defines) {
                     console.error(`[MechanismMgr] Invalid config format: ${configPath}`);
                     resolve(false);
                     return;
                 }
-                
+
                 this.loadConfig(config);
                 console.log(`[MechanismMgr] Config loaded: ${config.defines.length} mechanisms`);
                 resolve(true);
@@ -82,11 +82,6 @@ export class MechanismMgr extends Singleton<MechanismMgr> {
     /** 获取配置 */
     public getConfig(): MechanismConfig {
         return this._config;
-    }
-
-    /** 获取所有机制定义 */
-    public getAllDefines(): MechanismDefine[] {
-        return Array.from(this._defineMap.values());
     }
 
     /** 获取定义 */
@@ -202,40 +197,5 @@ export class MechanismMgr extends Singleton<MechanismMgr> {
     /** 清除所有实例 */
     public clearAllInstances(): void {
         this._instanceMap.clear();
-    }
-
-    /** 从配置创建默认机制定义 */
-    public createDefaultConfig(): MechanismConfig {
-        return {
-            version: "1.0.0",
-            defines: [
-                {
-                    id: "cable",
-                    name: "电缆",
-                    atlasFrame: "icon_cable",
-                    prefabPath: "prefabs/cable",
-                    showInToolbar: true,
-                    toolbarOrder: 1,
-                    fields: [
-                        { id: "speed", name: "速度", type: MechanismFieldType.Float, defaultValue: 0 },
-                        { id: "point1", name: "起点", type: MechanismFieldType.PointSingle },
-                        { id: "point2", name: "终点", type: MechanismFieldType.PointSingle },
-                        { id: "points", name: "中间点", type: MechanismFieldType.PointMultiple },
-                    ],
-                },
-                {
-                    id: "portal",
-                    name: "传送门",
-                    atlasFrame: "icon_portal",
-                    prefabPath: "prefabs/portal",
-                    showInToolbar: true,
-                    toolbarOrder: 2,
-                    fields: [
-                        { id: "offsetX", name: "偏移X", type: MechanismFieldType.Int, defaultValue: 0 },
-                        { id: "linkPoint", name: "连接点", type: MechanismFieldType.PointSingle },
-                    ],
-                },
-            ],
-        };
     }
 }

@@ -134,6 +134,11 @@ export default class LevelScene extends cc.Component {
 
     // 适配地图
     this.adapterMap();
+
+    // 加载机制配置
+    await MechanismMgr.instance.loadConfigFromResources("config/mechanismDefine");
+    const config = MechanismMgr.instance.getConfig();
+    console.log("机制配置加载成功", config);
   }
 
   protected async start() {
@@ -144,9 +149,6 @@ export default class LevelScene extends cc.Component {
     // 自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
-
-    // 加载机制配置
-    await MechanismMgr.instance.loadConfigFromResources("mapEditor/config/mechanismDefine");
   }
 
   protected onDestroy(): void {

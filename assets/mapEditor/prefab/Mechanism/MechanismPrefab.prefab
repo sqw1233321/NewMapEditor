@@ -406,16 +406,23 @@
     "sync": false
   },
   {
-    "__type__": "fff98ydClxMeo7KDWRdovjC",
+    "__type__": "47fffB+sIhEdZw1YnbSn/O2",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "type": 1,
-    "prefab": {
-      "__uuid__": "db1af9da-ef9d-448e-9e82-8bace2bb386d"
+    "type": 0,
+    "prefab": null,
+    "nameLabel": {
+      "__id__": 9
+    },
+    "defaultSp": {
+      "__id__": 6
+    },
+    "testSprite": {
+      "__uuid__": "2c9509a2-a434-4e01-b13a-81b1e018afaf"
     },
     "_id": ""
   },

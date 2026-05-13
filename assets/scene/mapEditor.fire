@@ -10571,7 +10571,9 @@
     "container": {
       "__id__": 116
     },
-    "buttonPrefab": null,
+    "buttonPrefab": {
+      "__uuid__": "96492d9b-3738-497b-8f18-c344f6d2c5fa"
+    },
     "iconAtlas": null,
     "_id": "b5Wcq2xPJLR6LR+OMpYKOU"
   },

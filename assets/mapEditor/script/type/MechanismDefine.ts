@@ -41,7 +41,7 @@ export interface MechanismDefine {
     /** 机制显示名称 */
     name: string;
     /** 图集帧名称（工具栏图标） */
-    atlasFrame: string;
+    spritePath: string;
     /** prefab资源路径 */
     prefabPath: string;
     /** 是否在工具栏显示 */
