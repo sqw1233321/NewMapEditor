@@ -83,6 +83,12 @@ export interface attrPanelTypeLadder {
   isExitLadder: boolean;
 }
 
+export interface attrPanelTypeFightSoul {
+  roomId: string;
+  weight: number;
+  isGuide: boolean;
+}
+
 export interface attrPanelTypeSurvive {
   roomId: string;
   weight: number;

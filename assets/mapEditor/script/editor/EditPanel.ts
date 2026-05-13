@@ -19,11 +19,13 @@ import {
   attrPanelTypeCable,
   attrPanelTypeEnemyRefresh,
   attrPanelTypeSurviveRefresh,
+  attrPanelTypeFightSoul,
 } from "../type/types";
 import AttrPanelBase from "./attrPanel/AttrPanelBase";
 import AttrPanelCable from "./attrPanel/AttrPanelCable";
 import AttrPanelDoor from "./attrPanel/AttrPanelDoor";
 import AttrPanelEnemyRefresh from "./attrPanel/AttrPanelEnemyRefresh";
+import AttrPanelFightSoul from "./attrPanel/AttrPanelFightSoul";
 import AttrPanelLadder from "./attrPanel/AttrPanelLadder";
 import AttrPanelPoint from "./attrPanel/AttrPanelPoint";
 import AttrPanelPortal from "./attrPanel/AttrPanelPortal";
@@ -65,6 +67,9 @@ export default class EditPanel extends cc.Component {
 
   @property(cc.Node)
   surviveRefreshAttr: cc.Node;
+
+  @property(cc.Node)
+  fightSoulAttr: cc.Node;
 
   //areaInfo
   @property(cc.EditBox)
@@ -141,6 +146,9 @@ export default class EditPanel extends cc.Component {
       case UnitType.SurviveDat:
         this.showSurviveRefreshAttrNd();
         break;
+      case UnitType.FightSoul:
+        this.showFightSoulAttrNd();
+        break;
     }
   }
 
@@ -155,6 +163,7 @@ export default class EditPanel extends cc.Component {
     this.cableAttr.active = type == UnitType.Cable;
     this.enemyRefreshAttr.active = type == UnitType.EnemyRefresh;
     this.surviveRefreshAttr.active = type == UnitType.SurviveDat;
+    this.fightSoulAttr.active = type == UnitType.FightSoul;
   }
 
   private showBaseAttrNd() {
@@ -202,6 +211,11 @@ export default class EditPanel extends cc.Component {
     this.surviveRefreshAttr.getComponent(AttrPanelSurviveRefresh).setAttr(dat);
   }
 
+  private showFightSoulAttrNd() {
+    const dat = this._dat.dat as attrPanelTypeFightSoul;
+    this.fightSoulAttr.getComponent(AttrPanelFightSoul).setAttr(dat);
+  }
+
   public onChangeAttr(type: string) {
     const unitType = Number(type) as UnitType;
     let dat;
@@ -232,6 +246,9 @@ export default class EditPanel extends cc.Component {
         break;
       case UnitType.SurviveDat:
         dat = this.surviveRefreshAttr.getComponent(AttrPanelSurviveRefresh).getDat();
+        break;
+      case UnitType.FightSoul:
+        dat = this.fightSoulAttr.getComponent(AttrPanelFightSoul).getDat();
         break;
       default:
         break;
@@ -268,5 +285,6 @@ export default class EditPanel extends cc.Component {
     this.cableAttr.active = false;
     this.enemyRefreshAttr.active = false;
     this.surviveRefreshAttr.active = false;
+    this.fightSoulAttr.active = false;
   }
 }

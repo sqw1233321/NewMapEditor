@@ -11,20 +11,12 @@ export default class MapDrawFightSoul extends MapDrawUnitBase {
   }
 
   private weight: number = 0;
+  private _isGuide: boolean;
 
   public init(dat: MapDrawDatFightSoulData) {
     this._roomCfgId = dat.roomId;
     this.weight = dat.weight;
-  }
-
-  public getDat() {
-    const dat: MapDrawDatFightSoulData = {
-      roomId: this._roomCfgId,
-      weight: this.weight,
-      pos: this.getPos(),
-      isGuide: false
-    };
-    return dat;
+    this._isGuide = dat.isGuide;
   }
 
   public setRoomId(roomId: number) {
@@ -34,5 +26,22 @@ export default class MapDrawFightSoul extends MapDrawUnitBase {
   public setWeight(weight: number) {
     this.weight = weight;
   }
+
+  public setIsGuide(isGuide: boolean) {
+    this._isGuide = isGuide;
+  }
+
+
+  public getDat() {
+    const dat: MapDrawDatFightSoulData = {
+      roomId: this._roomCfgId,
+      weight: this.weight,
+      pos: this.getPos(),
+      isGuide: this._isGuide
+    };
+
+    return dat;
+  }
+
 
 }

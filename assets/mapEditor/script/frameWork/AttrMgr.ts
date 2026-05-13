@@ -2,6 +2,7 @@ import { MapEditorEvent } from "../event/eventTypes";
 import MapDrawCable from "../item/MapDrawCable";
 import MapDrawDoor from "../item/MapDrawDoor";
 import MapDrawEnemyRefresh from "../item/MapDrawEnemyRefresh";
+import MapDrawFightSoul from "../item/MapDrawFightSoul";
 import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawPortal from "../item/MapDrawPortal";
@@ -11,7 +12,7 @@ import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -146,6 +147,12 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeSurviveRefresh).weight =
                     surviveRefreshCom?.getDat()?.weight ?? 0;
                 break;
+            case UnitType.FightSoul:
+                const fightSoulCom = this._trackNd?.getComponent(MapDrawFightSoul);
+                (dat as attrPanelTypeFightSoul).roomId = fightSoulCom?.getDat()?.roomId.toString() ?? "";
+                (dat as attrPanelTypeFightSoul).weight = fightSoulCom?.getDat()?.weight ?? 0;
+                (dat as attrPanelTypeFightSoul).isGuide = fightSoulCom?.getDat()?.isGuide ?? false;
+                break;
         }
         const panelDat: attrPanelType = {
             type: type,
@@ -175,7 +182,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 if (hasNd) {
                     console.log("有重名的房间！！！");
                 }
-                else{
+                else {
                     this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
                     this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
                 }
@@ -245,6 +252,15 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 if (surviveRefreshCom) {
                     surviveRefreshCom.setRoomId(Number(dat.roomId));
                     surviveRefreshCom.setWeight(dat.weight);
+                }
+                break;
+            case UnitType.FightSoul:
+                dat = attrDat.dat as attrPanelTypeFightSoul;
+                const fightSoulCom = this._trackNd.getComponent(MapDrawFightSoul);
+                if (fightSoulCom) {
+                    fightSoulCom.setRoomId(Number(dat.roomId));
+                    fightSoulCom.setWeight(dat.weight);
+                    fightSoulCom.setIsGuide(dat.isGuide);
                 }
                 break;
         }
