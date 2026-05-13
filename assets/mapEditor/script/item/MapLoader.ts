@@ -68,6 +68,11 @@ export default class MapLoader extends cc.Component {
   @property(cc.Prefab)
   stonePrefab: cc.Prefab = null;
 
+  /** 机制容器节点 */
+  private _mechanismCont: cc.Node = null;
+  /** 机制实例节点映射 */
+  private _mechanismNodeMap = new Map<string, cc.Node>();
+
   // ==================== 容器节点 ====================
   private _layerCont: cc.Node = null;
   private _outRoomUnitCont: cc.Node = null;
@@ -104,7 +109,8 @@ export default class MapLoader extends cc.Component {
       getOutRoomUnits: () => this._outRoomUnitCont,
       getPlayerCreate: () => this._playerCreateNd,
       getPlayerExit: () => this._playerExitNd,
-      getAreaInfo: () => this._areaInfo
+      getAreaInfo: () => this._areaInfo,
+      getMechanismUnits: () => this._mechanismCont,
     });
 
     this._mapLineDrawer = new MapLineDrawer();
@@ -159,6 +165,9 @@ export default class MapLoader extends cc.Component {
     this._pointLineCont = new cc.Node("pointLineCont");
     this._pointLineCont.group = "pathPoint";
     this._pointLineCont.parent = this.node;
+
+    this._mechanismCont = new cc.Node("mechanismCont");
+    this._mechanismCont.parent = this.node;
   }
 
   /**
@@ -192,6 +201,7 @@ export default class MapLoader extends cc.Component {
     this._roomNodeMap.clear();
     this._pointMap.clear();
     this._layerNodeMap.clear();
+    this._mechanismNodeMap.clear();
     this._areaInfo = [];
   }
 
@@ -881,4 +891,72 @@ export default class MapLoader extends cc.Component {
     return this._fileName;
   }
 
+  // ==================== 机制管理 ====================
+
+  /** 获取机制容器 */
+  public getMechanismCont(): cc.Node {
+    return this._mechanismCont;
+  }
+
+  /** 注册机制节点 */
+  public registerMechanismNode(instanceId: string, node: cc.Node): void {
+    if (!node) return;
+    this._mechanismNodeMap.set(instanceId, node);
+  }
+
+  /** 注销机制节点 */
+  public unregisterMechanismNode(instanceId: string): void {
+    this._mechanismNodeMap.delete(instanceId);
+  }
+
+  /** 获取机制节点 */
+  public getMechanismNode(instanceId: string): cc.Node {
+    return this._mechanismNodeMap.get(instanceId);
+  }
+
+  /** 获取所有机制节点 */
+  public getAllMechanismNodes(): cc.Node[] {
+    return Array.from(this._mechanismNodeMap.values());
+  }
+
+  /** 删除机制节点 */
+  public deleteMechanism(instanceId: string): void {
+    const node = this._mechanismNodeMap.get(instanceId);
+    if (!node) return;
+    
+    this._mechanismNodeMap.delete(instanceId);
+    node.removeFromParent();
+    node.destroy();
+  }
+
+  /** 清除所有机制 */
+  public clearMechanisms(): void {
+    this._mechanismNodeMap.forEach((node) => {
+      if (node && cc.isValid(node)) {
+        node.removeFromParent();
+        node.destroy();
+      }
+    });
+    this._mechanismNodeMap.clear();
+  }
+
+  /** 从世界坐标获取机制节点 */
+  public getMechanismNodeByWorldPos(worldPos: cc.Vec2): cc.Node {
+    let result: cc.Node = null;
+    this._mechanismNodeMap.forEach((node) => {
+      if (!node || !cc.isValid(node)) return;
+      const bounds = node.getBoundingBox();
+      const worldBounds = bounds.clone();
+      worldBounds.width *= node.parent.scaleX;
+      worldBounds.height *= node.parent.scaleY;
+      const worldOrigin = node.parent.convertToWorldSpaceAR(bounds.origin);
+      worldBounds.x = worldOrigin.x;
+      worldBounds.y = worldOrigin.y;
+      
+      if (worldBounds.contains(worldPos)) {
+        result = node;
+      }
+    });
+    return result;
+  }
 }

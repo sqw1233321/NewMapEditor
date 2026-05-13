@@ -1,0 +1,117 @@
+{
+    "version": "1.0.0",
+    "defines": [
+        {
+            "id": "cable",
+            "name": "电缆",
+            "atlasFrame": "icon_cable",
+            "prefabPath": "prefabs/mechanism/cable",
+            "showInToolbar": true,
+            "toolbarOrder": 1,
+            "fields": [
+                {
+                    "id": "speed",
+                    "name": "速度",
+                    "type": "float",
+                    "defaultValue": 0,
+                    "description": "电缆移动速度"
+                },
+                {
+                    "id": "point1",
+                    "name": "起点",
+                    "type": "point_single",
+                    "description": "电缆起点路径点"
+                },
+                {
+                    "id": "point2",
+                    "name": "终点",
+                    "type": "point_single",
+                    "description": "电缆终点路径点"
+                },
+                {
+                    "id": "points",
+                    "name": "中间点",
+                    "type": "point_multiple",
+                    "description": "电缆中间经过的路径点"
+                }
+            ]
+        },
+        {
+            "id": "portal",
+            "name": "传送门",
+            "atlasFrame": "icon_portal",
+            "prefabPath": "prefabs/mechanism/portal",
+            "showInToolbar": true,
+            "toolbarOrder": 2,
+            "fields": [
+                {
+                    "id": "offsetX",
+                    "name": "偏移X",
+                    "type": "int",
+                    "defaultValue": 0,
+                    "description": "传送门水平偏移"
+                },
+                {
+                    "id": "linkPoint",
+                    "name": "连接点",
+                    "type": "point_single",
+                    "description": "传送门连接的路径点"
+                }
+            ]
+        },
+        {
+            "id": "switch",
+            "name": "开关",
+            "atlasFrame": "icon_switch",
+            "prefabPath": "prefabs/mechanism/switch",
+            "showInToolbar": true,
+            "toolbarOrder": 3,
+            "fields": [
+                {
+                    "id": "switchId",
+                    "name": "开关ID",
+                    "type": "int",
+                    "defaultValue": 0,
+                    "description": "开关的唯一标识"
+                },
+                {
+                    "id": "linkedMechId",
+                    "name": "关联机制",
+                    "type": "text",
+                    "defaultValue": "",
+                    "description": "被控制的机制ID，多个用逗号分隔"
+                }
+            ]
+        },
+        {
+            "id": "platform",
+            "name": "移动平台",
+            "atlasFrame": "icon_platform",
+            "prefabPath": "prefabs/mechanism/platform",
+            "showInToolbar": true,
+            "toolbarOrder": 4,
+            "fields": [
+                {
+                    "id": "speed",
+                    "name": "移动速度",
+                    "type": "float",
+                    "defaultValue": 100,
+                    "description": "平台移动速度"
+                },
+                {
+                    "id": "points",
+                    "name": "路径点",
+                    "type": "point_multiple",
+                    "description": "平台经过的路径点"
+                },
+                {
+                    "id": "loop",
+                    "name": "循环移动",
+                    "type": "bool",
+                    "defaultValue": true,
+                    "description": "是否循环移动"
+                }
+            ]
+        }
+    ]
+}

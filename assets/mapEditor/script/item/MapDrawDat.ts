@@ -10,6 +10,7 @@ export interface MapDrawDatType {
     portalDatas?: MapDrawDatPortalData[],
     scooterDatas: MapDrawDatCableData[];
     rockDatas: MapDrawDatStoneData[];
+    mechanismInstances?: MechanismInstanceData[];
     areaInfo?: number[];
 }
 
@@ -181,4 +182,13 @@ export interface MapDrawDatCableData {
     points: string[];
     //缆车速度
     speed: number;
+}
+
+/**机制实例数据（用于序列化） */
+export interface MechanismInstanceData {
+    mechanismId: string;
+    instanceId: string;
+    roomId: number;
+    pos: MapDrawDatVec2;
+    fieldValues: Record<string, any>;
 }

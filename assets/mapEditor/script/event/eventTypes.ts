@@ -25,5 +25,11 @@ export enum MapEditorEvent {
     UpdateCurModeDisplay = "UpdateCurModeDisplay",
 
     //更换文件
-    updateFile = "updateFile"
+    updateFile = "updateFile",
+
+    //机制工具栏
+    /** 切换机制工具栏显示 */
+    ToggleMechanismToolbar = "ToggleMechanismToolbar",
+    /** 机制工具栏创建实例 */
+    CreateMechanismInstance = "CreateMechanismInstance",
 }

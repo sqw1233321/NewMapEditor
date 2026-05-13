@@ -12,9 +12,12 @@ import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul, attrPanelTypeMechanism } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
+import { MechanismMgr } from "./MechanismMgr";
+import MechanismItem from "../item/MechanismItem";
+import { MechanismFieldType } from "../type/MechanismDefine";
 
 export class AttrMgr extends Singleton<AttrMgr> {
     //属性面板追踪的节点(注意删除节点时的问题)
@@ -153,6 +156,12 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeFightSoul).weight = fightSoulCom?.getDat()?.weight ?? 0;
                 (dat as attrPanelTypeFightSoul).isGuide = fightSoulCom?.getDat()?.isGuide ?? false;
                 break;
+            case UnitType.Mechanism:
+                const mechanismItem = this._trackNd?.getComponent(MechanismItem);
+                if (mechanismItem) {
+                    dat = MechanismMgr.instance.buildAttrPanelData(mechanismItem);
+                }
+                break;
         }
         const panelDat: attrPanelType = {
             type: type,
@@ -261,6 +270,16 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     fightSoulCom.setRoomId(Number(dat.roomId));
                     fightSoulCom.setWeight(dat.weight);
                     fightSoulCom.setIsGuide(dat.isGuide);
+                }
+                break;
+            case UnitType.Mechanism:
+                dat = attrDat.dat as attrPanelTypeMechanism;
+                const mechanismCom = this._trackNd.getComponent(MechanismItem);
+                if (mechanismCom && dat.values) {
+                    // 更新所有字段值
+                    Object.entries(dat.values).forEach(([fieldId, value]) => {
+                        mechanismCom.setFieldValue(fieldId, value);
+                    });
                 }
                 break;
         }

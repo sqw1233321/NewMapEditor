@@ -21,6 +21,9 @@ import {
 } from "./MapDrawDat";
 import MapLoader from "./MapLoader";
 import MapTool from "../tool/MapTool";
+import { MechanismInstance } from "../type/MechanismDefine";
+import { MechanismMgr } from "../frameWork/MechanismMgr";
+import MechanismItem from "./MechanismItem";
 
 const { ccclass, property } = cc._decorator;
 
@@ -155,6 +158,9 @@ export default class MapBuilder {
     this.buildPortalUnits(mapData, containers.outRoomUnitCont);
     this.buildStoneUnits(mapData, containers.outRoomUnitCont);
     this.buildCableUnits(mapData, containers.outRoomUnitCont);
+
+    // 9. 构建机制实例
+    this.buildMechanisms(mapData, containers.outRoomUnitCont);
 
     this.onBuildComplete?.();
   }
@@ -504,5 +510,81 @@ export default class MapBuilder {
       const control = itemNd.addComponentSafe(MapDrawCable);
       control.init(startP, endP, points, dat);
     });
+  }
+
+  // ==================== 机制实例 ====================
+
+  /**
+   * 构建机制实例
+   * @param mapData 地图数据
+   * @param outRoomUnitCont 房间外物品容器
+   */
+  private buildMechanisms(mapData: any, outRoomUnitCont: cc.Node) {
+    const mechanisms: MechanismInstance[] = mapData.mechanismInstances || [];
+    
+    mechanisms.forEach((mechanismDat: MechanismInstance, index: number) => {
+      const def = MechanismMgr.instance.getDefine(mechanismDat.mechanismId);
+      if (!def) {
+        console.warn(`[MapBuilder] Unknown mechanism id: ${mechanismDat.mechanismId}`);
+        return;
+      }
+
+      // 根据机制定义获取对应的 prefab
+      const prefab = this.getMechanismPrefab(def.prefabPath);
+      if (!prefab) {
+        console.warn(`[MapBuilder] No prefab for mechanism: ${mechanismDat.mechanismId}`);
+        return;
+      }
+
+      const itemNd = cc.instantiate(prefab);
+      itemNd.name = `${mechanismDat.mechanismId}_${index}`;
+      itemNd.parent = outRoomUnitCont;
+
+      const adjustedPos = this.applyOffset(mechanismDat.pos, itemNd.parent);
+      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+
+      // 初始化机制组件
+      const mechanismCom = itemNd.getComponent(MechanismItem);
+      if (mechanismCom) {
+        mechanismCom.fromDat(mechanismDat);
+      } else {
+        // 如果没有 MechanismItem 组件，添加并初始化
+        const newCom = itemNd.addComponentSafe(MechanismItem);
+        newCom.fromDat(mechanismDat);
+      }
+    });
+  }
+
+  /** 机制 Prefab 缓存 */
+  private _mechanismPrefabCache: Map<string, cc.Prefab> = new Map();
+
+  /**
+   * 获取机制 prefab
+   * @param prefabPath prefab 资源路径
+   */
+  private getMechanismPrefab(prefabPath: string): cc.Prefab {
+    if (this._mechanismPrefabCache.has(prefabPath)) {
+      return this._mechanismPrefabCache.get(prefabPath);
+    }
+
+    // 动态加载 prefab
+    return new Promise<cc.Prefab>((resolve) => {
+      cc.resources.load(prefabPath, cc.Prefab, (err, prefab) => {
+        if (err) {
+          console.error(`[MapBuilder] Failed to load prefab: ${prefabPath}`, err);
+          resolve(null);
+          return;
+        }
+        this._mechanismPrefabCache.set(prefabPath, prefab as cc.Prefab);
+        resolve(prefab as cc.Prefab);
+      });
+    }) as any;
+  }
+
+  /**
+   * 同步获取机制 prefab（需要先预加载）
+   */
+  public preloadMechanismPrefab(prefabPath: string, prefab: cc.Prefab): void {
+    this._mechanismPrefabCache.set(prefabPath, prefab);
   }
 }

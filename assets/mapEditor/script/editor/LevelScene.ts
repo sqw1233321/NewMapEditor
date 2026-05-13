@@ -23,6 +23,7 @@ import KeyInputHandler from "./KeyInputHandler";
 import PopManager from "./PopManager";
 import MapBgPrefab from "./MapBgPrefab";
 import { MapBgManager } from "./MapBgManager";
+import { MechanismMgr } from "../frameWork/MechanismMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -140,9 +141,12 @@ export default class LevelScene extends cc.Component {
     this.mapLoader.getComponent(MapLoader).init();
     // 加载图集配置
     await MapBgManager.instance.loadMapData();
-    //自动命名默认为true
+    // 自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
+
+    // 加载机制配置
+    await MechanismMgr.instance.loadConfigFromResources("mapEditor/config/mechanismDefine");
   }
 
   protected onDestroy(): void {

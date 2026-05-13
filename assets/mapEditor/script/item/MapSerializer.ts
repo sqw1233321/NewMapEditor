@@ -4,6 +4,8 @@ import { MapDrawDat, MapDrawDatType, MapDrawDatSize, MapDrawDatPathPoint, MapDra
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
 import MapDrawUnitBase from "./MapDrawUnitBase";
+import MechanismItem from "./MechanismItem";
+import { MechanismInstance } from "../type/MechanismDefine";
 
 
 /**
@@ -17,6 +19,7 @@ export default class MapSerializer {
   private _getPlayerCreate: () => cc.Node;
   private _getPlayerExit: () => cc.Node;
   private _getAreaInfo: () => number[];
+  private _getMechanismUnits: () => cc.Node;
 
   public init(config: {
     getPathPoints: () => Map<string, cc.Node>;
@@ -25,6 +28,7 @@ export default class MapSerializer {
     getPlayerCreate: () => cc.Node;
     getPlayerExit: () => cc.Node;
     getAreaInfo: () => number[];
+    getMechanismUnits?: () => cc.Node;
   }) {
     this._getPathPoints = config.getPathPoints;
     this._getRoomNodes = config.getRoomNodes;
@@ -32,6 +36,7 @@ export default class MapSerializer {
     this._getPlayerCreate = config.getPlayerCreate;
     this._getPlayerExit = config.getPlayerExit;
     this._getAreaInfo = config.getAreaInfo;
+    this._getMechanismUnits = config.getMechanismUnits;
   }
 
   /**
@@ -44,6 +49,7 @@ export default class MapSerializer {
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
     const { portalDatas, cableDatas, stoneDatas } = this.collectOutRoomUnits();
+    const mechanismInstances = this.collectMechanismInstances();
     const playerCreatePos = this.collectPlayerPos(this._getPlayerCreate());
     const playerExitPos = this.collectPlayerPos(this._getPlayerExit());
     const areaInfo = this.collectAreaInfo();
@@ -57,6 +63,7 @@ export default class MapSerializer {
       portalDatas,
       scooterDatas: cableDatas,
       rockDatas: stoneDatas,
+      mechanismInstances,
       areaInfo,
     };
 
@@ -143,5 +150,28 @@ export default class MapSerializer {
 
   private collectAreaInfo(): number[] {
     return this._getAreaInfo().map((info) => Number(info));
+  }
+
+  /**
+   * 收集机制实例数据
+   */
+  private collectMechanismInstances(): MechanismInstance[] {
+    if (!this._getMechanismUnits) return [];
+
+    const instances: MechanismInstance[] = [];
+    const mechanismUnits = this._getMechanismUnits();
+    if (!mechanismUnits) return instances;
+
+    mechanismUnits.children.forEach((unit) => {
+      const mechanismItem = unit.getComponent(MechanismItem);
+      if (!mechanismItem) return;
+
+      const dat = mechanismItem.getDat();
+      if (dat) {
+        instances.push(dat);
+      }
+    });
+
+    return instances;
   }
 }

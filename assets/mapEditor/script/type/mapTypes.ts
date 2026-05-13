@@ -29,4 +29,6 @@ export enum UnitType {
     Stone,
     Cable,
     FightSoul,
+    /** 动态机制（可配置的机制实例） */
+    Mechanism,
 }

@@ -1,4 +1,5 @@
 import { UnitType } from "./mapTypes";
+import { MechanismFieldDefine } from "./MechanismDefine";
 
 //拖拽数据
 export interface DragType {
@@ -43,6 +44,14 @@ export interface attrPanelType {
   | attrPanelTypeCable
   | attrPanelTypeEnemyRefresh
   | attrPanelTypeSurviveRefresh
+  | attrPanelTypeMechanism;
+}
+
+export interface attrPanelTypeMechanism {
+  mechanismId: string;
+  mechanismName: string;
+  fields: MechanismFieldDefine[];
+  values: Record<string, any>;
 }
 
 export interface attrPanelTypeBase {
