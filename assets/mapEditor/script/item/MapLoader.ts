@@ -259,7 +259,7 @@ export default class MapLoader extends cc.Component {
   }
 
   //重命名layer中的所有房间id
-  private reorderLayerNames(layerNd: cc.Node): MapDrawRoom[] {
+  private reNameSingleLayerRoom(layerNd: cc.Node): MapDrawRoom[] {
     const mapName = EditorSetting.Instance.getFileInfo().fileName;
     const mapNoMatch = /(\d+)$/.exec(mapName);
     const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
@@ -282,12 +282,22 @@ export default class MapLoader extends cc.Component {
       const roomNo = index + 1;
       const renamedId = mapNo * 100 + (layerNo - 1) * 10 + roomNo;
       const controller = r.node.getComponent(MapDrawRoom);
-      if (EditorSetting.Instance.getAutoRename()) {
-        this.renameRoomNode(controller.getRoomId(), renamedId, r.node);
-        controller.updateRoomId(renamedId);
-        //刷新layer
-        controller.changeLayer(layerNo);
+      const oldCfgId = controller.getRoomCfgId();
+      //是否自动命名
+      const isAutoName = EditorSetting.Instance.getAutoRename();
+      //自动命名
+      if (isAutoName) controller.updateRoomId(renamedId);
+      //非自动命名
+      else {
+        //是否手动修改过
+        const isManuallySet = controller.getManulSet();
+        //没有手动改过，刷新为唯一名字
+        if (!isManuallySet) controller.updateRoomId(controller.getSingleName());
       }
+      //刷新layer
+      controller.changeLayer(layerNo);
+      //维护roomNode表
+      this.renameRoomNode(oldCfgId, controller.getRoomId(), r.node);
     });
     return rooms;
   };
@@ -331,7 +341,7 @@ export default class MapLoader extends cc.Component {
         this._layerNodeMap.delete(no);
         this._layerNodeMap.set(newNo, node);
         //重新命名上面的所有房间
-        this.reorderLayerNames(node);
+        this.reNameSingleLayerRoom(node);
       });
 
     // 创建新 layer
@@ -460,7 +470,7 @@ export default class MapLoader extends cc.Component {
       const newNo = idx + 1;
       item.node.name = `Layer${newNo}`;
       this._layerNodeMap.set(newNo, item.node);
-      this.reorderLayerNames(item.node);
+      this.reNameSingleLayerRoom(item.node);
     });
 
     this._layerNodeMap.forEach((layerNd) => this.updateLayerBounds(layerNd));
@@ -481,25 +491,30 @@ export default class MapLoader extends cc.Component {
     const mapNo = mapNoMatch ? Number(mapNoMatch[1]) : 0;
     const layerMatch = /^Layer(\d+)$/.exec(newLayerNd.name);
     if (!layerMatch) return;
+    const oldLayerMatch = /^Layer(\d+)$/.exec(oldLayerNd.name);
     const layer = Number(layerMatch[1]);
     if (!isFinite(layer)) return;
 
     const oldCfgId = roomCom.getRoomCfgId();
+
+    //是否是新房间
     const isNewRoom = oldCfgId == 0;
+
     //新房间，没有手动改过名，就用这个唯一名字
-    const singleName = roomCom.getSingleName();
-    let newCfgId = Number(singleName.split("_")[0]);
+    let newCfgId = roomCom.getSingleName();
+
+    //重命名新旧两个layer的所有房间
+    const newLayerRooms = this.reNameSingleLayerRoom(newLayerNd);
+    //旧的是layer的情况下才去重排旧layer
+    if (oldLayerMatch && oldLayerNd && oldLayerNd !== newLayerNd) {
+      this.reNameSingleLayerRoom(oldLayerNd);
+    }
+
 
     //是否自动命名
     const isAutoName = EditorSetting.Instance.getAutoRename();
-
     //自动命名，计算新id
     if (isAutoName) {
-      //自动命名时，需要重新排序新旧两个layer的所有房间id
-      const newLayerRooms = this.reorderLayerNames(newLayerNd);
-      if (oldLayerNd && oldLayerNd !== newLayerNd) {
-        this.reorderLayerNames(oldLayerNd);
-      }
       const idx = newLayerRooms.findIndex((r) => r === roomCom);
       if (idx < 0) return;
       const newRoomNo = idx + 1;
@@ -535,12 +550,8 @@ export default class MapLoader extends cc.Component {
       //新房间自动命名后也算手动命名
       if (isAutoName) roomCom.setManulSet(true);
     }
-    //旧房间
-    else {
-      const isManuallySet = roomCom.getManulSet();
-      //没有手动改过，刷新id以及所有房间内id
-      if (!isManuallySet) roomCom.updateRoomId(newCfgId);
-    }
+
+    //维护房间表
     this.renameRoomNode(oldCfgId, newCfgId, roomCom.node);
   }
   // ==================== 路径点管理 ====================

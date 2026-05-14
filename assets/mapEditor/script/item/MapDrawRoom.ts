@@ -36,7 +36,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     private _roomDat: MapDrawDatRoom = null;
     private _color: cc.Color = null;
     private _layer: number = 0;
-    private _singleName: string = null;  // 稳定唯一标识，用于新房间在非自动命名状态下的初始名字。
+    private _singleName: number = null;  // 稳定唯一标识，用于新房间在非自动命名状态下的初始名字。
     private _points: MapDrawP[] = [];
     private _pointIds: string[] = [];
     private _unLockPointIds: string[] = [];
@@ -130,17 +130,15 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     /** 获取房间唯一标识，用于非自动命名状态的初始房间名） */
-    public getSingleName(): string {
+    public getSingleName(): number {
         if (!this._singleName) this.generateSingleName();
         return this._singleName;
     }
 
     /** 生成唯一名字*/
-    private generateSingleName(): string {
+    private generateSingleName(): number {
         if (this._singleName) return this._singleName;
-        const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substring(2, 6);
-        this._singleName = `${Date.now()}_${timestamp}_${random}`;
+        this._singleName = Date.now();
     }
 
     public setSize(size: { width: number; height: number }) {
