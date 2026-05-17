@@ -26,6 +26,12 @@ export default class MapBgPrefab extends cc.Component {
      * sps: 背景图集
      */
     init(dat: { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[] }) {
+        if (!dat) {
+            this.areaCont.children.forEach(child => {
+                child.active = false;
+            });
+            return;
+        }
         this._dat = dat;
         //分成二维数组
         const count = this._dat.sps.length / dat.areaNumber;

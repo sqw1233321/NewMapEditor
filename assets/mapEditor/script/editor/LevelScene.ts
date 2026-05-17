@@ -719,17 +719,6 @@ export default class LevelScene extends cc.Component {
     // 从 MapBgManager 获取当前地图对应的背景图数据
     const mapDta = this.fileNameLb.string ?? "Level1";
     const bgData = await MapBgManager.instance.loadBgByMapDta(mapDta);
-
-    if (bgData) {
-      mapBg.getComponent(MapBgPrefab).init(bgData);
-    } else {
-      // 没有配置时使用默认空数据
-      mapBg.getComponent(MapBgPrefab).init({
-        areaNumber: 1,
-        oneAreaSize: new cc.Vec2(2, 2),
-        areaOffset: 100,
-        sps: []
-      });
-    }
+    mapBg.getComponent(MapBgPrefab).init(bgData);
   }
 }
