@@ -665,6 +665,9 @@ export default class MapLoader extends cc.Component {
     if (prevParent === targetPointCont) {
       const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
       targetRoomCom?.refreshDat();
+      if (rebuildIds) {
+        this.rebuildPointIdsByLayer();
+      }
       return true;
     }
 
