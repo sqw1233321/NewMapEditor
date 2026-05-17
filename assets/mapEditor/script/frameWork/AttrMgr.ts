@@ -183,8 +183,11 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     console.log("有重名的房间！！！");
                 }
                 else {
-                    this._trackNd.getComponent(MapDrawRoom).updateRoomId(Number(dat.roomId));
+                    const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
+                    const newCfgId = Number(dat.roomId);
+                    this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);
                     this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
+                    this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
                 }
                 this._trackNd.getComponent(MapDrawRoom).setSize(size);
                 this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);
