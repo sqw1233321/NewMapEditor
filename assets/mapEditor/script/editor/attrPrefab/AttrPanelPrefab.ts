@@ -34,12 +34,15 @@ export default class AttrPanelPrefab extends cc.Component {
     private _type: UnitType;
 
     //传入当前节点的属性配置，和属性现有值
-    init(attrCfg: AttrCfgType, dat: attrPanelTypeDatType) {
+    init(attrCfg: AttrCfgType, dat: attrPanelTypeDatType, isNew: boolean) {
         this._attrCfg = attrCfg;
         this._dat = dat;
         this._type = attrCfg.ClassName as UnitType;
-        this.setDefault();
-        this.setUI();
+        //是否切换了新节点
+        if (isNew) {
+            this.setDefault();
+            this.setUI();
+        }
     }
 
     private setDefault() {

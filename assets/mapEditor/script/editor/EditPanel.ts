@@ -33,6 +33,7 @@ export default class EditPanel extends cc.Component {
 
   private _dat: attrPanelType;
   private _attrObj: AttrCfgTypes;
+  private _trackNd: cc.Node;
 
   protected onLoad(): void {
     this._attrObj = this.attrSetting.json as AttrCfgTypes;
@@ -73,9 +74,11 @@ export default class EditPanel extends cc.Component {
       this)
   }
 
-  private refreshAttr(attrDat: attrPanelType) {
+  private refreshAttr(attrDat: attrPanelType, trackNd: cc.Node) {
     this._dat = attrDat;
-    this.actNd();
+    const isNew = attrDat.type !== UnitType.Default && trackNd !== this._trackNd;
+    if (isNew) this._trackNd = trackNd;
+    this.actNd(isNew);
   }
 
   public clear() {
@@ -83,7 +86,7 @@ export default class EditPanel extends cc.Component {
     this.prefabAttr.node.active = false;
   }
 
-  private actNd() {
+  private actNd(isNew: boolean) {
     //基础属性
     if (this._dat.type == UnitType.Default) {
       this.baseAttr.active = true;
@@ -92,7 +95,7 @@ export default class EditPanel extends cc.Component {
     else {
       const attrSetting = this._attrObj.typeArr.find(type => type.ClassName == this._dat.type);
       this.prefabAttr.node.active = true;
-      this.prefabAttr.init(attrSetting, this._dat.dat);
+      this.prefabAttr.init(attrSetting, this._dat.dat, isNew);
     }
   }
 

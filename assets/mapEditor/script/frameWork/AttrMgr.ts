@@ -80,7 +80,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             type: UnitType.Default,
             dat: baseDat,
         };
-        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, basePanelDat);
+        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, basePanelDat, this._trackNd);
         if (type == UnitType.Default) return;
 
         //特殊属性的同步
@@ -158,7 +158,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             type: type,
             dat: dat,
         };
-        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat);
+        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat,this._trackNd);
     }
 
 
