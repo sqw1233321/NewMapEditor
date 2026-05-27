@@ -67,6 +67,12 @@ export default class LevelScene extends cc.Component {
   @property(cc.Prefab)
   magBgPrefab: cc.Prefab;
 
+
+  //============测试用=============
+  @property(cc.JsonAsset)
+  testJson: cc.JsonAsset;
+
+
   // ==================== 私有变量 ====================
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
@@ -139,10 +145,13 @@ export default class LevelScene extends cc.Component {
     //初始化mapLoader
     this.mapLoader.getComponent(MapLoader).init();
     // 加载图集配置
-    await MapBgManager.instance.loadMapData();
+    if(!CC_DEBUG) await MapBgManager.instance.loadMapData();
     //自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
+    if (CC_DEBUG && this.testJson) {
+      this.changeMap(JSON.stringify(this.testJson.json), "test.json");
+    }
   }
 
   protected onDestroy(): void {
@@ -699,7 +708,7 @@ export default class LevelScene extends cc.Component {
     //一开始先存一次快照
     this.saveUndoSnapshot();
     //更换背景
-    await this.changeMapBg();
+    if(!CC_DEBUG) await this.changeMapBg();
     //清除快照
     this._undoManager.clear();
   }

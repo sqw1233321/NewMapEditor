@@ -1,40 +1,35 @@
 {
-    "ClassName": "MapDrawRoom",
-    "Properties": [
+    "typeArr": [
         {
-            "Name": "配置名称",
-            "Type": "number",
-            "Default": 0
-        },
-        {
-            "Name": "尺寸",
-            "Type": "number[]",
-            "SubProperties": [
+            "ClassName": "Room",
+            "Properties": [
                 {
-                    "Name": "宽",
-                    "Type": "number",
-                    "DefaultValue": 0
+                    "Name": "配置名称",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
                 },
                 {
-                    "Name": "高",
-                    "Type": "number",
-                    "DefaultValue": 0
-                }
-            ]
-        },
-        {
-            "Name": "解锁点",
-            "Type": "point[]",
-            "SubProperties": [
-                {
-                    "Name": "宽",
-                    "Type": "number",
-                    "DefaultValue": 0
+                    "Name": "尺寸",
+                    "ClassPropertyName": "size",
+                    "Type": "label",
+                    "Properties": [
+                        {
+                            "Name": "宽",
+                            "ClassPropertyName": "width",
+                            "DefaultValue": 0
+                        },
+                        {
+                            "Name": "高",
+                            "ClassPropertyName": "height",
+                            "DefaultValue": 0
+                        }
+                    ]
                 },
                 {
-                    "Name": "高",
-                    "Type": "number",
-                    "DefaultValue": 0
+                    "Name": "解锁点",
+                    "ClassPropertyName": "unLockPoints",
+                    "Type": "pointArray"
                 }
             ]
         }

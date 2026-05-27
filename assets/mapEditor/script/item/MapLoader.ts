@@ -3,7 +3,6 @@ import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
-import MapDrawPortal from "./MapDrawPortal";
 import MapDrawRoom from "./MapDrawRoom";
 import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapTool from "../tool/MapTool";

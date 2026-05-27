@@ -28,11 +28,14 @@ export interface HoverType {
   height: number;
 }
 
-//属性面板
+//属性面板传输的属性值
 export interface attrPanelType {
   type: UnitType;
-  dat:
-  | attrPanelTypeBase
+  dat: attrPanelTypeDatType
+}
+
+export type attrPanelTypeDatType =
+  attrPanelTypeBase
   | attrPanelTypeRoom
   | attrPanelTypePoint
   | attrPanelTypeDoor
@@ -43,7 +46,6 @@ export interface attrPanelType {
   | attrPanelTypeCable
   | attrPanelTypeEnemyRefresh
   | attrPanelTypeSurviveRefresh
-}
 
 export interface attrPanelTypeBase {
   name: string;

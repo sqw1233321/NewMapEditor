@@ -1,36 +1,12 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import { UnitType } from "../type/mapTypes";
-import {
-  attrPanelTypeRoom,
-  attrPanelType,
-  attrPanelTypeBase,
-  attrPanelTypePoint,
-  attrPanelTypeDoor,
-  attrPanelTypeLadder,
-  attrPanelTypePortal,
-  attrPanelTypeCable,
-  attrPanelTypeEnemyRefresh,
-  attrPanelTypeSurviveRefresh,
-  attrPanelTypeFightSoul,
-} from "../type/types";
-import AttrPanelBase from "./attrPanel/AttrPanelBase";
-import AttrPanelCable from "./attrPanel/AttrPanelCable";
-import AttrPanelDoor from "./attrPanel/AttrPanelDoor";
-import AttrPanelEnemyRefresh from "./attrPanel/AttrPanelEnemyRefresh";
-import AttrPanelFightSoul from "./attrPanel/AttrPanelFightSoul";
-import AttrPanelLadder from "./attrPanel/AttrPanelLadder";
-import AttrPanelPoint from "./attrPanel/AttrPanelPoint";
-import AttrPanelPortal from "./attrPanel/AttrPanelPortal";
-import AttrPanelRoom from "./attrPanel/AttrPanelRoom";
-import AttrPanelSurviveRefresh from "./attrPanel/AttrPanelSurviveRefresh";
+import { AttrCfgTypes, UnitType } from "../type/mapTypes";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeDatType } from "../type/types";
+import AttrPanelPrefab from "./attrPrefab/AttrPanelPrefab";
+import AttrPanelBase from "./attrPrefab/BaseAttrPanel";
+import BaseAttrPanel from "./attrPrefab/BaseAttrPanel";
+
+
 
 const { ccclass, property } = cc._decorator;
 
@@ -39,47 +15,29 @@ export enum AttrPanelEvent {
   afterEdit = "afterEdit",
 }
 
+//属性面板
 @ccclass
 export default class EditPanel extends cc.Component {
+  @property(cc.JsonAsset)
+  attrSetting: cc.JsonAsset;
+
   @property(cc.Node)
   baseAttr: cc.Node;
 
-  @property(cc.Node)
-  roomAttr: cc.Node;
-
-  @property(cc.Node)
-  pointAttr: cc.Node;
-
-  @property(cc.Node)
-  doorAttr: cc.Node;
-
-  @property(cc.Node)
-  ladderAttr: cc.Node;
-
-  @property(cc.Node)
-  portalAttr: cc.Node;
-
-  @property(cc.Node)
-  cableAttr: cc.Node;
-
-  @property(cc.Node)
-  enemyRefreshAttr: cc.Node;
-
-  @property(cc.Node)
-  surviveRefreshAttr: cc.Node;
-
-  @property(cc.Node)
-  fightSoulAttr: cc.Node;
+  @property(AttrPanelPrefab)
+  prefabAttr: AttrPanelPrefab;
 
   //areaInfo
   @property(cc.EditBox)
   areaInfoLb: cc.EditBox;
 
   private _dat: attrPanelType;
-
+  private _attrObj: AttrCfgTypes;
 
   protected onLoad(): void {
+    this._attrObj = this.attrSetting.json as AttrCfgTypes;
     this.clear();
+
     EventManager.instance.on(
       MapEditorEvent.RefreshAttrPanel,
       this.refreshAttr,
@@ -118,148 +76,46 @@ export default class EditPanel extends cc.Component {
   private refreshAttr(attrDat: attrPanelType) {
     this._dat = attrDat;
     this.actNd();
-    switch (attrDat.type) {
-      case UnitType.Default:
-        this.showBaseAttrNd();
-        break;
-      case UnitType.Room:
-        this.showRoomAttrNd();
-        break;
-      case UnitType.PathPoint:
-        this.showPointAttrNd();
-        break;
-      case UnitType.Door:
-        this.showDoorAttrNd();
-        break;
-      case UnitType.Ladder:
-        this.showLadderAttrNd();
-        break;
-      case UnitType.Portal:
-        this.showPortalAttrNd();
-        break;
-      case UnitType.Cable:
-        this.showCableAttrNd();
-        break;
-      case UnitType.EnemyRefresh:
-        this.showEnemyRefreshAttrNd();
-        break;
-      case UnitType.SurviveDat:
-        this.showSurviveRefreshAttrNd();
-        break;
-      case UnitType.FightSoul:
-        this.showFightSoulAttrNd();
-        break;
-    }
+  }
+
+  public clear() {
+    this.baseAttr.active = false;
+    this.prefabAttr.node.active = false;
   }
 
   private actNd() {
-    this.baseAttr.active = true;
-    const type = this._dat.type;
-    this.roomAttr.active = type == UnitType.Room;
-    this.pointAttr.active = type == UnitType.PathPoint;
-    this.doorAttr.active = type == UnitType.Door;
-    this.ladderAttr.active = type == UnitType.Ladder;
-    this.portalAttr.active = type == UnitType.Portal;
-    this.cableAttr.active = type == UnitType.Cable;
-    this.enemyRefreshAttr.active = type == UnitType.EnemyRefresh;
-    this.surviveRefreshAttr.active = type == UnitType.SurviveDat;
-    this.fightSoulAttr.active = type == UnitType.FightSoul;
-  }
-
-  private showBaseAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeBase;
-    this.baseAttr.getComponent(AttrPanelBase).setAttr(dat);
-  }
-
-  private showRoomAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeRoom;
-    this.roomAttr.getComponent(AttrPanelRoom).setAttr(dat);
-  }
-
-  private showPointAttrNd() {
-    const dat = this._dat.dat as attrPanelTypePoint;
-    this.pointAttr.getComponent(AttrPanelPoint).setAttr(dat);
-  }
-
-  private showDoorAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeDoor;
-    this.doorAttr.getComponent(AttrPanelDoor).setAttr(dat);
-  }
-
-  private showLadderAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeLadder;
-    this.ladderAttr.getComponent(AttrPanelLadder).setAttr(dat);
-  }
-
-  private showPortalAttrNd() {
-    const dat = this._dat.dat as attrPanelTypePortal;
-    this.portalAttr.getComponent(AttrPanelPortal).setAttr(dat);
-  }
-
-  private showCableAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeCable;
-    this.cableAttr.getComponent(AttrPanelCable).setAttr(dat);
-  }
-
-  private showEnemyRefreshAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeEnemyRefresh;
-    this.enemyRefreshAttr.getComponent(AttrPanelEnemyRefresh).setAttr(dat);
-  }
-
-  private showSurviveRefreshAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeSurviveRefresh;
-    this.surviveRefreshAttr.getComponent(AttrPanelSurviveRefresh).setAttr(dat);
-  }
-
-  private showFightSoulAttrNd() {
-    const dat = this._dat.dat as attrPanelTypeFightSoul;
-    this.fightSoulAttr.getComponent(AttrPanelFightSoul).setAttr(dat);
+    //基础属性
+    if (this._dat.type == UnitType.Default) {
+      this.baseAttr.active = true;
+      this.baseAttr.getComponent(BaseAttrPanel).setAttr(this._dat.dat as attrPanelTypeBase);
+    }
+    else {
+      const attrSetting = this._attrObj.typeArr.find(type => type.ClassName == this._dat.type);
+      this.prefabAttr.node.active = true;
+      this.prefabAttr.init(attrSetting, this._dat.dat);
+    }
   }
 
   public onChangeAttr(type: string) {
-    const unitType = Number(type) as UnitType;
-    let dat;
-    switch (unitType) {
-      case UnitType.Default:
-        dat = this.baseAttr.getComponent(AttrPanelBase).getDat();
-        break;
-      case UnitType.Room:
-        dat = this.roomAttr.getComponent(AttrPanelRoom).getDat();
-        break;
-      case UnitType.PathPoint:
-        dat = this.pointAttr.getComponent(AttrPanelPoint).getDat();
-        break;
-      case UnitType.Door:
-        dat = this.doorAttr.getComponent(AttrPanelDoor).getDat();
-        break;
-      case UnitType.Ladder:
-        dat = this.ladderAttr.getComponent(AttrPanelLadder).getDat();
-        break;
-      case UnitType.Portal:
-        dat = this.portalAttr.getComponent(AttrPanelPortal).getDat();
-        break;
-      case UnitType.Cable:
-        dat = this.cableAttr.getComponent(AttrPanelCable).getDat();
-        break;
-      case UnitType.EnemyRefresh:
-        dat = this.enemyRefreshAttr.getComponent(AttrPanelEnemyRefresh).getDat();
-        break;
-      case UnitType.SurviveDat:
-        dat = this.surviveRefreshAttr.getComponent(AttrPanelSurviveRefresh).getDat();
-        break;
-      case UnitType.FightSoul:
-        dat = this.fightSoulAttr.getComponent(AttrPanelFightSoul).getDat();
-        break;
-      default:
-        break;
-    }
-    const attrDat: attrPanelType = {
-      type: unitType,
-      dat: dat,
+    //基础属性
+    const baseDat = this.baseAttr.getComponent(AttrPanelBase).getDat();
+    const baseAttrDat: attrPanelType = {
+      type: UnitType.Default,
+      dat: baseDat as attrPanelTypeBase,
     };
-    EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, attrDat);
+    EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, baseAttrDat);
+
+    //特殊属性
+    const uniqueDat = this.prefabAttr.getComponent(AttrPanelPrefab).getDat();
+    const uniqueAttrDat: attrPanelType = {
+      type: this._dat.type,
+      dat: uniqueDat as attrPanelTypeDatType,
+    };
+    EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
   }
 
+
+  //============区域信息相关===============
   public setAreaInfo(areaInfo: number[]) {
     let str = "";
     areaInfo.forEach((areaIndex, index) => {
@@ -273,18 +129,5 @@ export default class EditPanel extends cc.Component {
   public areaInfoChange() {
     const areaInfo = this.areaInfoLb.string.split("_").map(a => Number(a));
     EventManager.instance.emit(MapEditorEvent.UpdateAreaInfoFormPanel, areaInfo);
-  }
-
-  public clear() {
-    this.baseAttr.active = false;
-    this.roomAttr.active = false;
-    this.pointAttr.active = false;
-    this.doorAttr.active = false;
-    this.ladderAttr.active = false;
-    this.portalAttr.active = false;
-    this.cableAttr.active = false;
-    this.enemyRefreshAttr.active = false;
-    this.surviveRefreshAttr.active = false;
-    this.fightSoulAttr.active = false;
   }
 }

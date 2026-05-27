@@ -1,28 +1,29 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import MapDrawP from "../../item/MapDrawP";
 import { NodeUtil } from "../../tool/NodeUtil";
-import { UnitType } from "../../type/mapTypes";
-import { AttrPanelEvent } from "../EditPanel";
+import { AttrPanelPropertyType } from "../../type/mapTypes";
+
 
 const { ccclass, property } = cc._decorator;
 
+//通用属性面板item
 @ccclass
-export default class AttrPanel extends cc.Component {
-    @property({ type: cc.Enum(UnitType) })
-    type: UnitType = UnitType.Default;
+export default class AttrPanelItemBase extends cc.Component {
+    @property(cc.Label)
+    descLb: cc.Label;
 
+    protected _cfg: AttrPanelPropertyType;
+    private _afterEditorCb: () => void;
+
+    public init(cfg: AttrPanelPropertyType, cb, ...params) {
+        this._cfg = cfg;
+        this._afterEditorCb = cb;
+    }
 
     //EditBox编辑完成
     public onAfterEdit() {
-        EventManager.instance.emit(AttrPanelEvent.afterEdit, this.type);
+        this._afterEditorCb?.();
     }
 
     //选点模式
@@ -40,7 +41,7 @@ export default class AttrPanel extends cc.Component {
                 const singleLb = nd.getComponent(cc.Label) || nd.getComponent(cc.EditBox);
                 singleLb.string = nodes[0]?.getComponent(MapDrawP).getId() ?? "";
             }
-            EventManager.instance.emit(AttrPanelEvent.afterEdit, this.type);
+            this._afterEditorCb?.();
         }
 
         let arr: cc.Node[] = [];
@@ -51,5 +52,12 @@ export default class AttrPanel extends cc.Component {
             arr = dat;
         }
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
+    }
+
+
+
+
+    public getDat() {
+
     }
 }
