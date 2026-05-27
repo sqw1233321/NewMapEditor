@@ -500,8 +500,9 @@ export default class MapLoader extends cc.Component {
     //是否是新房间
     const isNewRoom = oldCfgId == 0;
 
-    //新房间，没有手动改过名，就用这个唯一名字
-    let newCfgId = roomCom.getSingleName();
+    //新名字:
+    //新房间:没有手动改过名，就用这个唯一名字。旧房间:旧id
+    let newCfgId = isNewRoom ? roomCom.getSingleName() : oldCfgId;
 
     //重命名新旧两个layer的所有房间
     const newLayerRooms = this.reNameSingleLayerRoom(newLayerNd);
@@ -510,15 +511,12 @@ export default class MapLoader extends cc.Component {
       this.reNameSingleLayerRoom(oldLayerNd);
     }
 
-
-    //是否自动命名
+    //自动命名：重新计算新id
     const isAutoName = EditorSetting.Instance.getAutoRename();
-    //自动命名，计算新id
     if (isAutoName) {
       const idx = newLayerRooms.findIndex((r) => r === roomCom);
       if (idx < 0) return;
       const newRoomNo = idx + 1;
-      //自动命名后的roomId
       newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
     }
 
