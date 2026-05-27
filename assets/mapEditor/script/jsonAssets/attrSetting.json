@@ -13,6 +13,7 @@
                     "Name": "尺寸",
                     "ClassPropertyName": "size",
                     "Type": "label",
+                    "IsArray": false,
                     "Properties": [
                         {
                             "Name": "宽",
@@ -30,6 +31,32 @@
                     "Name": "解锁点",
                     "ClassPropertyName": "unLockPoints",
                     "Type": "pointArray"
+                }
+            ]
+        },
+        {
+            "ClassName": "PathPoint",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "连接点",
+                    "ClassPropertyName": "links",
+                    "Type": "label",
+                    "IsArray": true,
+                    "Properties": [
+                        {
+                            "Name": "",
+                            "PERMISSIONS": "readonly",
+                            "Type": "point",
+                            "ClassPropertyName": "",
+                            "DefaultValue": 0
+                        }
+                    ]
                 }
             ]
         }

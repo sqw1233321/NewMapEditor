@@ -158,7 +158,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             type: type,
             dat: dat,
         };
-        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat,this._trackNd);
+        EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat, this._trackNd);
     }
 
 
@@ -218,28 +218,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     ladderCom.setIsExitLadder(dat.isExitLadder);
                 }
                 break;
-            case UnitType.Portal:
-                dat = attrDat.dat as attrPanelTypePortal;
-                const portalCom = this._trackNd.getComponent(MapDrawPortal);
-                if (portalCom) {
-                    portalCom.setLinkP(dat.linkP);
-                    portalCom.setOffsetX(dat.offsetX);
-                    portalCom.setAnimPs(dat.animPs);
-                }
-                break;
-            case UnitType.Cable:
-                dat = attrDat.dat as attrPanelTypeCable;
-                const cableCom = this._trackNd.getComponent(MapDrawCable);
-                const startP = dat.startP;
-                const endP = dat.endP;
-                const pointPs = dat.points;
-                if (cableCom) {
-                    cableCom.setSpeed(dat.speed);
-                    cableCom.setStartP(startP);
-                    cableCom.setEndP(endP);
-                    cableCom.setPoints(pointPs);
-                }
-                break;
             case UnitType.EnemyRefresh:
                 dat = attrDat.dat as attrPanelTypeEnemyRefresh;
                 const enemyRefreshCom = this._trackNd.getComponent(MapDrawEnemyRefresh);
@@ -264,6 +242,30 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     fightSoulCom.setRoomId(Number(dat.roomId));
                     fightSoulCom.setWeight(dat.weight);
                     fightSoulCom.setIsGuide(dat.isGuide);
+                }
+                break;
+
+            //下面的机制，融合为通用item
+            case UnitType.Portal:
+                dat = attrDat.dat as attrPanelTypePortal;
+                const portalCom = this._trackNd.getComponent(MapDrawPortal);
+                if (portalCom) {
+                    portalCom.setLinkP(dat.linkP);
+                    portalCom.setOffsetX(dat.offsetX);
+                    portalCom.setAnimPs(dat.animPs);
+                }
+                break;
+            case UnitType.Cable:
+                dat = attrDat.dat as attrPanelTypeCable;
+                const cableCom = this._trackNd.getComponent(MapDrawCable);
+                const startP = dat.startP;
+                const endP = dat.endP;
+                const pointPs = dat.points;
+                if (cableCom) {
+                    cableCom.setSpeed(dat.speed);
+                    cableCom.setStartP(startP);
+                    cableCom.setEndP(endP);
+                    cableCom.setPoints(pointPs);
                 }
                 break;
         }

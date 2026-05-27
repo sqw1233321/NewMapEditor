@@ -51,6 +51,8 @@ export interface AttrPanelPropertyType {
     ClassPropertyName: string;
     //属性类型
     Type: AttrCfgTypeEnum;
+    //是否已数组形式读取
+    IsArray?: boolean;
     //默认值
     DefaultValue?: any;
     //属性
@@ -61,10 +63,22 @@ export interface AttrPanelPropertyType {
 export interface AttrCfgPropertiesType {
     //属性名称
     Name?: string;
-    //对应对象字段
-    ClassPropertyName: string;
+    //属性权限
+    PERMISSIONS?: AttrCfgPermissionsEnum,
+    //接收的字段类型
+    Type?: AttrCfgTypeEnum,
+    //对应对象字段(有字段就从字段中取，没有就是数组)
+    ClassPropertyName?: string;
     //默认值
     DefaultValue?: any;
+}
+
+//属性字段权限
+export enum AttrCfgPermissionsEnum {
+    //只读
+    readonly = "readonly",
+    //可读可写
+    writeable = "writeable",
 }
 
 //属性类型枚举
