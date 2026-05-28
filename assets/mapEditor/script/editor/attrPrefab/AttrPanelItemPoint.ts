@@ -1,3 +1,4 @@
+import MapDrawP from "../../item/MapDrawP";
 import { NodeUtil } from "../../tool/NodeUtil";
 import { AttrPanelPropertyType } from "../../type/mapTypes";
 import AttrPanelItemBase from "./AttrPanelItemBase";
@@ -25,12 +26,13 @@ export default class AttrPanelItemPoint extends AttrPanelItemBase {
         NodeUtil.autoRefreshChildren(this.editorCont, properties, (nd, index, property) => {
             const descLb = nd.children[0].getComponent(cc.Label);
             descLb.string = property.Name;
-            const pointLb = nd.children[1].getComponent(cc.Label);
-            pointLb.string = property.DefaultValue;
+            const pointLb = nd.children[1].children[0].getComponent(cc.Label);
+            const pointNd = this._dat[index] as cc.Node;
+            pointLb.string = pointNd.getComponent(MapDrawP).getId() ?? "";
             const selectBtn = nd.children[2];
             selectBtn.on(cc.Node.EventType.TOUCH_END, () => {
-                this.onClickSelect(nd, property.DefaultValue, (nodes: cc.Node[]) => {
-                    this._dat.bindPointIds[0] = nodes[0];
+                this.onClickSelect(nd.children[1].children[0], this._dat[index], (nodes: cc.Node[]) => {
+                    this._dat[index] = nodes[0];
                 })
             }, this);
         })
@@ -42,6 +44,6 @@ export default class AttrPanelItemPoint extends AttrPanelItemBase {
 
 
     public getDat() {
-
+        return this._dat;
     }
 }

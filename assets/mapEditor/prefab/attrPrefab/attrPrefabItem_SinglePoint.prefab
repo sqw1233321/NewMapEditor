@@ -440,7 +440,7 @@
   {
     "__type__": "cc.Node",
     "_name": "BACKGROUND_SPRITE",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 6
     },
@@ -508,7 +508,7 @@
   {
     "__type__": "cc.Node",
     "_name": "PLACEHOLDER_LABEL",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 10
     },
@@ -870,8 +870,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "选点模式",
-    "_N$string": "选点模式",
+    "_string": "选点",
+    "_N$string": "选点",
     "_fontSize": 20,
     "_lineHeight": 40,
     "_enableWrapText": false,
@@ -1076,6 +1076,9 @@
     "_enabled": true,
     "descLb": {
       "__id__": 3
+    },
+    "editorCont": {
+      "__id__": 5
     },
     "_id": ""
   },

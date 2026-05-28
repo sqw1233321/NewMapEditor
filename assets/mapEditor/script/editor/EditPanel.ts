@@ -33,7 +33,9 @@ export default class EditPanel extends cc.Component {
 
   private _dat: attrPanelType;
   private _attrObj: AttrCfgTypes;
+
   private _trackNd: cc.Node;
+  private _hasUniqueAttr: boolean = true;
 
   protected onLoad(): void {
     this._attrObj = this.attrSetting.json as AttrCfgTypes;
@@ -94,27 +96,31 @@ export default class EditPanel extends cc.Component {
     }
     else {
       const attrSetting = this._attrObj.typeArr.find(type => type.ClassName == this._dat.type);
-      this.prefabAttr.node.active = true;
+      this._hasUniqueAttr = !!attrSetting;
+      this.prefabAttr.node.active = this._hasUniqueAttr;
       this.prefabAttr.init(attrSetting, this._dat.dat, isNew);
     }
   }
 
   public onChangeAttr(type: string) {
     //基础属性
-    const baseDat = this.baseAttr.getComponent(AttrPanelBase).getDat();
-    const baseAttrDat: attrPanelType = {
-      type: UnitType.Default,
-      dat: baseDat as attrPanelTypeBase,
-    };
-    EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, baseAttrDat);
-
-    //特殊属性
-    const uniqueDat = this.prefabAttr.getComponent(AttrPanelPrefab).getDat();
-    const uniqueAttrDat: attrPanelType = {
-      type: this._dat.type,
-      dat: uniqueDat as attrPanelTypeDatType,
-    };
-    EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
+    if (type == UnitType.Default) {
+      const baseDat = this.baseAttr.getComponent(AttrPanelBase).getDat();
+      const baseAttrDat: attrPanelType = {
+        type: UnitType.Default,
+        dat: baseDat as attrPanelTypeBase,
+      };
+      EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, baseAttrDat);
+    }
+    else if (this._hasUniqueAttr) {
+      //特殊属性
+      const uniqueDat = this.prefabAttr.getComponent(AttrPanelPrefab).getDat();
+      const uniqueAttrDat: attrPanelType = {
+        type: this._dat.type,
+        dat: uniqueDat as attrPanelTypeDatType,
+      };
+      EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
+    }
   }
 
 

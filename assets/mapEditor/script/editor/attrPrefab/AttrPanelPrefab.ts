@@ -39,10 +39,12 @@ export default class AttrPanelPrefab extends cc.Component {
         this._dat = dat;
         this._type = attrCfg.ClassName as UnitType;
         //是否切换了新节点
-        if (isNew) {
-            this.setDefault();
-            this.setUI();
-        }
+        // if (isNew) {
+        //     this.setDefault();
+        //     this.setUI();
+        // }
+        this.setDefault();
+        this.setUI();
     }
 
     private setDefault() {
@@ -99,27 +101,5 @@ export default class AttrPanelPrefab extends cc.Component {
             console.log("传入了不知名类型 !!!", type);
         }
         return cc.instantiate(prefab);
-    }
-
-    private getPanelItemClass(type: AttrCfgTypeEnum) {
-        let itemClass = null;
-        switch (type) {
-            case AttrCfgTypeEnum.label:
-                itemClass = AttrPanelItemLabel;
-                break;
-            case AttrCfgTypeEnum.point:
-                itemClass = AttrPanelItemPoint;
-                break;
-            case AttrCfgTypeEnum.pointArray:
-                itemClass = AttrPanelItemPointArray;
-                break;
-            case AttrCfgTypeEnum.boolean:
-                itemClass = AttrPanelItemBoolean;
-                break;
-        }
-        if (!itemClass) {
-            console.log("传入了不知名类型 !!!", type);
-        }
-        return itemClass;
     }
 }

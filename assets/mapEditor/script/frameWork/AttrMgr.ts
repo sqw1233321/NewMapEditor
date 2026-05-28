@@ -7,12 +7,13 @@ import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawPortal from "../item/MapDrawPortal";
 import MapDrawRoom from "../item/MapDrawRoom";
+import MapDrawSearchItem from "../item/MapDrawSearchItem";
 import MapDrawSurvive from "../item/MapDrawSurvive";
 import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul } from "../type/types";
+import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul, attrPanelTypeSearchItem } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -106,6 +107,10 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     doorCom?.getDat()?.roomId.toString() ?? "";
                 (dat as attrPanelTypeDoor).hp = doorCom?.getDat().hp ?? 0;
                 break;
+            case UnitType.SearchPoint:
+                const pointController = this._trackNd?.getComponent(MapDrawSearchItem);
+                (dat as attrPanelTypeSearchItem).roomId = pointController?.getDat()?.roomId.toString() ?? "";
+                break;
             case UnitType.Ladder:
                 const ladderCom = this._trackNd?.getComponent(MapDrawLadder);
                 (dat as attrPanelTypeLadder).roomId =
@@ -113,23 +118,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeLadder).bindPointIds = ladderCom?.getDat().bindPointIds.map((id) => this._mapLoader.resolvePathPointNodes(id)[0]) ?? [];
                 (dat as attrPanelTypeLadder).isExitLadder =
                     ladderCom?.getDat().isExitLadder ?? false;
-                break;
-            case UnitType.Portal:
-                const portalCom = this._trackNd?.getComponent(MapDrawPortal);
-                (dat as attrPanelTypePortal).linkP = portalCom.getLinkP();
-                (dat as attrPanelTypePortal).offsetX = portalCom?.getDat()?.offsetX ?? 0;
-                (dat as attrPanelTypePortal).animPs = portalCom?.getAnimP() ?? [];
-                break;
-            case UnitType.Cable:
-                const controller = this._trackNd?.getComponent(MapDrawCable);
-                const cableDat = controller.getDat();
-                const startP = this._mapLoader.resolvePathPointNodes(cableDat.point1);
-                const endP = this._mapLoader.resolvePathPointNodes(cableDat.point2);
-                const pointP = this._mapLoader.resolvePathPointNodes(cableDat.points);
-                (dat as attrPanelTypeCable).startP = startP[0];
-                (dat as attrPanelTypeCable).endP = endP[0];
-                (dat as attrPanelTypeCable).points = pointP;
-                (dat as attrPanelTypeCable).speed = cableDat.speed;
                 break;
             case UnitType.EnemyRefresh:
                 const enemyRefreshCom = this._trackNd?.getComponent(MapDrawEnemyRefresh);
@@ -152,6 +140,23 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeFightSoul).roomId = fightSoulCom?.getDat()?.roomId.toString() ?? "";
                 (dat as attrPanelTypeFightSoul).weight = fightSoulCom?.getDat()?.weight ?? 0;
                 (dat as attrPanelTypeFightSoul).isGuide = fightSoulCom?.getDat()?.isGuide ?? false;
+                break;
+            case UnitType.Portal:
+                const portalCom = this._trackNd?.getComponent(MapDrawPortal);
+                (dat as attrPanelTypePortal).linkP = portalCom.getLinkP();
+                (dat as attrPanelTypePortal).offsetX = portalCom?.getDat()?.offsetX ?? 0;
+                (dat as attrPanelTypePortal).animPs = portalCom?.getAnimP() ?? [];
+                break;
+            case UnitType.Cable:
+                const controller = this._trackNd?.getComponent(MapDrawCable);
+                const cableDat = controller.getDat();
+                const startP = this._mapLoader.resolvePathPointNodes(cableDat.point1);
+                const endP = this._mapLoader.resolvePathPointNodes(cableDat.point2);
+                const pointP = this._mapLoader.resolvePathPointNodes(cableDat.points);
+                (dat as attrPanelTypeCable).startP = startP[0];
+                (dat as attrPanelTypeCable).endP = endP[0];
+                (dat as attrPanelTypeCable).points = pointP;
+                (dat as attrPanelTypeCable).speed = cableDat.speed;
                 break;
         }
         const panelDat: attrPanelType = {
@@ -267,6 +272,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     cableCom.setEndP(endP);
                     cableCom.setPoints(pointPs);
                 }
+                break;
+            default:
+                dat = attrDat.dat;
                 break;
         }
 

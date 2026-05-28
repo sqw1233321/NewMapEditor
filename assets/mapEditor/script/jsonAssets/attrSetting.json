@@ -59,6 +59,105 @@
                     ]
                 }
             ]
+        },
+        {
+            "ClassName": "Door",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "血量",
+                    "ClassPropertyName": "hp",
+                    "Type": "label",
+                    "DefaultValue": 0
+                }
+            ]
+        },
+        {
+            "ClassName": "Ladder",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "连接点",
+                    "ClassPropertyName": "bindPointIds",
+                    "Type": "point",
+                    "Properties": [
+                        {
+                            "Name": "起点",
+                            "ClassPropertyName": "start"
+                        },
+                        {
+                            "Name": "终点",
+                            "ClassPropertyName": "end"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "ClassName": "EnemyRefresh",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                }
+            ]
+        },
+        {
+            "ClassName": "SearchPoint",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                }
+            ]
+        },
+        {
+            "ClassName": "SurviveDat",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "编号",
+                    "ClassPropertyName": "weight",
+                    "Type": "label",
+                    "DefaultValue": 0
+                }
+            ]
+        },
+        {
+            "ClassName": "FightSoul",
+            "Properties": [
+                {
+                    "Name": "房间id",
+                    "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "权重",
+                    "ClassPropertyName": "weight",
+                    "Type": "label",
+                    "DefaultValue": 0
+                }
+            ]
         }
     ]
 }
