@@ -87,4 +87,6 @@ export enum AttrCfgTypeEnum {
     point = "point",
     pointArray = "pointArray",
     boolean = "boolean",
+    //下拉框
+    dropDown = "dropDown",
 }

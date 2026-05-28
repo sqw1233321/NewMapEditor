@@ -28,6 +28,11 @@
                     ]
                 },
                 {
+                    "Name": "解锁类型",
+                    "ClassPropertyName": "unLockPoints",
+                    "Type": "pointArray"
+                },
+                {
                     "Name": "解锁点",
                     "ClassPropertyName": "unLockPoints",
                     "Type": "pointArray"
@@ -100,6 +105,12 @@
                             "ClassPropertyName": "end"
                         }
                     ]
+                },
+                {
+                    "Name": "是否是撤离梯子",
+                    "ClassPropertyName": "isExitLadder",
+                    "Type": "boolean",
+                    "DefaultValue": false
                 }
             ]
         },
@@ -109,6 +120,18 @@
                 {
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "刷新id",
+                    "ClassPropertyName": "refreshId",
+                    "Type": "label",
+                    "DefaultValue": ""
+                },
+                {
+                    "Name": "自定义参数",
+                    "ClassPropertyName": "paramLb",
                     "Type": "label",
                     "DefaultValue": ""
                 }
