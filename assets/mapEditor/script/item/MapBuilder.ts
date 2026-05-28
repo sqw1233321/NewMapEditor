@@ -205,7 +205,7 @@ export default class MapBuilder {
 
     rooms.forEach((room: MapDrawDatRoom, index: number) => {
       const color = this._roomColors[index % this._roomColors.length];
-      this._mapLoader.initRoom(room.cfgId, room, color,room.unlockPointIds || []);
+      this._mapLoader.initRoom(room.cfgId, room, color,room.unLockPointIds || []);
     });
   }
 

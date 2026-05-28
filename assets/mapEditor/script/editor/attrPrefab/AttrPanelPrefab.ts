@@ -39,11 +39,9 @@ export default class AttrPanelPrefab extends cc.Component {
         this._dat = dat;
         this._type = attrCfg.ClassName as UnitType;
         //是否切换了新节点
-        // if (isNew) {
-        //     this.setDefault();
-        //     this.setUI();
-        // }
-        this.setDefault();
+        if (isNew) {
+            this.setDefault();
+        }
         this.setUI();
     }
 
@@ -52,14 +50,45 @@ export default class AttrPanelPrefab extends cc.Component {
         this._attrNodeMap.clear();
     }
 
+
     private setUI() {
-        //是否是多属性
-        const properties = this._attrCfg.Properties;
-        properties.forEach(property => {
+        //筛选条件属性
+        let properties = this._attrCfg.Properties;
+        properties = this.checkCondition(properties);
+
+        //主要注意维护  this._attrNodeMap
+
+        //筛选出需要删除的属性
+        const propertyKeys = new Set(properties.map(p => p.ClassPropertyName));
+        const keysToRemove: string[] = [];
+        this._attrNodeMap.forEach((controller, key) => {
+            if (!propertyKeys.has(key)) {
+                keysToRemove.push(key);
+            }
+        });
+
+        //删除不满足条件的旧条目
+        keysToRemove.forEach(key => {
+            const controller = this._attrNodeMap.get(key);
+            if (controller) {
+                controller.node.destroy();
+            }
+            this._attrNodeMap.delete(key);
+        });
+
+        //所有属性重新赋值
+        properties.forEach((property, index) => {
             const type = property.Type;
+            const curController = this._attrNodeMap.get(property.ClassPropertyName);
+            if (curController) {
+                curController.node.setSiblingIndex(index)
+                curController.init(property, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
+                return;
+            }
             const attrItem = this.getItemPrefab(type);
             this.attrCont.addChild(attrItem);
             const itemController = attrItem.getComponent(AttrPanelItemBase);
+            itemController.node.setSiblingIndex(index);
             itemController.init(property, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
             this._attrNodeMap.set(property.ClassPropertyName, itemController);
         })
@@ -77,6 +106,26 @@ export default class AttrPanelPrefab extends cc.Component {
 
     private afterEditorCb() {
         EventManager.instance.emit(AttrPanelEvent.afterEdit, this._type);
+    }
+
+
+    //现在还是只能筛选值类型的玩意儿
+    private checkCondition(properties: AttrPanelPropertyType[]): AttrPanelPropertyType[] {
+        let res = [];
+        //筛选一遍
+        res = properties.filter(property => {
+            if (!property.Condition) return true;
+            const condition = property.Condition;
+            const isNotEqual = condition.includes("!=");
+            const splitStr = isNotEqual ? "!=" : "=";
+            const conditionProperties = condition.split(splitStr);
+            const targetId = Number(conditionProperties[0]);
+            const needValue = conditionProperties[1];
+            const targetProperty = properties.find(p => p.ID === targetId);
+            const targetValue = this._dat[targetProperty.ClassPropertyName];
+            return isNotEqual ? needValue != targetValue : needValue == targetValue;
+        })
+        return res;
     }
 
 

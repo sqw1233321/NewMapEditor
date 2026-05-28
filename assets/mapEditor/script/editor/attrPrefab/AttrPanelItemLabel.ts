@@ -14,7 +14,7 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
     singleEditorNd: cc.Node;
 
     @property(cc.Node)
-    editorCont: cc.Node;
+    attrCont: cc.Node;
 
     private _dat;
 
@@ -29,7 +29,7 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
         const properties = this._cfg.Properties;
         const hasMulti = !!properties;
         this.singleEditorNd.active = !hasMulti;
-        this.editorCont.active = hasMulti;
+        this.attrCont.active = hasMulti;
 
         //是否以数组取值
         const isArray = this._cfg.IsArray;
@@ -37,15 +37,18 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
         if (!isArray) {
             //子属性赋值
             if (hasMulti) {
-                NodeUtil.autoRefreshChildren(this.editorCont, properties, (nd, index, property) => {
+                NodeUtil.autoRefreshChildren(this.attrCont, properties, (nd, index, property) => {
                     const permissions = property.PERMISSIONS;
                     const descLb = nd.children[0].getComponent(cc.Label);
                     descLb.string = property.Name;
-                    const editController = nd.getComponent(cc.EditBox);
-                    editController.string = this._dat[`${property.ClassPropertyName}`];
+                    const editController = nd.children[1].getComponent(cc.EditBox);
+                    editController.string = this._dat[`${property.ClassPropertyName}`] ?? property.DefaultValue;
                     //权限问题
                     editController.enabled = permissions !== AttrCfgPermissionsEnum.readonly;
-
+                    const addBtn = nd.children[2];
+                    const deleteBtn = nd.children[3];
+                    addBtn.active = false;
+                    deleteBtn.active = false;
                 })
             }
             else {
@@ -57,12 +60,12 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
             //子属性赋值
             if (hasMulti) {
                 const property = properties[0];
-                NodeUtil.autoRefreshChildren(this.editorCont, this._dat, (nd, index, dat) => {
-                    //是否以数组取值
-                    const permissions = property.PERMISSIONS;
+                const permissions = property.PERMISSIONS;
+                const canWrite = permissions !== AttrCfgPermissionsEnum.readonly;
+                NodeUtil.autoRefreshChildren(this.attrCont, this._dat, (nd, index, dat) => {
                     const descLb = nd.children[0].getComponent(cc.Label);
                     descLb.string = property.Name;
-                    const editController = nd.getComponent(cc.EditBox);
+                    const editController = nd.children[1].getComponent(cc.EditBox);
                     const attrType = property.Type;
                     //取值的类型
                     switch (attrType) {
@@ -74,7 +77,21 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
                             break;
                     }
                     //权限问题
-                    editController.enabled = permissions !== AttrCfgPermissionsEnum.readonly;
+                    editController.enabled = canWrite;
+                    const addBtn = nd.children[2];
+                    const deleteBtn = nd.children[3];
+                    addBtn.active = canWrite;
+                    deleteBtn.active = canWrite;
+                    if (canWrite) {
+                        addBtn.targetOff(this);
+                        deleteBtn.targetOff(this);
+                        addBtn.on(cc.Node.EventType.TOUCH_END, () => {
+                            this.onClickAddBtn(index);
+                        }, this);
+                        deleteBtn.on(cc.Node.EventType.TOUCH_END, () => {
+                            this.onClickDeleteBtn(index);
+                        }, this);
+                    }
                 })
             }
             else {
@@ -92,8 +109,9 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
             if (hasMulti) {
                 const property = properties[0];
                 const dat: any = [];
-                this.editorCont.children.forEach((child, index) => {
-                    const editBox = child.getComponent(cc.EditBox);
+                this.attrCont.children.forEach((child, index) => {
+                    if (!child.active) return;
+                    const editBox = child.children[1].getComponent(cc.EditBox);
                     //取值的类型
                     const str = editBox.string;
                     const attrType = property.Type;
@@ -129,8 +147,9 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
         else {
             if (hasMulti) {
                 const dat: any = {};
-                this.editorCont.children.forEach((child, index) => {
-                    const editBox = child.getComponent(cc.EditBox);
+                this.attrCont.children.forEach((child, index) => {
+                    if (!child.active) return;
+                    const editBox = child.children[1].getComponent(cc.EditBox);
                     const property = properties[index];
                     dat[property.ClassPropertyName] = editBox.string;
                 })
@@ -141,6 +160,26 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
                 return str;
             }
         }
+    }
+
+
+    //===========增，删操作==============
+    //添加按钮
+    private onClickAddBtn(index: number) {
+        const property = this._cfg.Properties[0];
+        //在数组中插入新元素
+        const newItem = property.DefaultValue ?? "";
+        this._dat.splice(index + 1, 0, newItem);
+        this.setUI();
+        this.onAfterEdit();
+    }
+
+    //删除按钮
+    private onClickDeleteBtn(index: number) {
+        //从数组中移除
+        this._dat.splice(index, 1);
+        this.setUI();
+        this.onAfterEdit();
     }
 
 }

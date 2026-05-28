@@ -24,6 +24,7 @@ import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapLoader from "./MapLoader";
 import MapDrawSurvive from "./MapDrawSurvive";
 import MapDrawFightSoul from "./MapDrawFightSoul";
+import { attrPanelTypeRoom } from "../type/types";
 
 const { ccclass, property } = cc._decorator;
 
@@ -294,7 +295,12 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             pos: this.getPos(),
             size: this.node.getContentSize(),
             pathPointIds: this._pointIds ?? [],
-            unlockPointIds: this._unLockPointIds ?? [],
+            unLockType: this._roomDat.unLockType ?? 0,
+            unLockPointIds: this._unLockPointIds ?? [],
+            unLockNeed: this._roomDat.unLockNeed ?? [],
+            outSide: this._roomDat.outSide ?? false,
+            addLv: this._roomDat.addLv ?? 0,
+            baseArea: this._roomDat.baseArea ?? false,
             doors: this._doorDat ?? [],
             ladders: this._ladderDat ?? [],
             enemyRefreshDatas: this._enemyRefreshDat ?? [],
@@ -305,6 +311,34 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             fightSoulDatas: this._fightSoulDat ?? [],
         };
         return dat;
+    }
+
+
+    //给属性面板的数据
+    public getAttrDat(): attrPanelTypeRoom {
+        return {
+            roomId: `${this._roomCfgId}`,
+            size: {
+                width: this.node.getContentSize().width,
+                height: this.node.getContentSize().height
+            },
+            unLockType: this._roomDat.unLockType ?? 0,
+            unLockPoints: this.getUnLockPoints().filter((nd) => nd && cc.isValid(nd)),
+            unLockNeed: this._roomDat.unLockNeed ?? [],
+            outSide: this._roomDat.outSide ?? false,
+            addLv: this._roomDat.addLv ?? 0,
+            baseArea: this._roomDat.baseArea ?? false,
+        }
+    }
+
+    public setAttrDat(dat: attrPanelTypeRoom) {
+        this.setSize(dat.size);
+        this.setUnLockPoints(dat.unLockPoints || []);
+        this._roomDat.unLockType = dat.unLockType;
+        this._roomDat.unLockNeed = dat.unLockNeed;
+        this._roomDat.outSide = dat.outSide;
+        this._roomDat.addLv = dat.addLv;
+        this._roomDat.baseArea = dat.baseArea;
     }
 
 }

@@ -57,25 +57,27 @@ export interface MapDrawDatPathPoint {
     links: string[];
 }
 
-export interface MapDrawDatRoom {    
-    //导出数据
+export interface MapDrawDatRoom {
+    //基础数据
     cfgId: number;
     layer: number;
     pos: MapDrawDatVec2;
     size: MapDrawDatSize;
-
     pathPointIds: string[];
-    unlockPointIds: string[];
-
+    //条件部分
+    unLockType: number;
+    unLockPointIds: string[];
+    unLockNeed: string[];
+    outSide: boolean;
+    addLv: number;
+    baseArea: boolean;
+    //房间内物品
     doors: MapDrawDatDoor[];
     ladders: MapDrawDatLadder[];
-
     enemyRefreshDatas: MapDrawDatEnemyRefreshData[];
     enemyCreateDatas: MapDrawDatEnemyCreateData[];
-
     baseItemDatas: MapDrawDatBaseItemData[];
     searchItemDatas: MapDrawDatSearchItemData[];
-
     survivorDatas: MapDrawDatSurvivorData[];
     fightSoulDatas: MapDrawDatFightSoulData[];
 }

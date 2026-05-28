@@ -22,7 +22,10 @@ export default class AttrPanelItemPointArray extends AttrPanelItemBase {
         this._dat = dat;
         this.selectNd.on(cc.Node.EventType.TOUCH_END, () => {
             this.onClickSelect(this.editorCont, this._dat, (nodes: cc.Node[]) => {
-                this._dat = nodes;
+                this._dat = [];
+                nodes.forEach(node => {
+                    this._dat.push(node);
+                });
             })
         }, this);
         this.setUI();

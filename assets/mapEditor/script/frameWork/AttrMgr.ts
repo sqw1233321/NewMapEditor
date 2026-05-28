@@ -88,11 +88,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
         let dat: any = {};
         switch (type) {
             case UnitType.Room:
-                (dat as attrPanelTypeRoom).roomId = `${this._trackNd.getComponent(MapDrawRoom).getRoomId()}`;
-                (dat as attrPanelTypeRoom).size = this._trackNd.getContentSize();
-                (dat as attrPanelTypeRoom).unLockPoints = this._trackNd.getComponent(MapDrawRoom)
-                    ?.getUnLockPoints()
-                    .filter((nd) => nd && cc.isValid(nd))
+                dat = this._trackNd.getComponent(MapDrawRoom).getAttrDat();
                 break;
             case UnitType.PathPoint:
                 const pointCom = this._trackNd?.getComponent(MapDrawP);
@@ -182,7 +178,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 break;
             case UnitType.Room:
                 dat = attrDat.dat as attrPanelTypeRoom;
-                const size = dat.size;
                 const hasNd = this._mapLoader.getRoomNode(Number(dat.roomId));
                 if (hasNd) {
                     console.log("有重名的房间！！！");
@@ -194,8 +189,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
                     this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
                 }
-                this._trackNd.getComponent(MapDrawRoom).setSize(size);
-                this._trackNd.getComponent(MapDrawRoom).setUnLockPoints(dat.unLockPoints || []);
+                this._trackNd.getComponent(MapDrawRoom).setAttrDat(dat);
                 this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
                 break;
             case UnitType.PathPoint:
@@ -288,6 +282,8 @@ export class AttrMgr extends Singleton<AttrMgr> {
 
         // 属性变更回调
         this.onAttrChanged?.();
+        //使用现在的属性回写一次属性面板
+        this.refreshAttrPanel();
     }
 
     //更新区域信息

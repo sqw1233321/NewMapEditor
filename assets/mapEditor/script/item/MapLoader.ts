@@ -529,7 +529,7 @@ export default class MapLoader extends cc.Component {
         pos: { x: worldPos.x, y: worldPos.y },
         size: { width: size.width, height: size.height },
         pathPointIds: [],
-        unlockPointIds: [],
+        unLockPointIds: [],
         doors: [],
         ladders: [],
         enemyRefreshDatas: [],
@@ -538,6 +538,11 @@ export default class MapLoader extends cc.Component {
         searchItemDatas: [],
         survivorDatas: [],
         fightSoulDatas: [],
+        unLockType: 0,
+        unLockNeed: [],
+        outSide: false,
+        addLv: 0,
+        baseArea: false
       };
       // 颜色
       let color = cc.Color.WHITE;

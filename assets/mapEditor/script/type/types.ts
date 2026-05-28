@@ -55,7 +55,12 @@ export interface attrPanelTypeBase {
 export interface attrPanelTypeRoom {
   roomId: string;
   size: { width: number; height: number };
+  unLockType: number;
   unLockPoints: cc.Node[];
+  unLockNeed: string[];
+  outSide:boolean;
+  addLv:number;
+  baseArea:boolean;
 }
 
 export interface attrPanelTypePoint {

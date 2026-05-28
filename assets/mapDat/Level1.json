@@ -818,6 +818,14 @@
                     "isGuide": false,
                     "weight": 1
                 }
+            ],
+            "unlockType": 1,
+            "unlookNeed": 1,
+            "unlockReward": [
+                {
+                    "rewardId": 1,
+                    "rewardCount": 1
+                }
             ]
         },
         {
