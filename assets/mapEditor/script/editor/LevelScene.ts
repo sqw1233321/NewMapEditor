@@ -23,6 +23,7 @@ import KeyInputHandler from "./KeyInputHandler";
 import PopManager from "./PopManager";
 import MapBgPrefab from "./MapBgPrefab";
 import { MapBgManager } from "./MapBgManager";
+import { PopUid } from "./PopConfigs";
 
 const { ccclass, property } = cc._decorator;
 
@@ -145,7 +146,7 @@ export default class LevelScene extends cc.Component {
     //初始化mapLoader
     this.mapLoader.getComponent(MapLoader).init();
     // 加载图集配置
-    if(!CC_DEBUG) await MapBgManager.instance.loadMapData();
+    if (!CC_DEBUG) await MapBgManager.instance.loadMapData();
     //自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
@@ -555,7 +556,7 @@ export default class LevelScene extends cc.Component {
 
   //新建
   public async onClickCreate() {
-    PopManager.ins.showCreateFilePop({
+    PopManager.ins.showPopUp(PopUid.CreateFilePop, {
       exporter: this._mapExporter, cb: async (jsonContent, fileName) => {
         await this.changeMap(jsonContent, fileName);
       }
@@ -565,7 +566,7 @@ export default class LevelScene extends cc.Component {
   //更换背景
   public async onClickChangeBg() {
     //打开弹窗
-    PopManager.ins.showChangeBgPop({
+    PopManager.ins.showPopUp(PopUid.ChangeBgPop, {
       cb: async () => {
         await this.changeMapBg();
       }
@@ -708,7 +709,7 @@ export default class LevelScene extends cc.Component {
     //一开始先存一次快照
     this.saveUndoSnapshot();
     //更换背景
-    if(!CC_DEBUG) await this.changeMapBg();
+    if (!CC_DEBUG) await this.changeMapBg();
     //清除快照
     this._undoManager.clear();
   }

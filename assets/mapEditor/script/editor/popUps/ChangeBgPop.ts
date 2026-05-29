@@ -1,18 +1,11 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import MapExporter from "../../item/MapExporter";
 import EditorSetting from "../EditorSetting";
 import { EditorMapEntry, MapBgManager } from "../MapBgManager";
+import PopBase from "../PopBase";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class ChangeBgPop extends cc.Component {
+export default class ChangeBgPop extends PopBase {
     @property(cc.EditBox)
     sizeX: cc.EditBox;
 
@@ -89,7 +82,4 @@ export default class ChangeBgPop extends cc.Component {
         this.hidePop();
     }
 
-    private hidePop() {
-        this.node.active = false;
-    }
 }

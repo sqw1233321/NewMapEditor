@@ -93,4 +93,6 @@ export enum AttrCfgTypeEnum {
     boolean = "boolean",
     //下拉框
     dropDown = "dropDown",
+    //按钮打开弹窗
+    openPop = "openPop",
 }

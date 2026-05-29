@@ -1,16 +1,10 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import MapExporter from "../../item/MapExporter";
+import PopBase from "../PopBase";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class CreateFilePop extends cc.Component {
+export default class CreateFilePop extends PopBase {
 
     @property(cc.EditBox)
     fileNameEdit: cc.EditBox = null;
@@ -72,9 +66,5 @@ export default class CreateFilePop extends cc.Component {
             console.error('创建失败:', result.error);
         }
         this.hidePop();
-    }
-
-    private hidePop() {
-        this.node.active = false;
     }
 }
