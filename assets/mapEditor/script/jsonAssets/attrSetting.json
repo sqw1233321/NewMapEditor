@@ -88,7 +88,15 @@
                     "Condition": "3!=0",
                     "Name": "解锁点",
                     "ClassPropertyName": "unLockPoints",
-                    "Type": "pointArray"
+                    "Type": "pointArray",
+                    "PERMISSIONS": "readonly",
+                    "Properties": [
+                        {
+                            "ID": "7-1",
+                            "Type": "label",
+                            "PERMISSIONS": "readonly"
+                        }
+                    ]
                 },
                 {
                     "ID": "8",
@@ -122,15 +130,12 @@
                 {
                     "Name": "连接点",
                     "ClassPropertyName": "links",
-                    "Type": "label",
-                    "IsArray": true,
+                    "Type": "array",
+                    "PERMISSIONS": "readonly",
                     "Properties": [
                         {
-                            "Name": "",
                             "PERMISSIONS": "readonly",
-                            "Type": "point",
-                            "ClassPropertyName": "",
-                            "DefaultValue": 0
+                            "Type": "point"
                         }
                     ]
                 }
@@ -165,15 +170,12 @@
                 {
                     "Name": "连接点",
                     "ClassPropertyName": "bindPointIds",
-                    "Type": "point",
+                    "Type": "array",
+                    "PERMISSIONS": "readonly",
                     "Properties": [
                         {
-                            "Name": "起点",
-                            "ClassPropertyName": "start"
-                        },
-                        {
-                            "Name": "终点",
-                            "ClassPropertyName": "end"
+                            "ClassPropertyName": "start",
+                            "Type": "point"
                         }
                     ]
                 },

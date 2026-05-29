@@ -899,7 +899,10 @@
                 "P0_0"
             ],
             "unLockType": 11,
-            "unLockPointIds": [],
+            "unLockPointIds": [
+                "P0_0",
+                "P0_1"
+            ],
             "unLockNeed": [
                 {
                     "rewardId": 115,

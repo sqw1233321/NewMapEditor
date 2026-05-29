@@ -31,15 +31,9 @@ export default class AttrPanelItemBase extends cc.Component {
         const cb = (nodes: cc.Node[]) => {
             if (isMulti) {
                 setter(nodes);
-                NodeUtil.autoRefreshChildren(nd, nodes, (nd, index, dat) => {
-                    const nameLb = nd.children[0].children[0].getComponent(cc.Label);
-                    nameLb.string = dat?.getComponent(MapDrawP).getId() ?? "";
-                })
             }
             else {
                 setter(nodes);
-                const singleLb = nd.getComponent(cc.Label) || nd.getComponent(cc.EditBox);
-                singleLb.string = nodes[0]?.getComponent(MapDrawP).getId() ?? "";
             }
             this._afterEditorCb?.();
         }
@@ -53,8 +47,6 @@ export default class AttrPanelItemBase extends cc.Component {
         }
         EventManager.instance.emit(MapEditorEvent.OpenSelectPointMode, isMulti, cb, arr);
     }
-
-
 
 
     public getDat() {
