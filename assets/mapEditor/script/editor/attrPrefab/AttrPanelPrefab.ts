@@ -28,6 +28,9 @@ export default class AttrPanelPrefab extends cc.Component {
     @property(cc.Prefab)
     booleanPrefab: cc.Prefab;
 
+    @property(cc.Prefab)
+    openPopPrefab: cc.Prefab;
+
     private _attrCfg: AttrCfgType;
     private _attrNodeMap: Map<string, AttrPanelItemBase> = new Map();
     private _dat: attrPanelTypeDatType;
@@ -144,6 +147,9 @@ export default class AttrPanelPrefab extends cc.Component {
                 break;
             case AttrCfgTypeEnum.boolean:
                 prefab = this.booleanPrefab;
+                break;
+            case AttrCfgTypeEnum.openPop:
+                prefab = this.openPopPrefab;
                 break;
         }
         if (!prefab) {

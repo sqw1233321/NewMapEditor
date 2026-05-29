@@ -56,11 +56,16 @@
                     "Condition": "3=11",
                     "Name": "道具信息",
                     "ClassPropertyName": "unLockNeed",
-                    "Type": "label",
-                    "IsArray": true,
+                    "Type": "openPop",
+                    "PopName": "AttrPop",
                     "Properties": [
                         {
-                            "Name": "",
+                            "Name": "道具信息",
+                            "Type": "label",
+                            "DefaultValue": ""
+                        },
+                        {
+                            "Name": "个数",
                             "Type": "label",
                             "DefaultValue": ""
                         }

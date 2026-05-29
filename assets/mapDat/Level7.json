@@ -900,9 +900,7 @@
             ],
             "unLockType": 11,
             "unLockPointIds": [],
-            "unLockNeed": [
-                "115_5"
-            ],
+            "unLockNeed": "115_5&120_10&122_2",
             "outSide": true,
             "addLv": 12,
             "baseArea": true,

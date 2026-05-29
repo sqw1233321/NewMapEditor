@@ -146,6 +146,18 @@ export default class PopManager extends cc.Component {
         }
     }
 
+    public getPopNd(uid: PopUid): cc.Node {
+        const pop = this._loadedPops.get(uid);
+        if (!pop) return;
+
+        if (this._currentPop.getComponent(PopBase).getPopUid() != uid) {
+            console.log("要获取的弹窗不是当前弹窗");
+            return;
+        }
+
+        return this._currentPop;
+    }
+
     private getParent(layer: PopLayerType) {
         switch (layer) {
             case PopLayerType.Pop:

@@ -15,15 +15,15 @@ export enum PopLayerType {
 
 /** 界面唯一标识（方便服务器通过编号数据触发界面打开） */
 export enum PopUid {
-    CreateFilePop = 1,
-    ChangeBgPop,
+    CreateFilePop = "CreateFilePop",
+    ChangeBgPop = "ChangeBgPop",
     //嵌套属性界面
-    AttrPrefab
+    AttrPop = "AttrPop",
 }
 
 /** 打开界面方式的配置数据 */
-export const PopConfig: { [key: number]: UIConfig } = {
-    [PopUid.CreateFilePop]: { layer: PopLayerType.Pop, prefab: 'popUps/changeBgPop', destroy: false },
+export const PopConfig: { [key: string]: UIConfig } = {
+    [PopUid.CreateFilePop]: { layer: PopLayerType.Pop, prefab: 'popUps/createFilePop', destroy: false },
     [PopUid.ChangeBgPop]: { layer: PopLayerType.Pop, prefab: 'popUps/changeBgPop', destroy: false },
-    [PopUid.AttrPrefab]: { layer: PopLayerType.Pop, prefab: 'popUps/changeBgPop', destroy: false },
+    [PopUid.AttrPop]: { layer: PopLayerType.Pop, prefab: 'popUps/attrPop', destroy: false },
 };

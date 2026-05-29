@@ -55,6 +55,8 @@ export interface AttrPanelPropertyType {
     ClassPropertyName: string;
     //属性类型
     Type: AttrCfgTypeEnum;
+    //以弹窗模式打开的时候，弹窗的名称
+    PopName?: string;
     //是否已数组形式读取
     IsArray?: boolean;
     //默认值

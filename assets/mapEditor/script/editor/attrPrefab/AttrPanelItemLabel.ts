@@ -18,7 +18,7 @@ export default class AttrPanelItemLabel extends AttrPanelItemBase {
 
     private _dat;
 
-    public init(cfg: AttrPanelPropertyType, cb: any, dat): void {
+    public init(cfg: AttrPanelPropertyType, cb: any, dat): void {  [{"key"},{},{}]
         super.init(cfg, cb);
         this._dat = dat;
         this.setUI();
