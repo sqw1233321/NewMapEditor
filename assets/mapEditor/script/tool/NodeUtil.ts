@@ -5,9 +5,14 @@ export class NodeUtil {
         NodeUtil.autoRefreshChildren(parentNd, dat, cb);
     }
 
-    static autoRefreshChildren<T>(parentNd: cc.Node, data: T[], cb: (nd: cc.Node, index: number, dat: T) => void) {
+    static autoRefreshChildren<T>(parentNd: cc.Node, data: T[], cb: (nd: cc.Node, index: number, dat: T) => void, defaultNd: cc.Node = null) {
         const children = parentNd.children;
-        if (children.length === 0) return;
+        if (children.length === 0) {
+            if (!defaultNd) return;
+            const nd = cc.instantiate(defaultNd);
+            parentNd.addChild(nd);
+            nd.setPosition(cc.Vec3.ZERO);
+        }
         children.forEach((child) => {
             child.active = false;
         })

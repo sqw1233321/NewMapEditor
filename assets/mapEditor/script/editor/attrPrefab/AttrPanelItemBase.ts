@@ -3,6 +3,7 @@ import { EventManager } from "../../frameWork/EventManager";
 import MapDrawP from "../../item/MapDrawP";
 import { NodeUtil } from "../../tool/NodeUtil";
 import { AttrPanelPropertyType } from "../../type/mapTypes";
+import AttrItem from "./AttrItem";
 
 
 const { ccclass, property } = cc._decorator;
@@ -14,10 +15,14 @@ export default class AttrPanelItemBase extends cc.Component {
     descLb: cc.Label;
 
     protected _cfg: AttrPanelPropertyType;
+    protected _parentItem: AttrItem;
+    protected _parentCfg: AttrPanelPropertyType;
     protected _afterEditorCb: () => void;
 
-    public init(cfg: AttrPanelPropertyType, cb, ...params) {
+    public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, cb, ...params) {
         this._cfg = cfg;
+        this._parentItem = parentItem;
+        this._parentCfg = parentItem?.getCfg() ?? null;
         this._afterEditorCb = cb;
     }
 

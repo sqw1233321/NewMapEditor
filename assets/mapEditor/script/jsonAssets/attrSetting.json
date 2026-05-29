@@ -15,6 +15,7 @@
                     "Name": "尺寸",
                     "ClassPropertyName": "size",
                     "Type": "object",
+                    "DefaultValue": {},
                     "Properties": [
                         {
                             "ID": "2-1",
@@ -36,7 +37,8 @@
                     "ID": "3",
                     "Name": "解锁类型",
                     "ClassPropertyName": "unLockType",
-                    "Type": "label"
+                    "Type": "label",
+                    "DefaultValue": 0
                 },
                 {
                     "ID": "4",
@@ -60,17 +62,19 @@
                     "Name": "道具信息",
                     "ClassPropertyName": "unLockNeed",
                     "Type": "array",
+                    "DefaultValue": [],
                     "Properties": [
                         {
                             "ID": "6-1",
                             "Type": "object",
+                            "DefaultValue": {},
                             "Properties": [
                                 {
                                     "ID": "6-1-1",
                                     "Name": "道具Id",
                                     "ClassPropertyName": "rewardId",
                                     "Type": "label",
-                                    "DefaultValue": ""
+                                    "DefaultValue": -1
                                 },
                                 {
                                     "ID": "6-1-2",
@@ -89,12 +93,13 @@
                     "Name": "解锁点",
                     "ClassPropertyName": "unLockPoints",
                     "Type": "pointArray",
-                    "PERMISSIONS": "readonly",
+                    "DefaultValue": [],
                     "Properties": [
                         {
                             "ID": "7-1",
                             "Type": "label",
-                            "PERMISSIONS": "readonly"
+                            "PERMISSIONS": "readonly",
+                            "DefaultValue": ""
                         }
                     ]
                 },
@@ -102,19 +107,22 @@
                     "ID": "8",
                     "Name": "探索后敌人等级加成",
                     "ClassPropertyName": "addLv",
-                    "Type": "label"
+                    "Type": "label",
+                    "DefaultValue": 0
                 },
                 {
                     "ID": "9",
                     "Name": "是否是撤离房间",
                     "ClassPropertyName": "outSide",
-                    "Type": "boolean"
+                    "Type": "boolean",
+                    "DefaultValue": false
                 },
                 {
                     "ID": "10",
                     "Name": "是否是基础房间",
                     "ClassPropertyName": "baseArea",
-                    "Type": "boolean"
+                    "Type": "boolean",
+                    "DefaultValue": false
                 }
             ]
         },

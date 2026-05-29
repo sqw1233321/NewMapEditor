@@ -62,9 +62,9 @@ export default class AttrItem extends AttrPanelItemBase {
 
     private _canWrite: boolean;
 
-    //描述，回调，数据
-    public init(cfg: AttrPanelPropertyType, layer: number, name: string, cb: any, ...params: any[]): void {
-        super.init(cfg, cb, ...params);
+    //描述，父cfg，递归层级，特殊名称（数组index），回调，数据
+    public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, name: string, cb: any, ...params: any[]): void {
+        super.init(cfg, parentItem, cb, ...params);
         this._layer = layer;
         this._dat = params[0];
         this._uniqueName = name;
@@ -115,18 +115,18 @@ export default class AttrItem extends AttrPanelItemBase {
             switch (this._type) {
                 case AttrCfgTypeEnum.label:
                     this.singleLable.node.active = true;
-                    this.singleLable.string = this._dat;
+                    this.singleLable.string = this._dat ?? this._cfg.DefaultValue;
                     this.singleLable.enabled = this._canWrite;
                     break;
                 case AttrCfgTypeEnum.boolean:
                     this.singleBool.node.active = true;
-                    this.singleBool.isChecked = this._dat;
+                    this.singleBool.isChecked = this._dat ?? this._cfg.DefaultValue;
                     this.singleBool.enabled = this._canWrite;
                     break;
                 case AttrCfgTypeEnum.point:
                     this.singleLable.node.active = true;
                     const pointNd = this._dat as cc.Node;
-                    this.singleLable.string = pointNd.getComponent(MapDrawP).getId() ?? "";
+                    this.singleLable.string = pointNd?.getComponent(MapDrawP)?.getId() ?? this._cfg.DefaultValue;
                     this.singleLable.enabled = false;
                     this.singleSelectPoint.active = this._canWrite;
                     break;
@@ -136,8 +136,8 @@ export default class AttrItem extends AttrPanelItemBase {
         //最后一层并且没有直接展示ediotr，开启编辑按钮，打开弹窗编辑字段
         this.editBtn.active = !this._isShowEditorLayer && this._isLastLayer;
 
-        //数组类型更具是否可写来搞是否可编辑数组
-        if (this._type == AttrCfgTypeEnum.array || this._type == AttrCfgTypeEnum.pointArray) {
+        //数组类型或者父节点是数组类型，开启数据编辑按钮
+        if (this._type == AttrCfgTypeEnum.array || (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array)) {
             this.addBtn.active = this._canWrite;
             this.deleteBtn.active = this._canWrite;
         }
@@ -157,34 +157,39 @@ export default class AttrItem extends AttrPanelItemBase {
     private setSub() {
         this._subItems = [];
         this.subCont.removeAllChildren();
-        const item = cc.instantiate(this.node);
-        this.subCont.addChild(item);
-        item.setPosition(cc.Vec3.ZERO);
         //如果当前是对象，根据prpoerties来确定个数，更具prpoerties[index]来确定描述
         if (this._cfg.Type == AttrCfgTypeEnum.object) {
             NodeUtil.autoRefreshChildren(this.subCont, this._cfg.Properties, (nd, index, property) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(property, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
+                attrItem.init(property, this, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
                 this._subItems.push(attrItem);
-            });
+            }, this.node);
         }
         //如果当前是数组，根据dat来确定个数，更具prpoerties[0]来确定描述
         else if (this._cfg.Type == AttrCfgTypeEnum.array) {
+            if (this._dat.length <= 0) {
+                this.subCont.active = false;
+                return;
+            }
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(this._cfg.Properties[0], this._layer + 1, `${index}`, this._afterEditorCb, dat);
+                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
-            });
+            }, this.node);
         }
         //选点数组
         else if (this._cfg.Type == AttrCfgTypeEnum.pointArray) {
+            if (this._dat.length <= 0) {
+                this.subCont.active = false;
+                return;
+            }
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
                 const pointNd = dat as cc.Node;
                 const pid = pointNd.getComponent(MapDrawP).getId() ?? "";
-                attrItem.init(this._cfg.Properties[0], this._layer + 1, `${index}`, this._afterEditorCb, pid);
+                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
                 this._subItems.push(attrItem);
-            });
+            }, this.node);
         }
     }
 
@@ -228,12 +233,18 @@ export default class AttrItem extends AttrPanelItemBase {
         return this._cfg;
     }
 
-    //设置数据
-    public setDat(dat) {
-        this._dat = dat;
+    //设置数组数据
+    public setArrayDat(isAdd: boolean, index: number, addItem?: any) {
+        //只有数组类型才能设置数据
+        if (this._type != AttrCfgTypeEnum.array) return;
+        if (isAdd) {
+            this._dat.splice(index + 1, 0, addItem);
+        }
+        else {
+            this._dat.splice(index, 1);
+        }
         this.setUI();
     }
-
 
 
     //=============外部操作==============
@@ -252,17 +263,44 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._type == AttrCfgTypeEnum.pointArray) {
             this.onClickP(true, this.singleSelectPoint, this._dat, (nodes: cc.Node[]) => {
                 this._dat = nodes;
-                this._subItems.filter(subItem => subItem.node.active).forEach((subItem, index) => {
+                this._subItems = [];
+                NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                     const pointNd = nodes[index] as cc.Node;
                     const pid = pointNd.getComponent(MapDrawP).getId() ?? "";
-                    subItem.setDat(pid);
-                })
+                    const subItem = nd.getComponent(AttrItem);
+                    subItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
+                    this._subItems.push(subItem);
+                }, this.node);
             });
         }
         else if (this._type == AttrCfgTypeEnum.point) {
             this.onClickP(false, this.singleSelectPoint, this._dat, (nodes: cc.Node[]) => {
                 this._dat = nodes[0];
             });
+        }
+    }
+
+    public onClickAddBtn() {
+        //自己是数组
+        if (this._type == AttrCfgTypeEnum.array) {
+            this._dat.push(this._cfg.Properties[0].DefaultValue);
+            this.setUI();
+        }
+        //父节点是数组
+        else if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
+            const curIndex = Number(this._uniqueName);
+            this._parentItem.setArrayDat(true, curIndex, this._cfg.Properties[0].DefaultValue);
+        }
+    }
+
+    public onClickDeleteBtn() {
+        if (this._type == AttrCfgTypeEnum.array) {
+            this._dat.pop();
+            this.setUI();
+        }
+        else if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
+            const curIndex = Number(this._uniqueName);
+            this._parentItem.setArrayDat(false, curIndex);
         }
     }
 
