@@ -900,7 +900,20 @@
             ],
             "unLockType": 11,
             "unLockPointIds": [],
-            "unLockNeed": "115_5&120_10&122_2",
+            "unLockNeed": [
+                {
+                    "rewardId": 115,
+                    "rewardCount": 5
+                },
+                {
+                    "rewardId": 120,
+                    "rewardCount": 10
+                },
+                {
+                    "rewardId": 122,
+                    "rewardCount": 2
+                }
+            ],
             "outSide": true,
             "addLv": 12,
             "baseArea": true,

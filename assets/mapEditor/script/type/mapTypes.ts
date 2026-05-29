@@ -57,26 +57,12 @@ export interface AttrPanelPropertyType {
     Type: AttrCfgTypeEnum;
     //以弹窗模式打开的时候，弹窗的名称
     PopName?: string;
-    //是否已数组形式读取
-    IsArray?: boolean;
+    //属性权限
+    PERMISSIONS?: AttrCfgPermissionsEnum,
     //默认值
     DefaultValue?: any;
     //属性
-    Properties?: AttrCfgPropertiesType[]
-}
-
-//单个属性属性值类型
-export interface AttrCfgPropertiesType {
-    //属性名称
-    Name?: string;
-    //属性权限
-    PERMISSIONS?: AttrCfgPermissionsEnum,
-    //接收的字段类型
-    Type?: AttrCfgTypeEnum,
-    //对应对象字段(有字段就从字段中取，没有就是数组)
-    ClassPropertyName?: string;
-    //默认值
-    DefaultValue?: any;
+    Properties?: AttrPanelPropertyType[]
 }
 
 //属性字段权限
@@ -90,11 +76,11 @@ export enum AttrCfgPermissionsEnum {
 //属性类型枚举
 export enum AttrCfgTypeEnum {
     label = "label",
+    boolean = "boolean",
+    array = "array",
+    object = "object",
     point = "point",
     pointArray = "pointArray",
-    boolean = "boolean",
-    //下拉框
-    dropDown = "dropDown",
     //按钮打开弹窗
     openPop = "openPop",
 }

@@ -14,7 +14,7 @@ export default class AttrPanelItemBase extends cc.Component {
     descLb: cc.Label;
 
     protected _cfg: AttrPanelPropertyType;
-    private _afterEditorCb: () => void;
+    protected _afterEditorCb: () => void;
 
     public init(cfg: AttrPanelPropertyType, cb, ...params) {
         this._cfg = cfg;

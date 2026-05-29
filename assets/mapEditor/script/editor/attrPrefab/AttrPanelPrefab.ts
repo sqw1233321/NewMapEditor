@@ -1,12 +1,10 @@
 import { EventManager } from "../../frameWork/EventManager";
-import { AttrCfgTypeEnum, UnitType, AttrCfgType, AttrPanelPropertyType, AttrCfgPropertiesType } from "../../type/mapTypes";
+import { UnitType, AttrCfgType, AttrPanelPropertyType } from "../../type/mapTypes";
 import { attrPanelTypeDatType } from "../../type/types";
 import { AttrPanelEvent } from "../EditPanel";
+import AttrItem from "./AttrItem";
 import AttrPanelItemBase from "./AttrPanelItemBase";
-import AttrPanelItemBoolean from "./AttrPanelItemBoolean";
-import AttrPanelItemLabel from "./AttrPanelItemLabel";
-import AttrPanelItemPoint from "./AttrPanelItemPoint";
-import AttrPanelItemPointArray from "./AttrPanelItemPointArray";
+
 
 const { ccclass, property } = cc._decorator;
 
@@ -17,22 +15,10 @@ export default class AttrPanelPrefab extends cc.Component {
     attrCont: cc.Node;
 
     @property(cc.Prefab)
-    labelPrefab: cc.Prefab;
-
-    @property(cc.Prefab)
-    pointSinglePrefab: cc.Prefab;
-
-    @property(cc.Prefab)
-    pointMultiPrefab: cc.Prefab;
-
-    @property(cc.Prefab)
-    booleanPrefab: cc.Prefab;
-
-    @property(cc.Prefab)
-    openPopPrefab: cc.Prefab;
+    attrItem: cc.Prefab;
 
     private _attrCfg: AttrCfgType;
-    private _attrNodeMap: Map<string, AttrPanelItemBase> = new Map();
+    private _attrNodeMap: Map<string, AttrItem> = new Map();
     private _dat: attrPanelTypeDatType;
     private _type: UnitType;
 
@@ -85,14 +71,14 @@ export default class AttrPanelPrefab extends cc.Component {
             const curController = this._attrNodeMap.get(property.ClassPropertyName);
             if (curController) {
                 curController.node.setSiblingIndex(index)
-                curController.init(property, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
+                curController.init(property, 0, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
                 return;
             }
-            const attrItem = this.getItemPrefab(type);
+            const attrItem = cc.instantiate(this.attrItem);
             this.attrCont.addChild(attrItem);
-            const itemController = attrItem.getComponent(AttrPanelItemBase);
+            const itemController = attrItem.getComponent(AttrItem);
             itemController.node.setSiblingIndex(index);
-            itemController.init(property, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
+            itemController.init(property, 0, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
             this._attrNodeMap.set(property.ClassPropertyName, itemController);
         })
     }
@@ -111,11 +97,10 @@ export default class AttrPanelPrefab extends cc.Component {
         EventManager.instance.emit(AttrPanelEvent.afterEdit, this._type);
     }
 
-
     //现在还是只能筛选值类型的玩意儿
     private checkCondition(properties: AttrPanelPropertyType[]): AttrPanelPropertyType[] {
         let res = [];
-        //筛选一遍
+        //TODO:现在只能筛选第一层的东西，
         res = properties.filter(property => {
             if (!property.Condition) return true;
             const condition = property.Condition;
@@ -124,37 +109,10 @@ export default class AttrPanelPrefab extends cc.Component {
             const conditionProperties = condition.split(splitStr);
             const targetId = Number(conditionProperties[0]);
             const needValue = conditionProperties[1];
-            const targetProperty = properties.find(p => p.ID === targetId);
+            const targetProperty = properties.find(p => Number(p.ID) === targetId);
             const targetValue = this._dat[targetProperty.ClassPropertyName];
             return isNotEqual ? needValue != targetValue : needValue == targetValue;
         })
         return res;
-    }
-
-
-    //===============公共方法===============
-    private getItemPrefab(type: AttrCfgTypeEnum): cc.Node {
-        let prefab = null;
-        switch (type) {
-            case AttrCfgTypeEnum.label:
-                prefab = this.labelPrefab;
-                break;
-            case AttrCfgTypeEnum.point:
-                prefab = this.pointSinglePrefab;
-                break;
-            case AttrCfgTypeEnum.pointArray:
-                prefab = this.pointMultiPrefab;
-                break;
-            case AttrCfgTypeEnum.boolean:
-                prefab = this.booleanPrefab;
-                break;
-            case AttrCfgTypeEnum.openPop:
-                prefab = this.openPopPrefab;
-                break;
-        }
-        if (!prefab) {
-            console.log("传入了不知名类型 !!!", type);
-        }
-        return cc.instantiate(prefab);
     }
 }
