@@ -102,7 +102,7 @@ export default class AttrItem extends AttrPanelItemBase {
         this.hideBtn.active = !this._isLastLayer;
         this.subCont.active = !this._isLastLayer;
         //名称
-        if(this._uniqueName){
+        if (this._uniqueName) {
             this.descLb.node.active = true;
             this.descLb.string = this._uniqueName;
         }
@@ -173,15 +173,30 @@ export default class AttrItem extends AttrPanelItemBase {
 
     //获得数据
     public getDat() {
-        const allSubDat = [];
+        //值类型直接返回值（递归的退出条件）
+        if (this._type == AttrCfgTypeEnum.label) {
+            return this.singleLable.string;
+        }
+        if (this._type == AttrCfgTypeEnum.boolean) {
+            return this.singleBool.isChecked;
+        }
+        //引用类型
+        let resDat;
         //递归调用所有子项获得数据，需要根据类型来填充dat的字段
-        this._subItems.forEach(subItem => {
-            if (!subItem.node.active) return;
-            allSubDat.push(subItem.getDat())
-        })
-        const propertyName = this._cfg.ClassPropertyName;
-        const resDat = {}
-        resDat[propertyName] = allSubDat;
+        if (this._type == AttrCfgTypeEnum.array) {
+            resDat = [];
+            this._subItems.forEach(subItem => {
+                if (!subItem.node.active) return;
+                resDat.push(subItem.getDat())
+            })
+        }
+        if (this._type == AttrCfgTypeEnum.object) {
+            resDat = {};
+            this._subItems.forEach(subItem => {
+                if (!subItem.node.active) return;
+                resDat[subItem.getCfg().ClassPropertyName] = subItem.getDat();
+            })
+        }
         return resDat;
     }
 
@@ -203,6 +218,11 @@ export default class AttrItem extends AttrPanelItemBase {
     //选点模式
     private onClickSelect(nd, curValue, setterCb) {
         this.onClickP(false, nd, curValue, setterCb);
+    }
+
+    //获取配置
+    public getCfg() {
+        return this._cfg;
     }
 
 
