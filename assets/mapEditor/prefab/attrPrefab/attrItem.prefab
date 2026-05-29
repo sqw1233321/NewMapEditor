@@ -1115,9 +1115,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
+    "target": {
+      "__id__": 1
+    },
     "component": "",
-    "_componentId": "0e0d1iSRsRG95uF+Qm2LoRw",
+    "_componentId": "de697QLBGJPILokL6RwOFbJ",
     "handler": "onAfterEdit",
     "customEventData": ""
   },
@@ -1499,9 +1501,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
+    "target": {
+      "__id__": 1
+    },
     "component": "",
-    "_componentId": "18cbfIpwPdMhpeb51BXBzyh",
+    "_componentId": "de697QLBGJPILokL6RwOFbJ",
     "handler": "onAfterEdit",
     "customEventData": ""
   },

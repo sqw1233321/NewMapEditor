@@ -41,13 +41,18 @@ export default class AttrItem extends AttrPanelItemBase {
     @property(cc.Node)
     subCont: cc.Node;
 
+    //所有子项
     private _subItems: AttrItem[] = [];
+
+    //名字
+    private _uniqueName: string;
+
     //数据
     private _dat;
     //嵌套层级
     private _layer: number;
 
-    private _isFirstLayer: boolean;
+    private _isShowEditorLayer: boolean;
 
     private _isLastLayer: boolean;
 
@@ -58,18 +63,19 @@ export default class AttrItem extends AttrPanelItemBase {
     private _canWrite: boolean;
 
     //描述，回调，数据
-    public init(cfg: AttrPanelPropertyType, layer: number, cb: any, ...params: any[]): void {
+    public init(cfg: AttrPanelPropertyType, layer: number, name: string, cb: any, ...params: any[]): void {
         super.init(cfg, cb, ...params);
         this._layer = layer;
         this._dat = params[0];
+        this._uniqueName = name;
         this.setDat();
         this.setUIDefault();
         this.setUI();
     }
 
     private setDat() {
-        //是否是第一层嵌套（0）
-        this._isFirstLayer = this._layer <= 1;
+        //当前嵌套层数是否直接显示editor
+        this._isShowEditorLayer = this._layer <= 2;
         //是否是最后一层
         this._isLastLayer = !this._cfg.Properties || this._cfg.Properties.length <= 0;
         //类型
@@ -96,12 +102,16 @@ export default class AttrItem extends AttrPanelItemBase {
         this.hideBtn.active = !this._isLastLayer;
         this.subCont.active = !this._isLastLayer;
         //名称
-        if (this._cfg.Name) {
+        if(this._uniqueName){
+            this.descLb.node.active = true;
+            this.descLb.string = this._uniqueName;
+        }
+        else if (this._cfg.Name) {
             this.descLb.node.active = true;
             this.descLb.string = this._cfg.Name;
         }
         //第一层才直接在属性面板上编辑
-        if (this._isFirstLayer) {
+        if (this._isShowEditorLayer) {
             //第一层必定值引用类型
             switch (this._type) {
                 case AttrCfgTypeEnum.label:
@@ -121,8 +131,8 @@ export default class AttrItem extends AttrPanelItemBase {
             }
         }
 
-        //最后一层，开启编辑按钮
-        this.editBtn.active = !this._isFirstLayer && this._isLastLayer;
+        //最后一层并且没有直接展示ediotr，开启编辑按钮，打开弹窗编辑字段
+        this.editBtn.active = !this._isShowEditorLayer && this._isLastLayer;
 
         //数组类型更具是否可写来搞是否可编辑数组
         if (this._type == AttrCfgTypeEnum.array || this._type == AttrCfgTypeEnum.pointArray) {
@@ -147,7 +157,7 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._cfg.Type == AttrCfgTypeEnum.array) {
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(this._cfg.Properties[0], this._layer + 1, this._afterEditorCb, dat);
+                attrItem.init(this._cfg.Properties[0], this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             });
         }
@@ -155,7 +165,7 @@ export default class AttrItem extends AttrPanelItemBase {
         else if (this._cfg.Type == AttrCfgTypeEnum.object) {
             NodeUtil.autoRefreshChildren(this.subCont, this._cfg.Properties, (nd, index, property) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(property, this._layer + 1, this._afterEditorCb, this._dat[property.ClassPropertyName]);
+                attrItem.init(property, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
                 this._subItems.push(attrItem);
             });
         }

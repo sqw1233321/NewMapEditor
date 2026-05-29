@@ -71,14 +71,14 @@ export default class AttrPanelPrefab extends cc.Component {
             const curController = this._attrNodeMap.get(property.ClassPropertyName);
             if (curController) {
                 curController.node.setSiblingIndex(index)
-                curController.init(property, 0, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
+                curController.init(property, 0, ``, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
                 return;
             }
             const attrItem = cc.instantiate(this.attrItem);
             this.attrCont.addChild(attrItem);
             const itemController = attrItem.getComponent(AttrItem);
             itemController.node.setSiblingIndex(index);
-            itemController.init(property, 0, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
+            itemController.init(property, 0, ``, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
             this._attrNodeMap.set(property.ClassPropertyName, itemController);
         })
     }
