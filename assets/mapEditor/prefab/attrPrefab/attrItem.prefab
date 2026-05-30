@@ -242,7 +242,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Background",
+    "_name": "arrowBg",
     "_objFlags": 0,
     "_parent": {
       "__id__": 3
@@ -3144,7 +3144,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        10,
+        15,
         -40,
         0,
         0,
@@ -3225,6 +3225,9 @@
     },
     "hideBtn": {
       "__id__": 3
+    },
+    "arrowBg": {
+      "__id__": 4
     },
     "singleLable": {
       "__id__": 27

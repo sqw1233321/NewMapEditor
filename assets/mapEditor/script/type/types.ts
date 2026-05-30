@@ -58,6 +58,7 @@ export interface attrPanelTypeRoom {
   unLockType: number;
   unLockPoints: cc.Node[];
   unLockNeed: string[];
+  roomMonster: { monsterId: number; monsterLv: number; monsterCount: number }[];
   outSide:boolean;
   addLv:number;
   baseArea:boolean;

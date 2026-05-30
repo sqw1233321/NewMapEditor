@@ -179,10 +179,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             case UnitType.Room:
                 dat = attrDat.dat as attrPanelTypeRoom;
                 const hasNd = this._mapLoader.getRoomNode(Number(dat.roomId));
-                if (hasNd) {
-                    console.log("有重名的房间！！！");
-                }
-                else {
+                if (!hasNd) {
                     const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
                     const newCfgId = Number(dat.roomId);
                     this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);

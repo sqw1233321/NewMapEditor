@@ -71,6 +71,8 @@ export interface MapDrawDatRoom {
     outSide: boolean;
     addLv: number;
     baseArea: boolean;
+    //怪物信息部分
+    roomMonster: { monsterId: number; monsterLv: number; monsterCount: number }[];
     //房间内物品
     doors: MapDrawDatDoor[];
     ladders: MapDrawDatLadder[];

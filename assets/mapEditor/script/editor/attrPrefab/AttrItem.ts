@@ -17,6 +17,9 @@ export default class AttrItem extends AttrPanelItemBase {
     @property(cc.Node)
     hideBtn: cc.Node;
 
+    @property(cc.Node)
+    arrowBg: cc.Node;
+
     @property(cc.Label)
     descLb: cc.Label;
 
@@ -62,11 +65,14 @@ export default class AttrItem extends AttrPanelItemBase {
 
     private _canWrite: boolean;
 
+    //是否展示子节点
+    private _isShowSub: boolean;
+
     //描述，父cfg，递归层级，特殊名称（数组index），回调，数据
     public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, name: string, cb: any, ...params: any[]): void {
         super.init(cfg, parentItem, cb, ...params);
         this._layer = layer;
-        this._dat = params[0];
+        this._dat = params[0] ?? this._cfg.DefaultValue;
         this._uniqueName = name;
         this.handleDat();
         this.setUIDefault();
@@ -100,7 +106,7 @@ export default class AttrItem extends AttrPanelItemBase {
     private setUI() {
         //子层相关
         this.hideBtn.active = !this._isLastLayer;
-        this.subCont.active = !this._isLastLayer;
+        this.setShowSub(!this._isLastLayer);
         //名称
         if (this._uniqueName) {
             this.descLb.node.active = true;
@@ -115,12 +121,12 @@ export default class AttrItem extends AttrPanelItemBase {
             switch (this._type) {
                 case AttrCfgTypeEnum.label:
                     this.singleLable.node.active = true;
-                    this.singleLable.string = this._dat ?? this._cfg.DefaultValue;
+                    this.singleLable.string = this._dat;
                     this.singleLable.enabled = this._canWrite;
                     break;
                 case AttrCfgTypeEnum.boolean:
                     this.singleBool.node.active = true;
-                    this.singleBool.isChecked = this._dat ?? this._cfg.DefaultValue;
+                    this.singleBool.isChecked = this._dat;
                     this.singleBool.enabled = this._canWrite;
                     break;
                 case AttrCfgTypeEnum.point:
@@ -137,13 +143,13 @@ export default class AttrItem extends AttrPanelItemBase {
         this.editBtn.active = !this._isShowEditorLayer && this._isLastLayer;
 
         //数组类型，开启数据编辑按钮
-        if (this._type == AttrCfgTypeEnum.array ) {
+        if (this._type == AttrCfgTypeEnum.array) {
             this.addBtn.active = this._canWrite;
             this.deleteBtn.active = this._canWrite;
         }
 
         //父节点是数组，自己能否进行数组操作由父节点的权限决定
-        if(this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array){
+        if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
             const pareantCanWrite = this._parentCfg.PERMISSIONS != AttrCfgPermissionsEnum.readonly;
             this.addBtn.active = pareantCanWrite;
             this.deleteBtn.active = pareantCanWrite;
@@ -163,7 +169,7 @@ export default class AttrItem extends AttrPanelItemBase {
     //设置子项
     private setSub() {
         this._subItems = [];
-        this.subCont.removeAllChildren();
+        // this.subCont.removeAllChildren();
         //如果当前是对象，根据prpoerties来确定个数，更具prpoerties[index]来确定描述
         if (this._cfg.Type == AttrCfgTypeEnum.object) {
             NodeUtil.autoRefreshChildren(this.subCont, this._cfg.Properties, (nd, index, property) => {
@@ -171,25 +177,22 @@ export default class AttrItem extends AttrPanelItemBase {
                 attrItem.init(property, this, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
                 this._subItems.push(attrItem);
             }, this.node);
+            this.setShowSub(true);
         }
         //如果当前是数组，根据dat来确定个数，更具prpoerties[0]来确定描述
         else if (this._cfg.Type == AttrCfgTypeEnum.array) {
-            if (this._dat.length <= 0) {
-                this.subCont.active = false;
-                return;
-            }
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
                 attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
+            const isShowSub = this._dat.length > 0;
+            this.setShowSub(isShowSub);
+            //子项没数据了，把按钮也隐藏了
+            this.hideBtn.active = isShowSub;
         }
         //选点数组
         else if (this._cfg.Type == AttrCfgTypeEnum.pointArray) {
-            if (this._dat.length <= 0) {
-                this.subCont.active = false;
-                return;
-            }
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
                 const pointNd = dat as cc.Node;
@@ -197,6 +200,10 @@ export default class AttrItem extends AttrPanelItemBase {
                 attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
                 this._subItems.push(attrItem);
             }, this.node);
+            const isShowSub = this._dat.length > 0;
+            this.setShowSub(isShowSub);
+            //子项没数据了，把按钮也隐藏了
+            this.hideBtn.active = isShowSub;
         }
     }
 
@@ -253,6 +260,12 @@ export default class AttrItem extends AttrPanelItemBase {
         this.setUI();
     }
 
+    //子节点显示隐藏
+    public setShowSub(isShow: boolean) {
+        this._isShowSub = isShow;
+        this.subCont.active = isShow;
+        this.arrowBg.rotation = isShow ? 0 : -90;
+    }
 
     //=============外部操作==============
     //点击三角，展示子项
@@ -261,7 +274,7 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._isLastLayer) {
             return;
         }
-        this.subCont.active = !this.subCont.active;
+        this.setShowSub(!this._isShowSub);
     }
 
     //选点模式

@@ -298,6 +298,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             unLockType: this._roomDat.unLockType ?? 0,
             unLockPointIds: this._unLockPointIds ?? [],
             unLockNeed: this._roomDat.unLockNeed ?? [],
+            roomMonster: this._roomDat.roomMonster ?? [],
             outSide: this._roomDat.outSide ?? false,
             addLv: this._roomDat.addLv ?? 0,
             baseArea: this._roomDat.baseArea ?? false,
@@ -325,6 +326,7 @@ export default class MapDrawRoom extends MapDrawUnitBase {
             unLockType: this._roomDat.unLockType ?? 0,
             unLockPoints: this.getUnLockPoints().filter((nd) => nd && cc.isValid(nd)),
             unLockNeed: this._roomDat.unLockNeed ?? [],
+            roomMonster: this._roomDat.roomMonster ?? [],
             outSide: this._roomDat.outSide ?? false,
             addLv: this._roomDat.addLv ?? 0,
             baseArea: this._roomDat.baseArea ?? false,
@@ -332,13 +334,18 @@ export default class MapDrawRoom extends MapDrawUnitBase {
     }
 
     public setAttrDat(dat: attrPanelTypeRoom) {
-        this.setSize(dat.size);
-        this.setUnLockPoints(dat.unLockPoints || []);
-        this._roomDat.unLockType = dat.unLockType;
-        this._roomDat.unLockNeed = dat.unLockNeed;
-        this._roomDat.outSide = dat.outSide;
-        this._roomDat.addLv = dat.addLv;
-        this._roomDat.baseArea = dat.baseArea;
+        const keys = Object.keys(dat);
+        keys.forEach(key => {
+            if (key == "size") {
+                this.setSize(dat.size);
+            }
+            else if (key == "unLockPoints") {
+                this.setUnLockPoints(dat.unLockPoints || []);
+            }
+            else {
+                this._roomDat[key] = dat[key];
+            }
+        })
     }
 
 }
