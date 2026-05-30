@@ -136,10 +136,17 @@ export default class AttrItem extends AttrPanelItemBase {
         //最后一层并且没有直接展示ediotr，开启编辑按钮，打开弹窗编辑字段
         this.editBtn.active = !this._isShowEditorLayer && this._isLastLayer;
 
-        //数组类型或者父节点是数组类型，开启数据编辑按钮
-        if (this._type == AttrCfgTypeEnum.array || (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array)) {
+        //数组类型，开启数据编辑按钮
+        if (this._type == AttrCfgTypeEnum.array ) {
             this.addBtn.active = this._canWrite;
             this.deleteBtn.active = this._canWrite;
+        }
+
+        //父节点是数组，自己能否进行数组操作由父节点的权限决定
+        if(this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array){
+            const pareantCanWrite = this._parentCfg.PERMISSIONS != AttrCfgPermissionsEnum.readonly;
+            this.addBtn.active = pareantCanWrite;
+            this.deleteBtn.active = pareantCanWrite;
         }
 
         //选点类型打开选点按钮
