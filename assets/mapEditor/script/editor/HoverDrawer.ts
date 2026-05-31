@@ -1,4 +1,3 @@
-import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import { HoverType } from "../type/types";
 
 const { ccclass, property } = cc._decorator;

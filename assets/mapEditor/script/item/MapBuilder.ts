@@ -1,26 +1,11 @@
-import MapDrawCable from "./MapDrawCable";
-import MapDrawDoor from "./MapDrawDoor";
-import MapDrawEnemyRefresh from "./MapDrawEnemyRefresh";
-import MapDrawFightSoul from "./MapDrawFightSoul";
-import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
-import MapDrawPortal from "./MapDrawPortal";
 import MapDrawRoom from "./MapDrawRoom";
-import MapDrawSearchItem from "./MapDrawSearchItem";
-import MapDrawStone from "./MapDrawStone";
-import MapDrawSurvive from "./MapDrawSurvive";
-import MapDrawUnitBase from "./MapDrawUnitBase";
-import {
-  MapDrawDatRoom,
-  MapDrawDatPathPoint,
-  MapDrawDatEnemyRefreshData,
-  MapDrawDatPortalData as MapDrawDatPortal,
-  PortalType,
-  MapDrawDatCableData,
-  MapDrawDatStoneData,
-} from "./MapDrawDat";
+import {MapDrawDatRoom,MapDrawDatPathPoint,} from "./MapDrawDat";
 import MapLoader from "./MapLoader";
 import MapTool from "../tool/MapTool";
+import { UnitType } from "../type/mapTypes";
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
+import MapItemConvert from "./MapItemConvert";
 
 const { ccclass, property } = cc._decorator;
 
@@ -30,20 +15,12 @@ const { ccclass, property } = cc._decorator;
  */
 export default class MapBuilder {
   // ==================== Prefab 配置 ====================
-  @property(cc.SpriteFrame) defaultSp: cc.SpriteFrame = null;
-  @property(cc.Prefab) roomPrefab: cc.Prefab = null;
-  @property(cc.Prefab) pathPointPrefab: cc.Prefab = null;
-  @property(cc.Prefab) ladderPrefab: cc.Prefab = null;
-  @property(cc.Prefab) doorPrefab: cc.Prefab = null;
-  @property(cc.Prefab) searchItemPrefab: cc.Prefab = null;
-  @property(cc.Prefab) enemyRefreshPrefab: cc.Prefab = null;
-  @property(cc.Prefab) survivePrefab: cc.Prefab = null;
-  @property(cc.Prefab) fightSoulPrefab: cc.Prefab = null;
-  @property(cc.Prefab) defaultPortalPrefab: cc.Prefab = null;
-  @property(cc.Prefab) portalPrefab: cc.Prefab = null;
-  @property(cc.Prefab) shipPrefab: cc.Prefab = null;
-  @property(cc.Prefab) cablePrefab: cc.Prefab = null;
-  @property(cc.Prefab) stonePrefab: cc.Prefab = null;
+  defaultSp: cc.SpriteFrame = null;
+  roomPrefab: cc.Prefab = null;
+  pathPointPrefab: cc.Prefab = null;
+  ladderPrefab: cc.Prefab = null;
+  mapDrawItemPrefab: cc.Prefab = null;
+
 
   // ==================== 持有 MapLoader 引用 ====================
   private _mapLoader: MapLoader = null;
@@ -68,32 +45,14 @@ export default class MapBuilder {
     roomPrefab: cc.Prefab;
     pathPointPrefab: cc.Prefab;
     ladderPrefab: cc.Prefab;
-    doorPrefab: cc.Prefab;
-    searchItemPrefab: cc.Prefab;
-    enemyRefreshPrefab: cc.Prefab;
-    survivePrefab: cc.Prefab;
-    fightSoulPrefab: cc.Prefab;
-    defaultPortalPrefab: cc.Prefab;
-    portalPrefab: cc.Prefab;
-    shipPrefab: cc.Prefab;
-    cablePrefab: cc.Prefab;
-    stonePrefab: cc.Prefab;
+    mapDrawItemPrefab: cc.Prefab;
   }) {
     this._mapLoader = mapLoader;
     this.defaultSp = prefabs.defaultSp;
     this.roomPrefab = prefabs.roomPrefab;
     this.pathPointPrefab = prefabs.pathPointPrefab;
     this.ladderPrefab = prefabs.ladderPrefab;
-    this.doorPrefab = prefabs.doorPrefab;
-    this.searchItemPrefab = prefabs.searchItemPrefab;
-    this.enemyRefreshPrefab = prefabs.enemyRefreshPrefab;
-    this.survivePrefab = prefabs.survivePrefab;
-    this.fightSoulPrefab = prefabs.fightSoulPrefab;
-    this.defaultPortalPrefab = prefabs.defaultPortalPrefab;
-    this.portalPrefab = prefabs.portalPrefab;
-    this.shipPrefab = prefabs.shipPrefab;
-    this.cablePrefab = prefabs.cablePrefab;
-    this.stonePrefab = prefabs.stonePrefab;
+    this.mapDrawItemPrefab = prefabs.mapDrawItemPrefab;
   }
 
   // ==================== 辅助方法 ====================
@@ -139,11 +98,7 @@ export default class MapBuilder {
 
     // 5. 构建房间内物品
     this.buildLadders(mapData);
-    this.buildDoors(mapData);
-    this.buildSearchItems(mapData);
-    this.buildEnemyRefresh(mapData);
-    this.buildSurvives(mapData);
-    this.buildFightSoul(mapData);
+    this.buildRommUnits(mapData);
 
     // 6. 初始化房间
     this.initRooms(mapData);
@@ -152,9 +107,9 @@ export default class MapBuilder {
     this._mapLoader.updateAllLayerBounds();
 
     // 8. 构建房间外物品
-    this.buildPortalUnits(mapData, containers.outRoomUnitCont);
-    this.buildStoneUnits(mapData, containers.outRoomUnitCont);
-    this.buildCableUnits(mapData, containers.outRoomUnitCont);
+    // this.buildPortalUnits(mapData, containers.outRoomUnitCont);
+    // this.buildStoneUnits(mapData, containers.outRoomUnitCont);
+    // this.buildCableUnits(mapData, containers.outRoomUnitCont);
 
     this.onBuildComplete?.();
   }
@@ -174,7 +129,7 @@ export default class MapBuilder {
       const dat = isCreate ? mapData.playerCreatePos : mapData.playerExitPos;
       const localPos = this.applyOffset(dat, nd.parent);
       nd.setPosition(localPos);
-      nd.addComponentSafe(MapDrawUnitBase);
+      nd.addComponentSafe(MapDrawItem);
     });
   }
 
@@ -205,7 +160,7 @@ export default class MapBuilder {
 
     rooms.forEach((room: MapDrawDatRoom, index: number) => {
       const color = this._roomColors[index % this._roomColors.length];
-      this._mapLoader.initRoom(room.cfgId, room, color,room.unLockPointIds || []);
+      this._mapLoader.initRoom(room.cfgId, room, color, room.unLockPointIds || []);
     });
   }
 
@@ -301,208 +256,146 @@ export default class MapBuilder {
           .map((id: string) => this.getPointById(id))
           .filter(Boolean);
 
-        const control = ladderNd.addComponentSafe(MapDrawLadder);
-        control.init(ladder.roomId, bindPoint, ladder.isExitLadder);
+        const control = ladderNd.addComponentSafe(MapDrawItem);
+        control.init(UnitType.Ladder, ladder);
       });
     });
   }
 
-  private buildDoors(mapData: any) {
-    let doorId = 0;
+  //绘制房间内物品
+  private buildRommUnits(mapData: any) {
     const rooms = mapData.rooms || [];
-
     rooms.forEach((room: MapDrawDatRoom) => {
-      const doors = room.doors || [];
-      doors.forEach((door: any) => {
+      const keys = Object.keys(room);
+      keys.forEach((key: string) => {
+        const type = MapItemConvert.convertUnitType(key);
+        if (!type) return;
         const roomNd = this.getRoomByCfgId(room.cfgId);
         if (!roomNd) return;
-
-        const doorNd = cc.instantiate(this.doorPrefab);
-        doorNd.name = `Door${doorId++}`;
-        doorNd.parent = roomNd.getChildByName("unitCont");
-
-        const adjustedPos = this.applyOffset(door.pos, doorNd.parent);
-        doorNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-        const control = doorNd.addComponentSafe(MapDrawDoor);
-        control.init(door.roomId, door.hp);
+        const datArr = room[key] as any[];
+        datArr.forEach(dat => {
+          const itemNd = cc.instantiate(this.mapDrawItemPrefab);
+          itemNd.name = `Item${key}`;
+          itemNd.parent = roomNd.getChildByName("unitCont");
+          const pos = dat["pos"];
+          if (pos) {
+            const adjustedPos = this.applyOffset(dat[""], itemNd.parent);
+            itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+          }
+          this.specialBuild(itemNd, type, dat);
+          const control = itemNd.addComponentSafe(MapDrawItem);
+          control.init(type, dat);
+        })
       });
     });
   }
 
-  private buildSearchItems(mapData: any) {
-    let nameId = 0;
-    const rooms = mapData.rooms || [];
-
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const searchItems = room.searchItemDatas || [];
-      searchItems.forEach((item: any) => {
-        const roomNd = this.getRoomByCfgId(room.cfgId);
-        if (!roomNd) return;
-
-        const itemNd = cc.instantiate(this.searchItemPrefab);
-        itemNd.name = `SearchItem${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-
-        const adjustedPos = this.applyOffset(item.pos, itemNd.parent);
+  //之后改成脚本实现
+  private specialBuild(itemNd: cc.Node, type: UnitType, dat: any) {
+    if (type === UnitType.Ladder) {
+      itemNd.setAnchorPoint(0.5, 0);
+      const pos = dat["pos"];
+      if (pos) {
+        const adjustedPos = this.applyOffset(dat[""], itemNd.parent);
         itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+      }
 
-        const control = itemNd.addComponentSafe(MapDrawSearchItem);
-        control.init(item.roomId);
-      });
-    });
-  }
-
-  private buildEnemyRefresh(mapData: any) {
-    let nameId = 0;
-    const rooms = mapData.rooms || [];
-    const enemyRefreshDatas: MapDrawDatEnemyRefreshData[] = rooms.flatMap(
-      (room: MapDrawDatRoom) => room.enemyRefreshDatas || []
-    );
-
-    enemyRefreshDatas.forEach((refreshDat: MapDrawDatEnemyRefreshData) => {
-      const roomNd = this.getRoomByCfgId(refreshDat.roomId);
-      if (!roomNd) return;
-
-      const itemNd = cc.instantiate(this.enemyRefreshPrefab);
-      itemNd.name = `EnemyRefresh${nameId++}`;
-      itemNd.parent = roomNd.getChildByName("unitCont");
-
-      const adjustedPos = this.applyOffset(refreshDat.pos, itemNd.parent);
-      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-      const control = itemNd.addComponentSafe(MapDrawEnemyRefresh);
-      control.init(refreshDat.roomId, refreshDat.refreshId, refreshDat.param);
-    });
-  }
-
-  private buildSurvives(mapData: any) {
-    let nameId = 0;
-    const rooms = mapData.rooms || [];
-
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const surviveDatas = room.survivorDatas || [];
-      surviveDatas.forEach((survive: any) => {
-        const roomNd = this.getRoomByCfgId(room.cfgId);
-        if (!roomNd) return;
-
-        const itemNd = cc.instantiate(this.survivePrefab);
-        itemNd.name = `Survive${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-
-        const adjustedPos = this.applyOffset(survive.pos, itemNd.parent);
-        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-        const control = itemNd.addComponentSafe(MapDrawSurvive);
-        control.init(survive);
-      });
-    });
-  }
-
-  private buildFightSoul(mapData: any) {
-    let nameId = 0;
-    const rooms = mapData.rooms || [];
-
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const fightSoulDatas = room.fightSoulDatas || [];
-      fightSoulDatas.forEach((fightSoul: any) => {
-        const roomNd = this.getRoomByCfgId(room.cfgId);
-        if (!roomNd) return;
-
-        const itemNd = cc.instantiate(this.fightSoulPrefab);
-        itemNd.name = `FightSoul${nameId++}`;
-        itemNd.parent = roomNd.getChildByName("unitCont");
-
-        const adjustedPos = this.applyOffset(fightSoul.pos, itemNd.parent);
-        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-        const control = itemNd.addComponentSafe(MapDrawFightSoul);
-        control.init(fightSoul);
-      });
-    });
-  }
-
-  // ==================== 房间外物品 ====================
-
-  private buildPortalUnits(mapData: any, outRoomUnitCont: cc.Node) {
-    let nameId = 0;
-    const portals: MapDrawDatPortal[] = mapData.portalDatas || [];
-
-    portals.forEach((portal: MapDrawDatPortal) => {
-      const type = portal.portalType ?? PortalType.Default;
-      const prefab = this.getPortalPrefab(type);
-      const itemNd = cc.instantiate(prefab);
-      itemNd.name = `Portal${nameId++}`;
-      itemNd.parent = outRoomUnitCont;
-
-      const adjustedPos = this.applyOffset(portal.pos, itemNd.parent);
-      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-      const control = itemNd.addComponentSafe(MapDrawPortal);
-      const linkP = this.getPointById(portal.linkId);
-      const animPs = (portal.animPIds || [])
-        .map((id: string) => this.getPointById(id))
-        .filter(Boolean);
-      control.init(portal, linkP, animPs);
-    });
-  }
-
-  private getPortalPrefab(type: PortalType): cc.Prefab {
-    switch (type) {
-      case PortalType.Default:
-        return this.defaultPortalPrefab;
-      case PortalType.Drop:
-        return this.portalPrefab;
-      case PortalType.Ship:
-        return this.shipPrefab;
-      default:
-        return this.defaultPortalPrefab;
+      // 设置高度
+      const startNd = this.getPointById(dat.bindPointIds?.[0]);
+      const endNd = this.getPointById(dat.bindPointIds?.[1]);
+      if (endNd && startNd) {
+        const startCom = startNd?.getComponent(MapDrawP);
+        const endCom = endNd?.getComponent(MapDrawP);
+        if (startCom && endCom) {
+          const height = endCom.getPos().y - startCom.getPos().y;
+          itemNd.setContentSize(itemNd.width, height);
+        }
+      }
     }
   }
 
-  private buildStoneUnits(mapData: any, outRoomUnitCont: cc.Node) {
-    let nameId = 0;
-    const datArr: MapDrawDatStoneData[] = mapData.rockDatas || [];
 
-    datArr.forEach((dat: MapDrawDatStoneData) => {
-      const itemNd = cc.instantiate(this.stonePrefab);
-      itemNd.name = `Stone${nameId++}`;
-      itemNd.parent = outRoomUnitCont;
+  // ==================== 房间外物品 ====================
 
-      const adjustedPos = this.applyOffset(dat.pos, itemNd.parent);
-      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+  // private buildPortalUnits(mapData: any, outRoomUnitCont: cc.Node) {
+  //   let nameId = 0;
+  //   const portals: MapDrawDatPortal[] = mapData.portalDatas || [];
 
-      const control = itemNd.addComponentSafe(MapDrawStone);
-      control.init(dat);
-    });
-  }
+  //   portals.forEach((portal: MapDrawDatPortal) => {
+  //     const type = portal.portalType ?? PortalType.Default;
+  //     const prefab = this.getPortalPrefab(type);
+  //     const itemNd = cc.instantiate(prefab);
+  //     itemNd.name = `Portal${nameId++}`;
+  //     itemNd.parent = outRoomUnitCont;
 
-  private buildCableUnits(mapData: any, outRoomUnitCont: cc.Node) {
-    let nameId = 0;
-    const datArr: MapDrawDatCableData[] = mapData.scooterDatas || [];
+  //     const adjustedPos = this.applyOffset(portal.pos, itemNd.parent);
+  //     itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
-    datArr.forEach((dat: MapDrawDatCableData) => {
-      const startP: cc.Node = this.getPointById(dat.point1);
-      const endP: cc.Node = this.getPointById(dat.point2);
-      if (!startP) return;
+  //     const control = itemNd.addComponentSafe(MapDrawPortal);
+  //     const linkP = this.getPointById(portal.linkId);
+  //     const animPs = (portal.animPIds || [])
+  //       .map((id: string) => this.getPointById(id))
+  //       .filter(Boolean);
+  //     control.init(portal, linkP, animPs);
+  //   });
+  // }
 
-      const startCom = startP.getComponent(MapDrawP);
-      if (!startCom) return;
+  // private getPortalPrefab(type: PortalType): cc.Prefab {
+  //   switch (type) {
+  //     case PortalType.Default:
+  //       return this.defaultPortalPrefab;
+  //     case PortalType.Drop:
+  //       return this.portalPrefab;
+  //     case PortalType.Ship:
+  //       return this.shipPrefab;
+  //     default:
+  //       return this.defaultPortalPrefab;
+  //   }
+  // }
 
-      const itemNd = cc.instantiate(this.cablePrefab);
-      itemNd.name = `Cable${nameId++}`;
-      itemNd.parent = outRoomUnitCont;
+  // private buildStoneUnits(mapData: any, outRoomUnitCont: cc.Node) {
+  //   let nameId = 0;
+  //   const datArr: MapDrawDatStoneData[] = mapData.rockDatas || [];
 
-      // 使用起始点的世界坐标转换为 outRoomUnitCont 的本地坐标
-      const adjustedPos = this.applyOffset(startCom.getPos(), itemNd.parent);
-      itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+  //   datArr.forEach((dat: MapDrawDatStoneData) => {
+  //     const itemNd = cc.instantiate(this.stonePrefab);
+  //     itemNd.name = `Stone${nameId++}`;
+  //     itemNd.parent = outRoomUnitCont;
 
-      const points = (dat.points || [])
-        .map((id: string) => this.getPointById(id))
-        .filter(Boolean);
+  //     const adjustedPos = this.applyOffset(dat.pos, itemNd.parent);
+  //     itemNd.setPosition(adjustedPos.x, adjustedPos.y);
 
-      const control = itemNd.addComponentSafe(MapDrawCable);
-      control.init(startP, endP, points, dat);
-    });
-  }
+  //     const control = itemNd.addComponentSafe(MapDrawStone);
+  //     control.init(dat);
+  //   });
+  // }
+
+  // private buildCableUnits(mapData: any, outRoomUnitCont: cc.Node) {
+  //   let nameId = 0;
+  //   const datArr: MapDrawDatCableData[] = mapData.scooterDatas || [];
+
+  //   datArr.forEach((dat: MapDrawDatCableData) => {
+  //     const startP: cc.Node = this.getPointById(dat.point1);
+  //     const endP: cc.Node = this.getPointById(dat.point2);
+  //     if (!startP) return;
+
+  //     const startCom = startP.getComponent(MapDrawP);
+  //     if (!startCom) return;
+
+  //     const itemNd = cc.instantiate(this.cablePrefab);
+  //     itemNd.name = `Cable${nameId++}`;
+  //     itemNd.parent = outRoomUnitCont;
+
+  //     // 使用起始点的世界坐标转换为 outRoomUnitCont 的本地坐标
+  //     const adjustedPos = this.applyOffset(startCom.getPos(), itemNd.parent);
+  //     itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+
+  //     const points = (dat.points || [])
+  //       .map((id: string) => this.getPointById(id))
+  //       .filter(Boolean);
+
+  //     const control = itemNd.addComponentSafe(MapDrawCable);
+  //     control.init(startP, endP, points, dat);
+  //   });
+  // }
 }

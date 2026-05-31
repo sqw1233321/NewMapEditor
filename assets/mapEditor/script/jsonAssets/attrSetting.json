@@ -177,10 +177,12 @@
                     "ClassPropertyName": "links",
                     "Type": "array",
                     "PERMISSIONS": "readonly",
+                    "DefaultValue": [],
                     "Properties": [
                         {
                             "PERMISSIONS": "readonly",
-                            "Type": "point"
+                            "Type": "point",
+                            "DefaultValue": ""
                         }
                     ]
                 }
@@ -217,10 +219,12 @@
                     "ClassPropertyName": "bindPointIds",
                     "Type": "array",
                     "PERMISSIONS": "readonly",
+                    "DefaultValue": [],
                     "Properties": [
                         {
                             "ClassPropertyName": "start",
-                            "Type": "point"
+                            "Type": "point",
+                            "DefaultValue": ""
                         }
                     ]
                 },

@@ -1,3 +1,5 @@
+import AttrItem from "../editor/attrPrefab/AttrItem";
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapEditorEvent } from "../event/eventTypes";
 import MapDrawCable from "../item/MapDrawCable";
 import MapDrawDoor from "../item/MapDrawDoor";
@@ -9,7 +11,6 @@ import MapDrawPortal from "../item/MapDrawPortal";
 import MapDrawRoom from "../item/MapDrawRoom";
 import MapDrawSearchItem from "../item/MapDrawSearchItem";
 import MapDrawSurvive from "../item/MapDrawSurvive";
-import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
@@ -67,7 +68,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
     public refreshAttrPanel() {
         if (!this._trackNd) return;
         const itemDat = this._trackNd;
-        const controller = itemDat.getComponent(MapDrawUnitBase);
+        const controller = itemDat.getComponent(MapDrawItem);
         const type = controller.getType();
 
         //基础属性的同步
@@ -108,12 +109,8 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 (dat as attrPanelTypeSearchItem).roomId = pointController?.getDat()?.roomId.toString() ?? "";
                 break;
             case UnitType.Ladder:
-                const ladderCom = this._trackNd?.getComponent(MapDrawLadder);
-                (dat as attrPanelTypeLadder).roomId =
-                    ladderCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeLadder).bindPointIds = ladderCom?.getDat().bindPointIds.map((id) => this._mapLoader.resolvePathPointNodes(id)[0]) ?? [];
-                (dat as attrPanelTypeLadder).isExitLadder =
-                    ladderCom?.getDat().isExitLadder ?? false;
+                const drawItem = this._trackNd?.getComponent(MapDrawItem);
+                dat = drawItem?.getAttrDat();
                 break;
             case UnitType.EnemyRefresh:
                 const enemyRefreshCom = this._trackNd?.getComponent(MapDrawEnemyRefresh);
@@ -206,12 +203,9 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 }
                 break;
             case UnitType.Ladder:
-                //操作在l 梯子绑定模式中
-                dat = attrDat.dat as attrPanelTypeLadder;
-                const ladderCom = this._trackNd.getComponent(MapDrawLadder);
-                if (ladderCom) {
-                    ladderCom.setBinds(dat.bindPointIds);
-                    ladderCom.setIsExitLadder(dat.isExitLadder);
+                const drawItem = this._trackNd.getComponent(MapDrawItem);
+                if (drawItem) {
+                    drawItem.setAttrDat(attrDat.dat);
                 }
                 break;
             case UnitType.EnemyRefresh:

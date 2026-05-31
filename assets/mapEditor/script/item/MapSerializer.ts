@@ -1,9 +1,9 @@
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { MapDrawDat, MapDrawDatType, MapDrawDatSize, MapDrawDatPathPoint, MapDrawDatRoom, MapDrawDatPortalData, MapDrawDatCableData, MapDrawDatStoneData } from "./MapDrawDat";
+import { MapDrawDat, MapDrawDatType, MapDrawDatPathPoint, MapDrawDatRoom, MapDrawDatPortalData, MapDrawDatCableData, MapDrawDatStoneData } from "./MapDrawDat";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
-import MapDrawUnitBase from "./MapDrawUnitBase";
 
 
 /**
@@ -117,18 +117,17 @@ export default class MapSerializer {
 
     const outRoomUnits = this._getOutRoomUnits();
     outRoomUnits.children.forEach((unit) => {
-      const controller = unit.getComponent(MapDrawUnitBase);
+      const controller = unit.getComponent(MapDrawItem);
       if (!controller) return;
-
       switch (controller.getType()) {
         case UnitType.Portal:
-          portalDatas.push(controller.getDat() as unknown as MapDrawDatPortalData);
+          portalDatas.push(controller.getExportDat() as unknown as MapDrawDatPortalData);
           break;
         case UnitType.Cable:
-          cableDatas.push(controller.getDat() as unknown as MapDrawDatCableData);
+          cableDatas.push(controller.getExportDat() as unknown as MapDrawDatCableData);
           break;
         case UnitType.Stone:
-          stoneDatas.push(controller.getDat() as unknown as MapDrawDatStoneData);
+          stoneDatas.push(controller.getExportDat() as unknown as MapDrawDatStoneData);
           break;
       }
     });
@@ -138,7 +137,7 @@ export default class MapSerializer {
 
   private collectPlayerPos(playerNd: cc.Node): { x: number; y: number } {
     if (!playerNd) return { x: 0, y: 0 };
-    return playerNd.addComponentSafe(MapDrawUnitBase).getPos();
+    return playerNd.addComponentSafe(MapDrawItem).getPos();
   }
 
   private collectAreaInfo(): number[] {

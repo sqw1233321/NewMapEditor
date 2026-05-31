@@ -3,7 +3,6 @@ import { EventManager } from "../frameWork/EventManager";
 import { UndoManager } from "../frameWork/UndoManager";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawRoom from "../item/MapDrawRoom";
-import MapDrawUnitBase from "../item/MapDrawUnitBase";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import {
@@ -24,6 +23,7 @@ import PopManager from "./PopManager";
 import MapBgPrefab from "./MapBgPrefab";
 import { MapBgManager } from "./MapBgManager";
 import { PopUid } from "./PopConfigs";
+import MapDrawItem from "./mapDrawElement/MapDrawItem";
 
 const { ccclass, property } = cc._decorator;
 
@@ -67,7 +67,6 @@ export default class LevelScene extends cc.Component {
 
   @property(cc.Prefab)
   magBgPrefab: cc.Prefab;
-
 
   //============测试用=============
   @property(cc.JsonAsset)
@@ -318,7 +317,7 @@ export default class LevelScene extends cc.Component {
         return;
       }
       boxes = [main];
-      const units = room.node.getComponentsInChildren(MapDrawUnitBase);
+      const units = room.node.getComponentsInChildren(MapDrawItem);
       for (let i = 0; i < units.length; i++) {
         const u = units[i];
         if (!u || !u.node || u.node === room.node) continue;
@@ -377,7 +376,7 @@ export default class LevelScene extends cc.Component {
       return;
     }
 
-    const type = itemDat.getComponent(MapDrawUnitBase).getType();
+    const type = itemDat.getComponent(MapDrawItem).getType();
     let targetParent: cc.Node = null;
 
     // 计算目标父节点
@@ -519,7 +518,7 @@ export default class LevelScene extends cc.Component {
     // 保存删除前的快照
     this.saveUndoSnapshot();
 
-    const type = trackNd.getComponent(MapDrawUnitBase).getType();
+    const type = trackNd.getComponent(MapDrawItem).getType();
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
 
     //删除房间

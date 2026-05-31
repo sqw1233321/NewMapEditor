@@ -5,6 +5,8 @@ import { attrPanelType, attrPanelTypeBase, attrPanelTypeDatType } from "../type/
 import AttrPanelPrefab from "./attrPrefab/AttrPanelPrefab";
 import AttrPanelBase from "./attrPrefab/BaseAttrPanel";
 import BaseAttrPanel from "./attrPrefab/BaseAttrPanel";
+import DynamicGetter from "./DynamicGetter/DynamicGetter";
+
 
 
 
@@ -18,9 +20,6 @@ export enum AttrPanelEvent {
 //属性面板
 @ccclass
 export default class EditPanel extends cc.Component {
-  @property(cc.JsonAsset)
-  attrSetting: cc.JsonAsset;
-
   @property(cc.Node)
   baseAttr: cc.Node;
 
@@ -38,7 +37,8 @@ export default class EditPanel extends cc.Component {
   private _hasUniqueAttr: boolean = true;
 
   protected onLoad(): void {
-    this._attrObj = this.attrSetting.json as AttrCfgTypes;
+    const attrSetting = DynamicGetter.Ins.getAttrSetting();
+    this._attrObj = attrSetting as AttrCfgTypes;
     this.clear();
 
     EventManager.instance.on(

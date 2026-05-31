@@ -131,8 +131,7 @@ export default class AttrItem extends AttrPanelItemBase {
                     break;
                 case AttrCfgTypeEnum.point:
                     this.singleLable.node.active = true;
-                    const pointNd = this._dat as cc.Node;
-                    this.singleLable.string = pointNd?.getComponent(MapDrawP)?.getId() ?? this._cfg.DefaultValue;
+                    this.singleLable.string = this._dat;
                     this.singleLable.enabled = false;
                     this.singleSelectPoint.active = this._canWrite;
                     break;
@@ -195,9 +194,7 @@ export default class AttrItem extends AttrPanelItemBase {
         else if (this._cfg.Type == AttrCfgTypeEnum.pointArray) {
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
-                const pointNd = dat as cc.Node;
-                const pid = pointNd.getComponent(MapDrawP).getId() ?? "";
-                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
+                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
             const isShowSub = this._dat.length > 0;

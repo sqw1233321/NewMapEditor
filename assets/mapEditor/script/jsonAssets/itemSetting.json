@@ -1,0 +1,101 @@
+[
+    {
+        "ClassName": "Room",
+        "Texture": "",
+        "Color": "#582D2DBB",
+        "Name": "房间",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ]
+    },
+    {
+        "ClassName": "PathPoint",
+        "Texture": "",
+        "Color": "#FFFFFF",
+        "Name": "路径点",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ]
+    },
+    {
+        "ClassName": "Door",
+        "Texture": "door",
+        "Name": "门",
+        "iconSize": [
+            80,
+            80
+        ]
+    },
+    {
+        "ClassName": "Ladder",
+        "Texture": "ladder",
+        "Name": "梯子",
+        "iconSize": [
+            80,
+            80
+        ]
+    },
+    {
+        "ClassName": "EnemyRefresh",
+        "Texture": "",
+        "Color": "#000000",
+        "Name": "敌人刷新点",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ]
+    },
+    {
+        "ClassName": "SearchPoint",
+        "Texture": "searchItem",
+        "Name": "搜索点",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ]
+    },
+    {
+        "ClassName": "SurviveDat",
+        "Texture": "survive",
+        "Name": "游魂",
+        "iconSize": [
+            80,
+            80
+        ],
+        "itemSize": [
+            100,
+            100
+        ]
+    },
+    {
+        "ClassName": "FightSoul",
+        "Texture": "fightSoul",
+        "Name": "战魂",
+        "iconSize": [
+            80,
+            80
+        ],
+        "itemSize": [
+            100,
+            100
+        ]
+    }
+]

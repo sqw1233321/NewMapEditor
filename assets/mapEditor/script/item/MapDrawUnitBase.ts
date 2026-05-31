@@ -10,6 +10,7 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawUnitBase extends cc.Component {
   protected _roomCfgId: number = 0;
+  protected _unitType: UnitType = UnitType.Default;
 
   protected onLoad(): void {
     this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
@@ -18,7 +19,7 @@ export default class MapDrawUnitBase extends cc.Component {
   public init(...params) { }
 
   public getType() {
-    return UnitType.Default;
+    return this._unitType;
   }
 
   public getPos() {

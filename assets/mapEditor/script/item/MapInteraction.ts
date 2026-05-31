@@ -1,11 +1,11 @@
 import MapDrawRoom from "./MapDrawRoom";
 import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
-import MapDrawUnitBase from "./MapDrawUnitBase";
 import EditorSetting from "../editor/EditorSetting";
 import MapLoader from "./MapLoader";
 import { DragType, HoverType } from "../type/types";
 import { UnitType } from "../type/mapTypes";
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 
 /**
  * 地图交互辅助类
@@ -39,7 +39,7 @@ export default class MapInteraction {
 
   /** 构建悬停框信息（与 MapDrawUnitBase 的命中盒一致） */
   public buildHoverBoxForNode(hoverNd: cc.Node): HoverType | null {
-    const controller = hoverNd.getComponent(MapDrawUnitBase);
+    const controller = hoverNd.getComponent(MapDrawItem);
     if (!controller) return null;
     const mapScale = EditorSetting.Instance.getMapScale();
     const offset = cc.v2(
@@ -180,7 +180,7 @@ export default class MapInteraction {
     dragDat.hoverLayerNode = undefined;
     dragDat.hoverLayerName = undefined;
 
-    const base = dragDat.itemNode.getComponent(MapDrawUnitBase);
+    const base = dragDat.itemNode.getComponent(MapDrawItem);
     if (!base) return result;
 
     const box = base.getHoverBoxSize();

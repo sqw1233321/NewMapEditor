@@ -4,13 +4,13 @@ import { EventManager } from "../frameWork/EventManager";
 import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
-import MapDrawUnitBase from "./MapDrawUnitBase";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import MapSerializer from "./MapSerializer";
 import MapLineDrawer from "./MapLineDrawer";
 import MapBuilder from "./MapBuilder";
 import { MapDrawDatRoom } from "./MapDrawDat";
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 
 const { ccclass, property } = cc._decorator;
 
@@ -67,6 +67,9 @@ export default class MapLoader extends cc.Component {
   @property(cc.Prefab)
   stonePrefab: cc.Prefab = null;
 
+  @property(cc.Prefab) 
+  mapDrawItemPrefab: cc.Prefab = null;
+
   // ==================== 容器节点 ====================
   private _layerCont: cc.Node = null;
   private _outRoomUnitCont: cc.Node = null;
@@ -117,17 +120,8 @@ export default class MapLoader extends cc.Component {
       defaultSp: this.defaultSp,
       roomPrefab: this.roomPrefab,
       pathPointPrefab: this.pathPointPrefab,
-      ladderPrefab: this.ladderPrefab,
-      doorPrefab: this.doorPrefab,
-      searchItemPrefab: this.searchItemPrefab,
-      enemyRefreshPrefab: this.enemyRefreshPrefab,
-      survivePrefab: this.survivePrefab,
-      fightSoulPrefab: this.fightSoulPrefab,
-      defaultPortalPrefab: this.defaultPortalPrefab,
-      portalPrefab: this.portalPrefab,
-      shipPrefab: this.shipPrefab,
-      cablePrefab: this.cablePrefab,
-      stonePrefab: this.stonePrefab,
+      ladderPrefab: this.mapDrawItemPrefab,
+      mapDrawItemPrefab: this.mapDrawItemPrefab,
     });
   }
 
@@ -542,7 +536,8 @@ export default class MapLoader extends cc.Component {
         unLockNeed: [],
         outSide: false,
         addLv: 0,
-        baseArea: false
+        baseArea: false,
+        roomMonster: []
       };
       // 颜色
       let color = cc.Color.WHITE;
@@ -650,7 +645,7 @@ export default class MapLoader extends cc.Component {
     if (!unitNode || !cc.isValid(unitNode)) return false;
     if (!isFinite(targetRoomId)) return false;
 
-    const unitCom = unitNode.getComponent(MapDrawUnitBase);
+    const unitCom = unitNode.getComponent(MapDrawItem);
     if (!unitCom) return false;
 
     const targetRoomNd = this._roomNodeMap.get(targetRoomId);
