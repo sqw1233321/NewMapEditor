@@ -109,6 +109,7 @@ export default class MapDrawP extends MapDrawItem {
             seen.add(nd);
             return true;
         });
+        this._canEditdat["links"] = this.links;
     }
 
     public getId() {

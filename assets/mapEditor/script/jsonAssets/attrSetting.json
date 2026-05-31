@@ -167,12 +167,15 @@
             "ClassName": "PathPoint",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
+                    "PERMISSIONS": "readonly",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "连接点",
                     "ClassPropertyName": "links",
                     "Type": "pointArray",
@@ -192,12 +195,14 @@
             "ClassName": "Door",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "血量",
                     "ClassPropertyName": "hp",
                     "Type": "label",
@@ -209,12 +214,14 @@
             "ClassName": "Ladder",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "连接点",
                     "ClassPropertyName": "bindPointIds",
                     "Type": "array",
@@ -229,6 +236,7 @@
                     ]
                 },
                 {
+                    "ID": "3",
                     "Name": "是否是撤离梯子",
                     "ClassPropertyName": "isExitLadder",
                     "Type": "boolean",
@@ -240,18 +248,21 @@
             "ClassName": "EnemyRefresh",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "刷新id",
                     "ClassPropertyName": "refreshId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "3",
                     "Name": "自定义参数",
                     "ClassPropertyName": "paramLb",
                     "Type": "label",
@@ -263,6 +274,7 @@
             "ClassName": "SearchPoint",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
@@ -274,12 +286,14 @@
             "ClassName": "SurviveDat",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "编号",
                     "ClassPropertyName": "weight",
                     "Type": "label",
@@ -291,12 +305,14 @@
             "ClassName": "FightSoul",
             "Properties": [
                 {
+                    "ID": "1",
                     "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "label",
                     "DefaultValue": ""
                 },
                 {
+                    "ID": "2",
                     "Name": "权重",
                     "ClassPropertyName": "weight",
                     "Type": "label",

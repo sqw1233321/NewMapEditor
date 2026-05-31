@@ -16,7 +16,8 @@
             0,
             0
         ],
-        "script": "MapDrawRoom"
+        "script": "MapDrawRoom",
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "PathPoint",
@@ -35,7 +36,8 @@
             0.5,
             0.5
         ],
-        "script": "MapDrawP"
+        "script": "MapDrawP",
+        "cameraGroupIndex": 2
     },
     {
         "ClassName": "Door",
@@ -49,7 +51,8 @@
         "itemAnchor": [
             0.5,
             0
-        ]
+        ],
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "Ladder",
@@ -63,7 +66,8 @@
         "itemAnchor": [
             0.5,
             0
-        ]
+        ],
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "EnemyRefresh",
@@ -82,7 +86,8 @@
         "itemAnchor": [
             0.5,
             0.5
-        ]
+        ],
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "SearchPoint",
@@ -100,7 +105,8 @@
         "itemAnchor": [
             0.5,
             0.5
-        ]
+        ],
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "SurviveDat",
@@ -118,7 +124,8 @@
         "itemAnchor": [
             0.5,
             0
-        ]
+        ],
+        "cameraGroupIndex": 0
     },
     {
         "ClassName": "FightSoul",
@@ -136,6 +143,7 @@
         "itemAnchor": [
             0.5,
             0
-        ]
+        ],
+        "cameraGroupIndex": 0
     }
 ]

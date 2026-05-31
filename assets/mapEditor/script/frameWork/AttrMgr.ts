@@ -91,16 +91,14 @@ export class AttrMgr extends Singleton<AttrMgr> {
         if (!this._trackNd) return;
         if (!this._mapLoader) return;
         const type = attrDat.type;
-        let dat;
+        let dat = attrDat.dat;
         switch (type) {
             case UnitType.Default:
-                dat = attrDat.dat;
                 const worldPos = MapTool.converMapPosToWorldPos(dat.pos);
                 const localPos = this._trackNd.parent.convertToNodeSpaceAR(worldPos);
                 this._trackNd.setPosition(localPos);
                 break;
             case UnitType.Room:
-                dat = attrDat.dat;
                 const newCfgId = Number(dat.cfgId);
                 const hasNd = this._mapLoader.getRoomNode(newCfgId);
                 if (!hasNd) {
@@ -128,9 +126,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
             case UnitType.Portal:
             case UnitType.Cable:
                 this._trackNd.getComponent(MapDrawItem).setAttrDat(dat);
-                break;
-            default:
-                dat = attrDat.dat;
                 break;
         }
 

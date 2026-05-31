@@ -135,6 +135,8 @@ export default class MapBuilder {
       roomNd.parent = layerCont;
       const anchor = this.getItemAnchor(UnitType.Room);
       roomNd.setAnchorPoint(anchor[0], anchor[1]);
+      roomNd.groupIndex = this.getGroupIndex(UnitType.Room);
+
       roomNd.removeComponent(cc.Sprite);
 
       const localPos = this.applyOffset(room.pos, roomNd.parent);
@@ -211,6 +213,7 @@ export default class MapBuilder {
         pointNd.setAnchorPoint(anchor[0], anchor[1]);
         const localPos = this.applyOffset(p.pos, pointCont);
         pointNd.setPosition(localPos);
+        pointNd.groupIndex = this.getGroupIndex(UnitType.PathPoint);
 
         const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
         pointCom.init(UnitType.PathPoint, p);
@@ -254,7 +257,9 @@ export default class MapBuilder {
         datArr.forEach(dat => {
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
           const anchor = this.getItemAnchor(type);
+          const groupIndex = this.getGroupIndex(type);
           itemNd.setAnchorPoint(anchor[0], anchor[1]);
+          itemNd.groupIndex = groupIndex;
           itemNd.name = `Item${key}`;
           itemNd.parent = roomNd.getChildByName("unitCont");
           const pos = dat["pos"];
@@ -388,5 +393,14 @@ export default class MapBuilder {
       return setting.itemAnchor;
     }
     return [0.5, 0.5];
+  }
+
+  private getGroupIndex(type: UnitType) {
+    const settings = DynamicGetter.Ins.getItemSetting();
+    const setting = settings.find((t: any) => t.ClassName === type);
+    if (setting) {
+      return setting.cameraGroupIndex;
+    }
+    return 0;
   }
 }

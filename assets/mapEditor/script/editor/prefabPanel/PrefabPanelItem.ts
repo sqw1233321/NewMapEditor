@@ -25,11 +25,14 @@ export default class PrefabPanelItem extends cc.Component {
 
     _type: UnitType = UnitType.Default;
 
+    private _dat;
+
     protected onLoad(): void {
         this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
     }
 
     public async init(dat) {
+        this._dat = dat;
         this._type = dat.ClassName as UnitType;
         this.itemName.string = dat.Name;
 
@@ -68,6 +71,7 @@ export default class PrefabPanelItem extends cc.Component {
         const itemNd = cc.instantiate(this.mapDrawPrefab);
         itemNd.parent = this.node.parent;
         itemNd.setPosition(this.node.getPosition());
+        itemNd.groupIndex = this._dat.cameraGroupIndex;
         const controller = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(this._type)) as MapDrawItem;
         controller.init(this._type);
 
