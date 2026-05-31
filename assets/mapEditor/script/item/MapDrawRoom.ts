@@ -108,7 +108,7 @@ export default class MapDrawRoom extends MapDrawItem {
     public setColor(color: cc.Color) {
         const bg = this.node.getChildByName("bg");
         if (bg) {
-            bg.color = color;
+            bg.color = new cc.Color(color.r, color.g, color.b);
             bg.opacity = 80;
         }
         this.initUI();

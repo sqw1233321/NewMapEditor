@@ -262,7 +262,7 @@ export default class AttrItem extends AttrPanelItemBase {
     public setShowSub(isShow: boolean) {
         this._isShowSub = isShow;
         this.subCont.active = isShow;
-        this.arrowBg.rotation = isShow ? 0 : -90;
+        this.arrowBg.angle = isShow ? 0 : 90;
     }
 
     //=============外部操作==============
