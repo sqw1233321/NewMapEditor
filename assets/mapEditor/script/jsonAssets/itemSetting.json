@@ -44,10 +44,7 @@
         "ExportName": "doors",
         "Texture": "door",
         "Name": "门",
-        "iconSize": [
-            80,
-            80
-        ],
+        "iconScale": 0.4,
         "itemAnchor": [
             0.5,
             0
@@ -59,10 +56,7 @@
         "ExportName": "ladders",
         "Texture": "ladder",
         "Name": "梯子",
-        "iconSize": [
-            80,
-            80
-        ],
+        "iconScale": 0.5,
         "itemAnchor": [
             0.5,
             0
@@ -113,14 +107,8 @@
         "ExportName": "survivorDatas",
         "Texture": "survive",
         "Name": "游魂",
-        "iconSize": [
-            80,
-            80
-        ],
-        "itemSize": [
-            100,
-            100
-        ],
+        "iconScale": 0.15,
+        "itemScale": 0.25,
         "itemAnchor": [
             0.5,
             0
@@ -132,14 +120,8 @@
         "ExportName": "fightSoulDatas",
         "Texture": "fightSoul",
         "Name": "战魂",
-        "iconSize": [
-            80,
-            80
-        ],
-        "itemSize": [
-            100,
-            100
-        ],
+        "iconScale": 0.12,
+        "itemScale": 0.2,
         "itemAnchor": [
             0.5,
             0

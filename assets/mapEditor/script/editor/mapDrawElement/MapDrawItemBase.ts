@@ -81,29 +81,31 @@ export default class MapDrawItemBase extends cc.Component {
         const itemSettings = DynamicGetter.Ins.getItemSetting();
         const setting = itemSettings.find((t: any) => t.ClassName === type);
         if (setting) {
-            if (setting.itemSize) {
-                this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-                this.itemSp.node.setContentSize(setting.itemSize[0], setting.itemSize[1]);
-            } else {
-                this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
-            }
-
             if (setting.Texture) {
                 const path = `texture/item/drawItem/${setting.Texture}_item`;
                 this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
+                this.setItemSize(setting);
             } else {
-                const splashUrl = "internal/image/default_sprite_splash";
-                cc.loader.loadRes(splashUrl, cc.SpriteFrame, (err, spriteFrame) => {
-                    if (!err) {
-                        this.itemSp.spriteFrame = spriteFrame;
-                    }
-                });
+                this.setItemSize(setting);
                 const hexColor = setting.Color.replace('#', '');
                 const r = parseInt(hexColor.substring(0, 2), 16);
                 const g = parseInt(hexColor.substring(2, 4), 16);
                 const b = parseInt(hexColor.substring(4, 6), 16);
                 const a = hexColor.length === 8 ? parseInt(hexColor.substring(6, 8), 16) : 255;
                 this.itemSp.node.color = new cc.Color(r, g, b, a);
+            }
+        }
+    }
+
+    private setItemSize(setting: any) {
+        if (setting.itemSize) {
+            this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            this.itemSp.node.setContentSize(setting.itemSize[0], setting.itemSize[1]);
+        } else {
+            this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
+            if (setting.itemScale) {
+                const oldSize = this.itemSp.node.getContentSize();
+                this.itemSp.node.setContentSize(oldSize.width * setting.itemScale, oldSize.height * setting.itemScale);
             }
         }
     }

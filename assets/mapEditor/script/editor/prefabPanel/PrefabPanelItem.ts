@@ -39,9 +39,11 @@ export default class PrefabPanelItem extends cc.Component {
         if (dat.iconSize) {
             this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
             this.itemSp.node.setContentSize(dat.iconSize[0], dat.iconSize[1]);
+            this.itemSp.node.scale = 1;
         }
         else {
             this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
+            this.itemSp.node.scale = dat.iconScale ?? 1;
         }
 
         if (dat.Texture) {

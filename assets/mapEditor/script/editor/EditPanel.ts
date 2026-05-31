@@ -75,7 +75,7 @@ export default class EditPanel extends cc.Component {
       this)
   }
 
-  private refreshAttr(attrDat: attrPanelType, trackNd: cc.Node) {
+  private refreshAttr(attrDat, trackNd: cc.Node) {
     this._dat = attrDat;
     const isNew = attrDat.type !== UnitType.Default && trackNd !== this._trackNd;
     if (isNew) this._trackNd = trackNd;
@@ -91,7 +91,7 @@ export default class EditPanel extends cc.Component {
     //基础属性
     if (this._dat.type == UnitType.Default) {
       this.baseAttr.active = true;
-      this.baseAttr.getComponent(BaseAttrPanel).setAttr(this._dat.dat as attrPanelTypeBase);
+      this.baseAttr.getComponent(BaseAttrPanel).setAttr(this._dat.dat);
     }
     else {
       const attrSetting = this._attrObj.typeArr.find(type => type.ClassName == this._dat.type);
