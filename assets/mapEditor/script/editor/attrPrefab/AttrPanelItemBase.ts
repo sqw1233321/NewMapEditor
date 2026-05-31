@@ -1,7 +1,5 @@
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
-import MapDrawP from "../../item/MapDrawP";
-import { NodeUtil } from "../../tool/NodeUtil";
 import { AttrPanelPropertyType } from "../../type/mapTypes";
 import AttrItem from "./AttrItem";
 
@@ -32,13 +30,13 @@ export default class AttrPanelItemBase extends cc.Component {
     }
 
     //选点模式
-    protected onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (nodes: cc.Node[]) => void) {
-        const cb = (nodes: cc.Node[]) => {
+    protected onClickP(isMulti, nd: cc.Node, dat: cc.Node[] | cc.Node, setter: (pids: string[]) => void) {
+        const cb = (pids: string[]) => {
             if (isMulti) {
-                setter(nodes);
+                setter(pids);
             }
             else {
-                setter(nodes);
+                setter(pids);
             }
             this._afterEditorCb?.();
         }

@@ -1,5 +1,3 @@
-import { UnitType } from "./mapTypes";
-
 //拖拽数据
 export interface DragType {
   //被拖拽节点的父节点

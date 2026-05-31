@@ -2,13 +2,13 @@ import MapDrawP from "../../item/MapDrawP";
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import ModeBase from "./ModeBase";
-import EditorSetting from "../EditorSetting";
 import { ModeType } from "../../type/types";
+import { MapDrawTool } from "../../item/MapDrawTool";
 
 
 /** 单选/多选路径点的通用回调模式 */
 export default class SelectPointMode extends ModeBase {
-  private _selections: cc.Node[] = [];
+  private _selections: string[] = [];
   /** true = 多选，false = 单选 */
   private _multiSelect: boolean;
 
@@ -45,20 +45,24 @@ export default class SelectPointMode extends ModeBase {
     this._cb = cb;
   }
 
-  public setSelections(selections: cc.Node[]) {
+  public setSelections(selections: string[]) {
     this._selections = selections;
     this._selections.forEach(n => {
-      if (cc.isValid(n)) n.getComponent(MapDrawP)?.setLinkHighlight(true);
+      MapDrawTool.instance.getPathPointById(n);
+      const pointNd = MapDrawTool.instance.getPathPointById(n);
+      if (cc.isValid(pointNd)) pointNd.getComponent(MapDrawP)?.setLinkHighlight(true);
     })
   }
 
   public getSelections(): cc.Node[] {
-    return this._selections.filter((n) => cc.isValid(n));
+    const pointNds = this._selections.map(n => MapDrawTool.instance.getPathPointById(n));
+    return pointNds.filter((n) => cc.isValid(n));
   }
 
   private clearAll() {
     this._selections.forEach((n) => {
-      if (cc.isValid(n)) n.getComponent(MapDrawP)?.setLinkHighlight(false);
+      const pointNd = MapDrawTool.instance.getPathPointById(n);
+      if (cc.isValid(pointNd)) pointNd.getComponent(MapDrawP)?.setLinkHighlight(false);
     });
     this._selections = [];
   }
@@ -70,9 +74,9 @@ export default class SelectPointMode extends ModeBase {
     if (!target) return;
 
     if (!this._multiSelect) {
-      const select = this._selections[0]
+      const select = MapDrawTool.instance.getPathPointById(this._selections[0]);
       if (this._selections.length > 0 && select !== node) {
-        this._selections[0].getComponent(MapDrawP)?.setLinkHighlight(false);
+        select.getComponent(MapDrawP)?.setLinkHighlight(false);
       }
       if (this._selections.length > 0 && select === node) {
         this._selections = [];
@@ -80,17 +84,17 @@ export default class SelectPointMode extends ModeBase {
         target.setLinkHighlight(false);
         return;
       }
-      this._selections = [node];
+      this._selections = [node.getComponent(MapDrawP).getId()];
       target.setLinkHighlight(true);
       this._cb?.(this._selections);
       return;
     }
-    const idx = this._selections.indexOf(node);
+    const idx = this._selections.indexOf(node.getComponent(MapDrawP).getId());
     if (idx >= 0) {
       this._selections.splice(idx, 1);
       target.setLinkHighlight(false);
     } else {
-      this._selections.push(node);
+      this._selections.push(node.getComponent(MapDrawP).getId());
       target.setLinkHighlight(true);
     }
     this._cb?.(this._selections);

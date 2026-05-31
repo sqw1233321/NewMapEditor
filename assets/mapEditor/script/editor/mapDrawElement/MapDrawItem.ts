@@ -1,3 +1,4 @@
+import { MapDrawTool } from "../../item/MapDrawTool";
 import { AttrCfgType, AttrCfgTypes, AttrPanelPropertyType, UnitType } from "../../type/mapTypes";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import { ReflectionMgr } from "../ReflectionMgr";
@@ -13,9 +14,9 @@ export default class MapDrawItem extends MapDrawItemBase {
 
   protected _exportName: string = "";
 
+  private _jsonDat: any;
   protected _canEditdat: any;
 
-  private getPointByIdCb;
 
   public init(type: UnitType, dat?) {
     this._unitType = type;
@@ -23,11 +24,8 @@ export default class MapDrawItem extends MapDrawItemBase {
     if (!dat) {
       dat = this.getDefaultDat();
     }
-    this._canEditdat = this.jsonDatToMapDat(dat);
-  }
-
-  public setCb(cb) {
-    this.getPointByIdCb = cb;
+    this._jsonDat = dat;
+    this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
   }
 
   //获取默认数据
@@ -53,7 +51,22 @@ export default class MapDrawItem extends MapDrawItemBase {
   public setAttrDat(dat: any) {
     this._canEditdat = {};
     Object.keys(dat).forEach(key => {
-      const resultDat = dat[key];
+      let resultDat = dat[key];
+      //点id转化为node引用
+      const pointCheck = this.checkPropertyIsPoint(key);
+      if (pointCheck.isPoint) {
+        const type = pointCheck.type;
+        if (type === "point") {
+          const pointId = dat[key] ?? "";
+          resultDat = MapDrawTool.instance.getPathPointById(pointId);
+        } else if (type === "pointArray") {
+          resultDat = [];
+          const points = dat[key];
+          points?.forEach((p: any) => {
+            resultDat.push(MapDrawTool.instance.getPathPointById(p));
+          });
+        }
+      }
       this._canEditdat[key] = resultDat;
     });
   }
@@ -62,9 +75,30 @@ export default class MapDrawItem extends MapDrawItemBase {
   public getAttrDat() {
     const resDat = {};
     Object.keys(this._canEditdat).forEach(key => {
-      resDat[key] = this._canEditdat[key];
+      let resultDat = this._canEditdat[key];
+      //node引用转化为点id
+      const pointCheck = this.checkPropertyIsPoint(key);
+      if (pointCheck.isPoint) {
+        const type = pointCheck.type;
+        if (type === "point") {
+          const pointNd = this._canEditdat[key] as cc.Node;
+          resultDat = pointNd?.getComponent(MapDrawItem)?._canEditdat["id"] ?? "";
+        } else if (type === "pointArray") {
+          resultDat = [];
+          const pointNds = this._canEditdat[key] as cc.Node[];
+          pointNds?.forEach((pNd: cc.Node) => {
+            if (!cc.isValid(pNd)) return;
+            resultDat.push(pNd.getComponent(MapDrawItem)._canEditdat["id"]);
+          });
+        }
+      }
+      resDat[key] = resultDat;
     });
     return resDat;
+  }
+
+  public updateMapDat() {
+    this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
   }
 
   //json数据与游戏对象数据的转化（主要是点id要变成node引用）
@@ -77,13 +111,13 @@ export default class MapDrawItem extends MapDrawItemBase {
       if (pointCheck.isPoint) {
         const type = pointCheck.type;
         if (type === "point") {
-          const pointId = dat[key];
-          resultDat = this.getPointByIdCb?.(pointId);
+          const pointId = dat[key] ?? "";
+          resultDat = MapDrawTool.instance.getPathPointById(pointId);
         } else if (type === "pointArray") {
           resultDat = [];
           const points = dat[key];
-          points.forEach((p: any) => {
-            resultDat.push(this.getPointByIdCb?.(p.getId()));
+          points?.forEach((p: any) => {
+            resultDat.push(MapDrawTool.instance.getPathPointById(p));
           });
         }
       }
@@ -107,16 +141,17 @@ export default class MapDrawItem extends MapDrawItemBase {
             const type = pointCheck.type;
             if (type === "point") {
               const pointNd = resultDat as cc.Node;
-              resultDat = pointNd.getComponent(MapDrawItem).getAttrDat()["id"];
+              resultDat = pointNd?.getComponent(MapDrawItem)?.getAttrDat()["id"] ?? "";
             } else if (type === "pointArray") {
               resultDat = [];
-              const points = resultDat as cc.Node[];
-              points.forEach((p: any) => {
-                resultDat.push(p.getComponent(MapDrawItem).getAttrDat()["id"]);
+              const points = this._canEditdat[key] as cc.Node[];
+              points?.forEach((pNd: any) => {
+                if (!cc.isValid(pNd)) return;
+                resultDat.push(pNd.getComponent(MapDrawItem).getAttrDat()["id"]);
               });
             }
           }
-          resDat[key] = this._canEditdat[key] ?? p.DefaultValue;
+          resDat[key] = resultDat ?? p.DefaultValue;
         });
       }
     });

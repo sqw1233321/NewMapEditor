@@ -165,7 +165,7 @@ export default class MapBuilder {
       this._mapLoader.addRoomToLayer(roomNd, room.layer);
       this._mapLoader.registerRoomNode(room.cfgId, roomNd);
 
-      const roomCom = roomNd.addComponentSafe(this.getMapDrawClass(UnitType.Room));
+      const roomCom = roomNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.Room));
       //静态房间，名称已经修改过
       (roomCom as MapDrawRoom).setManulSet(true);
     });
@@ -212,8 +212,8 @@ export default class MapBuilder {
         const localPos = this.applyOffset(p.pos, pointCont);
         pointNd.setPosition(localPos);
 
-        const pointCom = pointNd.addComponentSafe(this.getMapDrawClass(UnitType.PathPoint));
-        (pointCom as MapDrawP).init(UnitType.PathPoint, p);
+        const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
+        pointCom.init(UnitType.PathPoint, p);
 
         this._mapLoader.registerPoint(p.id, pointNd);
       });
@@ -226,14 +226,15 @@ export default class MapBuilder {
       const pointNd = this.getPointById(p.id);
       if (!pointNd) return;
 
-      const pointCom = pointNd.getComponent(MapDrawP);
+      const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
       if (!pointCom) return;
+      pointCom.updateMapDat();
 
       const linkedNodes = p.links
         .map((id: string) => this.getPointById(id))
         .filter((nd): nd is cc.Node => !!nd && cc.isValid(nd));
 
-      pointCom.setLinks(linkedNodes);
+      (pointCom as MapDrawP).setLinks(linkedNodes);
     });
   }
 
@@ -262,8 +263,8 @@ export default class MapBuilder {
             itemNd.setPosition(adjustedPos.x, adjustedPos.y);
           }
           this.specialBuild(itemNd, type, dat);
-          const control = itemNd.addComponentSafe(this.getMapDrawClass(type));
-          (control as any).init(type, dat);
+          const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
+          control.init(type, dat);
         })
       });
     });
@@ -379,15 +380,6 @@ export default class MapBuilder {
   // }
 
 
-  //工具方法
-  private getMapDrawClass(type: UnitType) {
-    const settings = DynamicGetter.Ins.getItemSetting();
-    const script = settings.find((t: any) => t.ClassName === type)?.script;
-    if (script) {
-      return ReflectionMgr.getClass(script);
-    }
-    return ReflectionMgr.getClass("MapDrawItem");
-  }
 
   private getItemAnchor(type: UnitType) {
     const settings = DynamicGetter.Ins.getItemSetting();

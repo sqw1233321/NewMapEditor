@@ -6,6 +6,7 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import MapDrawP from "../../item/MapDrawP";
+import { MapDrawTool } from "../../item/MapDrawTool";
 import { NodeUtil } from "../../tool/NodeUtil";
 import { AttrCfgPermissionsEnum, AttrCfgTypeEnum, AttrPanelPropertyType } from "../../type/mapTypes";
 import AttrPanelItemBase from "./AttrPanelItemBase";
@@ -278,12 +279,11 @@ export default class AttrItem extends AttrPanelItemBase {
     public onClickSelectPoint() {
         //打开编辑界面
         if (this._type == AttrCfgTypeEnum.pointArray) {
-            this.onClickP(true, this.singleSelectPoint, this._dat, (nodes: cc.Node[]) => {
-                this._dat = nodes;
+            this.onClickP(true, this.singleSelectPoint, this._dat, (pids: string[]) => {
+                this._dat = pids;
                 this._subItems = [];
                 NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
-                    const pointNd = nodes[index] as cc.Node;
-                    const pid = pointNd.getComponent(MapDrawP).getId() ?? "";
+                    const pid = dat ?? "";
                     const subItem = nd.getComponent(AttrItem);
                     subItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
                     this._subItems.push(subItem);
@@ -291,8 +291,8 @@ export default class AttrItem extends AttrPanelItemBase {
             });
         }
         else if (this._type == AttrCfgTypeEnum.point) {
-            this.onClickP(false, this.singleSelectPoint, this._dat, (nodes: cc.Node[]) => {
-                this._dat = nodes[0];
+            this.onClickP(false, this.singleSelectPoint, this._dat, (pids: string[]) => {
+                this._dat = pids[0];
             });
         }
     }

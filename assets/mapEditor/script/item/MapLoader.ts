@@ -10,6 +10,7 @@ import MapLineDrawer from "./MapLineDrawer";
 import MapBuilder from "./MapBuilder";
 import { MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
+import { MapDrawTool } from "./MapDrawTool";
 
 const { ccclass, property } = cc._decorator;
 
@@ -26,7 +27,7 @@ export default class MapLoader extends cc.Component {
   // ==================== Prefab 属性 ====================
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
-  
+
   @property(cc.Prefab)
   mapDrawItemPrefab: cc.Prefab = null;
 
@@ -67,6 +68,10 @@ export default class MapLoader extends cc.Component {
       getPlayerCreate: () => this._playerCreateNd,
       getPlayerExit: () => this._playerExitNd,
       getAreaInfo: () => this._areaInfo
+    });
+
+    MapDrawTool.instance.init({
+      getPathPoints: () => this._pointMap,
     });
 
     this._mapLineDrawer = new MapLineDrawer();
@@ -156,7 +161,6 @@ export default class MapLoader extends cc.Component {
 
     const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
     mapDrawRoom.init(UnitType.Room, roomDat);
-    mapDrawRoom.setCb(this.getPathPointById);
     mapDrawRoom.setColor(color);
   }
 
@@ -498,7 +502,6 @@ export default class MapLoader extends cc.Component {
       const bgNd = roomCom.node.getChildByName("bg");
       if (bgNd) color = bgNd.color;
       roomCom.init(UnitType.Room, roomDat);
-      roomCom.setCb(this.getPathPointById);
       //新房间自动命名后也算手动命名
       if (isAutoName) roomCom.setManulSet(true);
     }

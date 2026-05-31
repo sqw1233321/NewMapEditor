@@ -15,7 +15,6 @@ export default class MapDrawP extends MapDrawItem {
     links: cc.Node[] = [];
 
     protected _type: UnitType.PathPoint;
-    private _pid: string = null;
     private _linkHighlight = false;
     private _savedTint: cc.Color = null;
 

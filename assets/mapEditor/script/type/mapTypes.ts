@@ -1,3 +1,4 @@
+//UnitType也得动态生成啊
 export enum UnitType {
     Default = "Default",
     Room = "Room",

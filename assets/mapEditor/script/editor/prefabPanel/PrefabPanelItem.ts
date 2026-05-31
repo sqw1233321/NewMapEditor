@@ -1,9 +1,11 @@
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
+import MapLoader from "../../item/MapLoader";
 import { UnitType } from "../../type/mapTypes";
 import { DragType } from "../../type/types";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import MapDrawItem from "../mapDrawElement/MapDrawItem";
+import { ReflectionMgr } from "../ReflectionMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -66,7 +68,8 @@ export default class PrefabPanelItem extends cc.Component {
         const itemNd = cc.instantiate(this.mapDrawPrefab);
         itemNd.parent = this.node.parent;
         itemNd.setPosition(this.node.getPosition());
-        itemNd.getComponent(MapDrawItem).init(this._type);
+        const controller = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(this._type)) as MapDrawItem;
+        controller.init(this._type);
 
         const mousePos = cc.v3(event.getLocation()); // 世界 UI 坐标
         const dragOffset = itemNd.position.sub(

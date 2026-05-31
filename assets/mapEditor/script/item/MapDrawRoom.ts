@@ -1,16 +1,8 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import { AttrCfgType, UnitType } from "../type/mapTypes";
+import { UnitType } from "../type/mapTypes";
 import MapLoader from "./MapLoader";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapDrawP from "./MapDrawP";
 import { ReflectionMgr } from "../editor/ReflectionMgr";
-import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 
 
 const { ccclass, property } = cc._decorator;
@@ -183,6 +175,7 @@ export default class MapDrawRoom extends MapDrawItem {
 
     //刷新房间内数据
     public refreshDat() {
+        this.setSubDats();
         const roomId = this._canEditdat["cfgId"];
         this._subDats.forEach((subDat: MapDrawItem) => {
             subDat.updateRoomId(roomId);
@@ -192,6 +185,7 @@ export default class MapDrawRoom extends MapDrawItem {
             child.getComponent(MapDrawItem),
         );
         points.forEach((point: MapDrawItem) => {
+            point.updateRoomId(roomId);
             MapLoader.ins.updatePointMap(point.getAttrDat()["id"], point.node);
         });
     }
@@ -214,6 +208,9 @@ export default class MapDrawRoom extends MapDrawItem {
         });
         //不可手动编辑得特殊属性
         dat["layer"] = this._layer;
+        dat["pathPointIds"] = this._pointCont?.children?.map((child: cc.Node) =>
+            child?.getComponent(MapDrawP)?.getId(),
+        ) ?? [];
         //查漏补缺
         this._canNotEditKeys.forEach((key) => {
             if (!dat[key]) {
@@ -236,12 +233,7 @@ export default class MapDrawRoom extends MapDrawItem {
 
     public setAttrDat(dat) {
         super.setAttrDat(dat);
-        const keys = Object.keys(dat);
-        keys.forEach(key => {
-            if (key == "size") {
-                this.setSize(dat.size);
-            }
-        })
+        this.setSize(dat.size);
     }
 
 }

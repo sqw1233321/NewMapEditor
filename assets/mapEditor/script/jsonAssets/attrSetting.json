@@ -36,7 +36,7 @@
                 {
                     "ID": "3",
                     "Name": "解锁类型",
-                    "ClassPropertyName": "unLockType",
+                    "ClassPropertyName": "unlockType",
                     "Type": "label",
                     "DefaultValue": 0
                 },
@@ -44,7 +44,7 @@
                     "ID": "4",
                     "Condition": "3=1",
                     "Name": "前置房间id",
-                    "ClassPropertyName": "unLockNeed",
+                    "ClassPropertyName": "unlockNeed",
                     "Type": "label",
                     "DefaultValue": 0
                 },
@@ -52,7 +52,7 @@
                     "ID": "5",
                     "Condition": "3=2",
                     "Name": "糯米个数",
-                    "ClassPropertyName": "unLockNeed",
+                    "ClassPropertyName": "unlockNeed",
                     "Type": "label",
                     "DefaultValue": 0
                 },
@@ -60,7 +60,7 @@
                     "ID": "6",
                     "Condition": "3=11",
                     "Name": "解锁道具",
-                    "ClassPropertyName": "unLockNeed",
+                    "ClassPropertyName": "unlockRewards",
                     "Type": "array",
                     "DefaultValue": [],
                     "Properties": [
@@ -91,7 +91,7 @@
                     "ID": "7",
                     "Condition": "3!=0",
                     "Name": "解锁点",
-                    "ClassPropertyName": "unLockPoints",
+                    "ClassPropertyName": "unlockPointIds",
                     "Type": "pointArray",
                     "DefaultValue": [],
                     "Properties": [
@@ -175,7 +175,7 @@
                 {
                     "Name": "连接点",
                     "ClassPropertyName": "links",
-                    "Type": "array",
+                    "Type": "pointArray",
                     "PERMISSIONS": "readonly",
                     "DefaultValue": [],
                     "Properties": [

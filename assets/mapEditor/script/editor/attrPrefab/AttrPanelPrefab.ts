@@ -1,6 +1,5 @@
 import { EventManager } from "../../frameWork/EventManager";
 import { UnitType, AttrCfgType, AttrPanelPropertyType } from "../../type/mapTypes";
-import { attrPanelTypeDatType } from "../../type/types";
 import { AttrPanelEvent } from "../EditPanel";
 import AttrItem from "./AttrItem";
 import AttrPanelItemBase from "./AttrPanelItemBase";
@@ -18,12 +17,14 @@ export default class AttrPanelPrefab extends cc.Component {
     attrItem: cc.Prefab;
 
     private _attrCfg: AttrCfgType;
-    private _attrNodeMap: Map<string, AttrItem> = new Map();
-    private _dat: attrPanelTypeDatType;
+    private _attrNodeMap: Map<number, AttrItem> = new Map();
+    private _dat;
     private _type: UnitType;
 
+    private _properties:AttrPanelPropertyType[] = [];
+
     //传入当前节点的属性配置，和属性现有值
-    init(attrCfg: AttrCfgType, dat: attrPanelTypeDatType, isNew: boolean) {
+    init(attrCfg: AttrCfgType, dat, isNew: boolean) {
         this._attrCfg = attrCfg;
         this._dat = dat;
         this._type = attrCfg.ClassName as UnitType;
@@ -42,32 +43,32 @@ export default class AttrPanelPrefab extends cc.Component {
 
     private setUI() {
         //筛选条件属性
-        let properties = this._attrCfg.Properties;
-        properties = this.checkCondition(properties);
+        this._properties = this._attrCfg.Properties;
+        this._properties = this.checkCondition(this._properties);
 
         //主要注意维护  this._attrNodeMap
 
         //筛选出需要删除的属性
-        const propertyKeys = new Set(properties.map(p => p.ClassPropertyName));
-        const keysToRemove: string[] = [];
-        this._attrNodeMap.forEach((controller, key) => {
-            if (!propertyKeys.has(key)) {
-                keysToRemove.push(key);
+        const propertyIds = new Set(this._properties.map(p => p.ID));
+        const idToRemove: number[] = [];
+        this._attrNodeMap.forEach((controller, id) => {
+            if (!propertyIds.has(id)) {
+                idToRemove.push(id);
             }
         });
 
         //删除不满足条件的旧条目
-        keysToRemove.forEach(key => {
-            const controller = this._attrNodeMap.get(key);
+        idToRemove.forEach(id => {
+            const controller = this._attrNodeMap.get(id);
             if (controller) {
                 controller.node.destroy();
             }
-            this._attrNodeMap.delete(key);
+            this._attrNodeMap.delete(id);
         });
 
         //所有属性重新赋值
-        properties.forEach((property, index) => {
-            const curController = this._attrNodeMap.get(property.ClassPropertyName);
+        this._properties.forEach((property, index) => {
+            const curController = this._attrNodeMap.get(property.ID);
             if (curController) {
                 curController.node.setSiblingIndex(index)
                 curController.init(property, null, 0, ``, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
@@ -78,7 +79,7 @@ export default class AttrPanelPrefab extends cc.Component {
             const itemController = attrItem.getComponent(AttrItem);
             itemController.node.setSiblingIndex(index);
             itemController.init(property, null, 0, ``, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
-            this._attrNodeMap.set(property.ClassPropertyName, itemController);
+            this._attrNodeMap.set(property.ID, itemController);
         })
     }
 
@@ -86,7 +87,8 @@ export default class AttrPanelPrefab extends cc.Component {
     //获取数据  
     getDat() {
         let dat = {};
-        this._attrNodeMap.forEach((value, key) => {
+        this._attrNodeMap.forEach((value, id) => {
+            const key = this._properties.find(p => p.ID === id)?.ClassPropertyName;
             dat[key] = value.getComponent(AttrPanelItemBase).getDat();
         })
         return dat;
@@ -109,7 +111,7 @@ export default class AttrPanelPrefab extends cc.Component {
             const targetId = Number(conditionProperties[0]);
             const needValue = conditionProperties[1];
             const targetProperty = properties.find(p => Number(p.ID) === targetId);
-            const targetValue = this._dat[targetProperty.ClassPropertyName];
+            const targetValue = this._dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue;
             return isNotEqual ? needValue != targetValue : needValue == targetValue;
         })
         return res;

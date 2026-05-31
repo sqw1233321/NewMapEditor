@@ -1,7 +1,6 @@
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import { AttrCfgTypes, UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeDatType } from "../type/types";
 import AttrPanelPrefab from "./attrPrefab/AttrPanelPrefab";
 import AttrPanelBase from "./attrPrefab/BaseAttrPanel";
 import BaseAttrPanel from "./attrPrefab/BaseAttrPanel";
@@ -30,7 +29,7 @@ export default class EditPanel extends cc.Component {
   @property(cc.EditBox)
   areaInfoLb: cc.EditBox;
 
-  private _dat: attrPanelType;
+  private _dat;
   private _attrObj: AttrCfgTypes;
 
   private _trackNd: cc.Node;
@@ -106,18 +105,18 @@ export default class EditPanel extends cc.Component {
     //基础属性
     if (type == UnitType.Default) {
       const baseDat = this.baseAttr.getComponent(AttrPanelBase).getDat();
-      const baseAttrDat: attrPanelType = {
+      const baseAttrDat = {
         type: UnitType.Default,
-        dat: baseDat as attrPanelTypeBase,
+        dat: baseDat,
       };
       EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, baseAttrDat);
     }
     else if (this._hasUniqueAttr) {
       //特殊属性
       const uniqueDat = this.prefabAttr.getComponent(AttrPanelPrefab).getDat();
-      const uniqueAttrDat: attrPanelType = {
+      const uniqueAttrDat = {
         type: this._dat.type,
-        dat: uniqueDat as attrPanelTypeDatType,
+        dat: uniqueDat,
       };
       EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
     }
