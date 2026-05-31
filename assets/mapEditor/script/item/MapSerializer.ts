@@ -68,12 +68,12 @@ export default class MapSerializer {
 
 
   private collectPathPoints(): MapDrawDatPathPoint[] {
-    const pathPoints: MapDrawDatPathPoint[] = [];
+    const pathPoints = [];
     const pointMap = this._getPathPoints();
 
     pointMap.forEach((point) => {
       if (!point || !cc.isValid(point)) return;
-      pathPoints.push(point.addComponentSafe(MapDrawP).getDat());
+      pathPoints.push(point.addComponentSafe(MapDrawP).getExportDat());
     });
 
     // 按层号和本地ID排序
@@ -95,11 +95,11 @@ export default class MapSerializer {
   }
 
   private collectRooms(): MapDrawDatRoom[] {
-    const rooms: MapDrawDatRoom[] = [];
+    const rooms = [];
     const roomNodeMap = this._getRoomNodes();
 
     roomNodeMap.forEach((room) => {
-      rooms.push(room.addComponentSafe(MapDrawRoom).getDat());
+      rooms.push(room.addComponentSafe(MapDrawRoom).getExportDat());
     });
 
     rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));

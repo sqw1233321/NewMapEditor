@@ -6,7 +6,7 @@
                 {
                     "ID": "1",
                     "Name": "配置名称",
-                    "ClassPropertyName": "roomId",
+                    "ClassPropertyName": "cfgId",
                     "Type": "label",
                     "DefaultValue": ""
                 },

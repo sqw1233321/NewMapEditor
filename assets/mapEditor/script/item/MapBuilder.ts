@@ -1,11 +1,13 @@
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
-import {MapDrawDatRoom,MapDrawDatPathPoint,} from "./MapDrawDat";
+import { MapDrawDatRoom, MapDrawDatPathPoint, } from "./MapDrawDat";
 import MapLoader from "./MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapItemConvert from "./MapItemConvert";
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
+import { ReflectionMgr } from "../editor/ReflectionMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -16,9 +18,6 @@ const { ccclass, property } = cc._decorator;
 export default class MapBuilder {
   // ==================== Prefab 配置 ====================
   defaultSp: cc.SpriteFrame = null;
-  roomPrefab: cc.Prefab = null;
-  pathPointPrefab: cc.Prefab = null;
-  ladderPrefab: cc.Prefab = null;
   mapDrawItemPrefab: cc.Prefab = null;
 
 
@@ -42,16 +41,10 @@ export default class MapBuilder {
 
   public init(mapLoader: MapLoader, prefabs: {
     defaultSp: cc.SpriteFrame;
-    roomPrefab: cc.Prefab;
-    pathPointPrefab: cc.Prefab;
-    ladderPrefab: cc.Prefab;
     mapDrawItemPrefab: cc.Prefab;
   }) {
     this._mapLoader = mapLoader;
     this.defaultSp = prefabs.defaultSp;
-    this.roomPrefab = prefabs.roomPrefab;
-    this.pathPointPrefab = prefabs.pathPointPrefab;
-    this.ladderPrefab = prefabs.ladderPrefab;
     this.mapDrawItemPrefab = prefabs.mapDrawItemPrefab;
   }
 
@@ -97,7 +90,6 @@ export default class MapBuilder {
     this.buildPathPoints(mapData);
 
     // 5. 构建房间内物品
-    this.buildLadders(mapData);
     this.buildRommUnits(mapData);
 
     // 6. 初始化房间
@@ -139,19 +131,43 @@ export default class MapBuilder {
     const rooms = mapData.rooms || [];
 
     rooms.forEach((room: MapDrawDatRoom) => {
-      const roomNd = cc.instantiate(this.roomPrefab);
+      const roomNd = cc.instantiate(this.mapDrawItemPrefab);
       roomNd.parent = layerCont;
-      roomNd.setAnchorPoint(0, 0);
+      const anchor = this.getItemAnchor(UnitType.Room);
+      roomNd.setAnchorPoint(anchor[0], anchor[1]);
+      roomNd.removeComponent(cc.Sprite);
 
       const localPos = this.applyOffset(room.pos, roomNd.parent);
       roomNd.setPosition(localPos);
 
+      const bg = new cc.Node();
+      bg.setAnchorPoint(0, 0);
+      bg.name = "bg";
+      roomNd.addChild(bg);
+      const bgSp = bg.addComponentSafe(cc.Sprite);
+      bgSp.spriteFrame = this.defaultSp;
+      bgSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+
+      const nameNd = new cc.Node();
+      nameNd.name = "name";
+      nameNd.setAnchorPoint(0, 1);
+      roomNd.addChild(nameNd);
+      nameNd.addComponentSafe(cc.Label).fontSize = 40;
+
+      const unitCont = new cc.Node();
+      unitCont.name = "unitCont";
+      roomNd.addChild(unitCont);
+
+      const pointCont = new cc.Node();
+      pointCont.name = "pointCont";
+      roomNd.addChild(pointCont);
+
       this._mapLoader.addRoomToLayer(roomNd, room.layer);
       this._mapLoader.registerRoomNode(room.cfgId, roomNd);
 
-      const roomCom = roomNd.getComponent(MapDrawRoom);
+      const roomCom = roomNd.addComponentSafe(this.getMapDrawClass(UnitType.Room));
       //静态房间，名称已经修改过
-      roomCom.setManulSet(true);
+      (roomCom as MapDrawRoom).setManulSet(true);
     });
   }
 
@@ -188,15 +204,16 @@ export default class MapBuilder {
 
       const points = roomPointsMap.get(room.cfgId) || [];
       points.forEach((p: MapDrawDatPathPoint) => {
-        const pointNd = cc.instantiate(this.pathPointPrefab);
+        const pointNd = cc.instantiate(this.mapDrawItemPrefab);
         pointNd.name = p.id;
         pointNd.parent = pointCont;
-
+        const anchor = this.getItemAnchor(UnitType.PathPoint);
+        pointNd.setAnchorPoint(anchor[0], anchor[1]);
         const localPos = this.applyOffset(p.pos, pointCont);
         pointNd.setPosition(localPos);
 
-        const pointCom = pointNd.addComponentSafe(MapDrawP);
-        pointCom.init(p);
+        const pointCom = pointNd.addComponentSafe(this.getMapDrawClass(UnitType.PathPoint));
+        (pointCom as MapDrawP).init(UnitType.PathPoint, p);
 
         this._mapLoader.registerPoint(p.id, pointNd);
       });
@@ -222,46 +239,6 @@ export default class MapBuilder {
 
   // ==================== 房间内物品 ====================
 
-  private buildLadders(mapData: any) {
-    let ladderId = 0;
-    const rooms = mapData.rooms || [];
-
-    rooms.forEach((room: MapDrawDatRoom) => {
-      const ladders = room.ladders || [];
-      ladders.forEach((ladder: any) => {
-        const roomNd = this.getRoomByCfgId(room.cfgId);
-        if (!roomNd) return;
-
-        const ladderNd = cc.instantiate(this.ladderPrefab);
-        ladderNd.name = `Ladder${ladderId++}`;
-        ladderNd.parent = roomNd.getChildByName("unitCont");
-        ladderNd.setAnchorPoint(0.5, 0);
-
-        const adjustedPos = this.applyOffset(ladder.pos, ladderNd.parent);
-        ladderNd.setPosition(adjustedPos.x, adjustedPos.y);
-
-        // 设置高度
-        const startNd = this.getPointById(ladder.bindPointIds?.[0]);
-        const endNd = this.getPointById(ladder.bindPointIds?.[1]);
-        if (endNd && startNd) {
-          const startCom = startNd?.getComponent(MapDrawP);
-          const endCom = endNd?.getComponent(MapDrawP);
-          if (startCom && endCom) {
-            const height = endCom.getPos().y - startCom.getPos().y;
-            ladderNd.setContentSize(ladderNd.width, height);
-          }
-        }
-
-        const bindPoint: cc.Node[] = (ladder.bindPointIds || [])
-          .map((id: string) => this.getPointById(id))
-          .filter(Boolean);
-
-        const control = ladderNd.addComponentSafe(MapDrawItem);
-        control.init(UnitType.Ladder, ladder);
-      });
-    });
-  }
-
   //绘制房间内物品
   private buildRommUnits(mapData: any) {
     const rooms = mapData.rooms || [];
@@ -275,16 +252,18 @@ export default class MapBuilder {
         const datArr = room[key] as any[];
         datArr.forEach(dat => {
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
+          const anchor = this.getItemAnchor(type);
+          itemNd.setAnchorPoint(anchor[0], anchor[1]);
           itemNd.name = `Item${key}`;
           itemNd.parent = roomNd.getChildByName("unitCont");
           const pos = dat["pos"];
           if (pos) {
-            const adjustedPos = this.applyOffset(dat[""], itemNd.parent);
+            const adjustedPos = this.applyOffset(pos, itemNd.parent);
             itemNd.setPosition(adjustedPos.x, adjustedPos.y);
           }
           this.specialBuild(itemNd, type, dat);
-          const control = itemNd.addComponentSafe(MapDrawItem);
-          control.init(type, dat);
+          const control = itemNd.addComponentSafe(this.getMapDrawClass(type));
+          (control as any).init(type, dat);
         })
       });
     });
@@ -296,7 +275,7 @@ export default class MapBuilder {
       itemNd.setAnchorPoint(0.5, 0);
       const pos = dat["pos"];
       if (pos) {
-        const adjustedPos = this.applyOffset(dat[""], itemNd.parent);
+        const adjustedPos = this.applyOffset(pos, itemNd.parent);
         itemNd.setPosition(adjustedPos.x, adjustedPos.y);
       }
 
@@ -398,4 +377,24 @@ export default class MapBuilder {
   //     control.init(startP, endP, points, dat);
   //   });
   // }
+
+
+  //工具方法
+  private getMapDrawClass(type: UnitType) {
+    const settings = DynamicGetter.Ins.getItemSetting();
+    const script = settings.find((t: any) => t.ClassName === type)?.script;
+    if (script) {
+      return ReflectionMgr.getClass(script);
+    }
+    return ReflectionMgr.getClass("MapDrawItem");
+  }
+
+  private getItemAnchor(type: UnitType) {
+    const settings = DynamicGetter.Ins.getItemSetting();
+    const setting = settings.find((t: any) => t.ClassName === type);
+    if (setting) {
+      return setting.itemAnchor;
+    }
+    return [0.5, 0.5];
+  }
 }

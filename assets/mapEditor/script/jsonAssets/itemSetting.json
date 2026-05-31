@@ -11,42 +11,63 @@
         "itemSize": [
             50,
             50
-        ]
+        ],
+        "itemAnchor": [
+            0,
+            0
+        ],
+        "script": "MapDrawRoom"
     },
     {
         "ClassName": "PathPoint",
         "Texture": "",
-        "Color": "#FFFFFF",
+        "Color": "#FF0000",
         "Name": "路径点",
         "iconSize": [
             50,
             50
         ],
         "itemSize": [
-            50,
-            50
-        ]
+            20,
+            20
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "script": "MapDrawP"
     },
     {
         "ClassName": "Door",
+        "ExportName": "doors",
         "Texture": "door",
         "Name": "门",
         "iconSize": [
             80,
             80
+        ],
+        "itemAnchor": [
+            0.5,
+            0
         ]
     },
     {
         "ClassName": "Ladder",
+        "ExportName": "ladders",
         "Texture": "ladder",
         "Name": "梯子",
         "iconSize": [
             80,
             80
+        ],
+        "itemAnchor": [
+            0.5,
+            0
         ]
     },
     {
         "ClassName": "EnemyRefresh",
+        "ExportName": "enemyRefreshDatas",
         "Texture": "",
         "Color": "#000000",
         "Name": "敌人刷新点",
@@ -57,10 +78,15 @@
         "itemSize": [
             50,
             50
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
         ]
     },
     {
         "ClassName": "SearchPoint",
+        "ExportName": "searchItemDatas",
         "Texture": "searchItem",
         "Name": "搜索点",
         "iconSize": [
@@ -70,10 +96,15 @@
         "itemSize": [
             50,
             50
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
         ]
     },
     {
         "ClassName": "SurviveDat",
+        "ExportName": "survivorDatas",
         "Texture": "survive",
         "Name": "游魂",
         "iconSize": [
@@ -83,10 +114,15 @@
         "itemSize": [
             100,
             100
+        ],
+        "itemAnchor": [
+            0.5,
+            0
         ]
     },
     {
         "ClassName": "FightSoul",
+        "ExportName": "fightSoulDatas",
         "Texture": "fightSoul",
         "Name": "战魂",
         "iconSize": [
@@ -96,6 +132,10 @@
         "itemSize": [
             100,
             100
+        ],
+        "itemAnchor": [
+            0.5,
+            0
         ]
     }
 ]

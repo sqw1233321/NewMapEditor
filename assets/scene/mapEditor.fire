@@ -695,24 +695,9 @@
     "defaultSp": {
       "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
     },
-    "roomPrefab": {
-      "__uuid__": "db1af9da-ef9d-448e-9e82-8bace2bb386d"
-    },
-    "pathPointPrefab": null,
-    "ladderPrefab": null,
-    "doorPrefab": null,
-    "searchItemPrefab": null,
-    "enemyRefreshPrefab": {
+    "mapDrawItemPrefab": {
       "__uuid__": "7aaf79c2-852f-476c-9797-4a76370fdef7"
     },
-    "survivePrefab": null,
-    "fightSoulPrefab": null,
-    "defaultPortalPrefab": null,
-    "portalPrefab": null,
-    "shipPrefab": null,
-    "cablePrefab": null,
-    "stonePrefab": null,
-    "mapDrawItemPrefab": null,
     "_id": "31UOyBRslJkLkxhIhEl4nw"
   },
   {

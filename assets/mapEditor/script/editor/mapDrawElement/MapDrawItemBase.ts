@@ -13,20 +13,16 @@ import { UnitType } from "../../type/mapTypes";
 import { ModeType, DragType } from "../../type/types";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import EditorSetting from "../EditorSetting";
-import PrefabPanelItem from "../prefabPanel/PrefabPanelItem";
 
 const { ccclass, property } = cc._decorator;
 
 //绘制item基础逻辑操作层
 @ccclass
 export default class MapDrawItemBase extends cc.Component {
-    @property(cc.Sprite)
     public itemSp: cc.Sprite = null;
 
-    @property(cc.SpriteFrame)
-    public defaultSprite: cc.SpriteFrame = null;
-
     protected onLoad(): void {
+        this.itemSp = this.node.getComponent(cc.Sprite);
         this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
     }
 
@@ -96,7 +92,12 @@ export default class MapDrawItemBase extends cc.Component {
                 const path = `texture/item/drawItem/${setting.Texture}_item`;
                 this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
             } else {
-                this.itemSp.spriteFrame = this.defaultSprite;
+                const splashUrl = "internal/image/default_sprite_splash";
+                cc.loader.loadRes(splashUrl, cc.SpriteFrame, (err, spriteFrame) => {
+                    if (!err) {
+                        this.itemSp.spriteFrame = spriteFrame;
+                    }
+                });
                 const hexColor = setting.Color.replace('#', '');
                 const r = parseInt(hexColor.substring(0, 2), 16);
                 const g = parseInt(hexColor.substring(2, 4), 16);

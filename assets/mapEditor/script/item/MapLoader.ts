@@ -1,7 +1,6 @@
 import EditorSetting from "../editor/EditorSetting";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import MapDrawLadder from "./MapDrawLadder";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
 import MapTool from "../tool/MapTool";
@@ -27,47 +26,8 @@ export default class MapLoader extends cc.Component {
   // ==================== Prefab 属性 ====================
   @property(cc.SpriteFrame)
   defaultSp: cc.SpriteFrame = null;
-
+  
   @property(cc.Prefab)
-  roomPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  pathPointPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  ladderPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  doorPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  searchItemPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  enemyRefreshPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  survivePrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  fightSoulPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  defaultPortalPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  portalPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  shipPrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  cablePrefab: cc.Prefab = null;
-
-  @property(cc.Prefab)
-  stonePrefab: cc.Prefab = null;
-
-  @property(cc.Prefab) 
   mapDrawItemPrefab: cc.Prefab = null;
 
   // ==================== 容器节点 ====================
@@ -118,9 +78,6 @@ export default class MapLoader extends cc.Component {
     this._mapBuilder = new MapBuilder();
     this._mapBuilder.init(this, {
       defaultSp: this.defaultSp,
-      roomPrefab: this.roomPrefab,
-      pathPointPrefab: this.pathPointPrefab,
-      ladderPrefab: this.mapDrawItemPrefab,
       mapDrawItemPrefab: this.mapDrawItemPrefab,
     });
   }
@@ -198,12 +155,9 @@ export default class MapLoader extends cc.Component {
     if (!roomNd) return;
 
     const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
-    mapDrawRoom.init(roomDat, color);
-
-    // 设置解锁点
-    mapDrawRoom.unLockPoints = unlockPointIds
-      .map((id) => this._pointMap.get(id))
-      .filter(Boolean);
+    mapDrawRoom.init(UnitType.Room, roomDat);
+    mapDrawRoom.setCb(this.getPathPointById);
+    mapDrawRoom.setColor(color);
   }
 
   // ==================== 每帧更新 ====================
@@ -543,7 +497,8 @@ export default class MapLoader extends cc.Component {
       let color = cc.Color.WHITE;
       const bgNd = roomCom.node.getChildByName("bg");
       if (bgNd) color = bgNd.color;
-      roomCom.init(roomDat, color);
+      roomCom.init(UnitType.Room, roomDat);
+      roomCom.setCb(this.getPathPointById);
       //新房间自动命名后也算手动命名
       if (isAutoName) roomCom.setManulSet(true);
     }
@@ -785,15 +740,15 @@ export default class MapLoader extends cc.Component {
       const unitCont = roomNd.getChildByName("unitCont");
       if (!unitCont) return;
 
-      const ladders = unitCont.getComponentsInChildren(MapDrawLadder);
-      ladders.forEach((ladder) => {
-        const binds = (ladder.bindPoints || []).filter(
-          (n) => n && cc.isValid(n) && n !== pointNd
-        );
-        if (binds.length !== (ladder.bindPoints || []).length) {
-          ladder.setBinds(binds);
-        }
-      });
+      // const ladders = unitCont.getComponentsInChildren(MapDrawLadder);
+      // ladders.forEach((ladder) => {
+      //   const binds = (ladder.bindPoints || []).filter(
+      //     (n) => n && cc.isValid(n) && n !== pointNd
+      //   );
+      //   if (binds.length !== (ladder.bindPoints || []).length) {
+      //     ladder.setBinds(binds);
+      //   }
+      // });
     });
 
     // 3) 清理房间 unlockPoints
@@ -802,12 +757,12 @@ export default class MapLoader extends cc.Component {
       const roomCom = roomNd.getComponent(MapDrawRoom);
       if (!roomCom) return;
 
-      const prev = roomCom.unLockPoints || [];
-      const next = prev.filter((p) => p && cc.isValid(p) && p !== pointNd);
-      if (next.length !== prev.length) {
-        roomCom.unLockPoints = next;
-        roomCom.refreshDat();
-      }
+      // const prev = roomCom.unLockPoints || [];
+      // const next = prev.filter((p) => p && cc.isValid(p) && p !== pointNd);
+      // if (next.length !== prev.length) {
+      //   roomCom.unLockPoints = next;
+      //   roomCom.refreshDat();
+      // }
     });
 
     // 4) 删除节点

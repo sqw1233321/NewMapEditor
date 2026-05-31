@@ -1,20 +1,21 @@
+import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
+import { ReflectionMgr } from "../editor/ReflectionMgr";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import { ModeMgr } from "../frameWork/ModeMgr";
 import { UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
-import { MapDrawDatPathPoint } from "./MapDrawDat";
-import MapDrawUnitBase from "./MapDrawUnitBase";
 
 
 const { ccclass, property } = cc._decorator;
 @ccclass
-export default class MapDrawP extends MapDrawUnitBase {
+export default class MapDrawP extends MapDrawItem {
+    private _nameNd: cc.Node;
+
     links: cc.Node[] = [];
 
     protected _type: UnitType.PathPoint;
     private _pid: string = null;
-    private _pDat: MapDrawDatPathPoint = null;
     private _linkHighlight = false;
     private _savedTint: cc.Color = null;
 
@@ -83,17 +84,21 @@ export default class MapDrawP extends MapDrawUnitBase {
         return this.links.indexOf(other) >= 0;
     }
 
-    public init(pData: MapDrawDatPathPoint) {
-        this._pDat = pData;
-        this._pid = pData.id;
-        this._roomCfgId = pData.roomId;
+    public init(type: UnitType, dat?) {
+        super.init(type, dat);
         this.initUI();
     }
 
     private initUI() {
-        const nameNd = this.node.getChildByName("name");
-        const label = nameNd.getComponent(cc.Label);
-        label.string = `${this._pid}`;
+        if (!this._nameNd) {
+            this._nameNd = new cc.Node();
+            this._nameNd.name = "name";
+            this.node.addChild(this._nameNd);
+            this._nameNd.setPosition(cc.v3(0, 25, 0));
+            this._nameNd.addComponentSafe(cc.Label).fontSize = 15;
+        }
+        const label = this._nameNd.getComponent(cc.Label);
+        label.string = `${this._canEditdat["id"]}`;
     }
 
     public setLinks(pointNds: cc.Node[]) {
@@ -107,25 +112,16 @@ export default class MapDrawP extends MapDrawUnitBase {
         });
     }
 
-    public getDat(): MapDrawDatPathPoint {
-        const dat: MapDrawDatPathPoint = {
-            id: this._pid,
-            roomId: this._roomCfgId,
-            pos: this.getPos(),
-            links: this.links?.filter((link: cc.Node) => link && cc.isValid(link)).map((link: cc.Node) => link.getComponent(MapDrawP).getId()) || [],
-        }
-        return dat;
-    }
-
     public getId() {
-        return this._pid;
+        return this._canEditdat.id;
     }
 
     public setId(newId: string) {
-        this._pid = newId;
+        this._canEditdat.id = newId;
         this.node.name = `${newId}`;
         this.initUI();
     }
 
-
 }
+
+ReflectionMgr.registerClass('MapDrawP', MapDrawP);

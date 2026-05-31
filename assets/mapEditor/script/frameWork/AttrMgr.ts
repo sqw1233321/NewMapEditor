@@ -1,20 +1,10 @@
-import AttrItem from "../editor/attrPrefab/AttrItem";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapEditorEvent } from "../event/eventTypes";
-import MapDrawCable from "../item/MapDrawCable";
-import MapDrawDoor from "../item/MapDrawDoor";
-import MapDrawEnemyRefresh from "../item/MapDrawEnemyRefresh";
-import MapDrawFightSoul from "../item/MapDrawFightSoul";
-import MapDrawLadder from "../item/MapDrawLadder";
 import MapDrawP from "../item/MapDrawP";
-import MapDrawPortal from "../item/MapDrawPortal";
 import MapDrawRoom from "../item/MapDrawRoom";
-import MapDrawSearchItem from "../item/MapDrawSearchItem";
-import MapDrawSurvive from "../item/MapDrawSurvive";
 import MapLoader from "../item/MapLoader";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
-import { attrPanelType, attrPanelTypeBase, attrPanelTypeRoom, attrPanelTypePoint, attrPanelTypeDoor, attrPanelTypePortal, attrPanelTypeCable, attrPanelTypeLadder, attrPanelTypeEnemyRefresh, attrPanelTypeSurviveRefresh, attrPanelTypeFightSoul, attrPanelTypeSearchItem } from "../type/types";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -65,6 +55,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
         return this._trackNd;
     }
 
+    //节点刷新属性面板
     public refreshAttrPanel() {
         if (!this._trackNd) return;
         const itemDat = this._trackNd;
@@ -74,111 +65,46 @@ export class AttrMgr extends Singleton<AttrMgr> {
         //基础属性的同步
         const worldPos = this._trackNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
         const pos = MapTool.converWorldPosToMapPos(worldPos);
-        const baseDat: attrPanelTypeBase = {
+        const baseDat = {
             name: this._trackNd.name,
             pos: pos,
         };
-        const basePanelDat: attrPanelType = {
+        const basePanelDat = {
             type: UnitType.Default,
             dat: baseDat,
         };
         EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, basePanelDat, this._trackNd);
         if (type == UnitType.Default) return;
 
-        //特殊属性的同步
-        let dat: any = {};
-        switch (type) {
-            case UnitType.Room:
-                dat = this._trackNd.getComponent(MapDrawRoom).getAttrDat();
-                break;
-            case UnitType.PathPoint:
-                const pointCom = this._trackNd?.getComponent(MapDrawP);
-                const links = pointCom?.links ?? [];
-                (dat as attrPanelTypePoint).roomId =
-                    pointCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypePoint).links = links;
-                break;
-            case UnitType.Door:
-                const doorCom = this._trackNd?.getComponent(MapDrawDoor);
-                (dat as attrPanelTypeDoor).roomId =
-                    doorCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeDoor).hp = doorCom?.getDat().hp ?? 0;
-                break;
-            case UnitType.SearchPoint:
-                const pointController = this._trackNd?.getComponent(MapDrawSearchItem);
-                (dat as attrPanelTypeSearchItem).roomId = pointController?.getDat()?.roomId.toString() ?? "";
-                break;
-            case UnitType.Ladder:
-                const drawItem = this._trackNd?.getComponent(MapDrawItem);
-                dat = drawItem?.getAttrDat();
-                break;
-            case UnitType.EnemyRefresh:
-                const enemyRefreshCom = this._trackNd?.getComponent(MapDrawEnemyRefresh);
-                (dat as attrPanelTypeEnemyRefresh).roomId =
-                    enemyRefreshCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeEnemyRefresh).param =
-                    enemyRefreshCom?.getDat()?.param ?? "";
-                (dat as attrPanelTypeEnemyRefresh).refreshId =
-                    enemyRefreshCom?.getDat()?.refreshId ?? -1;
-                break;
-            case UnitType.SurviveDat:
-                const surviveRefreshCom = this._trackNd?.getComponent(MapDrawSurvive);
-                (dat as attrPanelTypeSurviveRefresh).roomId =
-                    surviveRefreshCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeSurviveRefresh).weight =
-                    surviveRefreshCom?.getDat()?.weight ?? 0;
-                break;
-            case UnitType.FightSoul:
-                const fightSoulCom = this._trackNd?.getComponent(MapDrawFightSoul);
-                (dat as attrPanelTypeFightSoul).roomId = fightSoulCom?.getDat()?.roomId.toString() ?? "";
-                (dat as attrPanelTypeFightSoul).weight = fightSoulCom?.getDat()?.weight ?? 0;
-                (dat as attrPanelTypeFightSoul).isGuide = fightSoulCom?.getDat()?.isGuide ?? false;
-                break;
-            case UnitType.Portal:
-                const portalCom = this._trackNd?.getComponent(MapDrawPortal);
-                (dat as attrPanelTypePortal).linkP = portalCom.getLinkP();
-                (dat as attrPanelTypePortal).offsetX = portalCom?.getDat()?.offsetX ?? 0;
-                (dat as attrPanelTypePortal).animPs = portalCom?.getAnimP() ?? [];
-                break;
-            case UnitType.Cable:
-                const controller = this._trackNd?.getComponent(MapDrawCable);
-                const cableDat = controller.getDat();
-                const startP = this._mapLoader.resolvePathPointNodes(cableDat.point1);
-                const endP = this._mapLoader.resolvePathPointNodes(cableDat.point2);
-                const pointP = this._mapLoader.resolvePathPointNodes(cableDat.points);
-                (dat as attrPanelTypeCable).startP = startP[0];
-                (dat as attrPanelTypeCable).endP = endP[0];
-                (dat as attrPanelTypeCable).points = pointP;
-                (dat as attrPanelTypeCable).speed = cableDat.speed;
-                break;
-        }
-        const panelDat: attrPanelType = {
+        //特殊属性
+        const attrDat = this._trackNd.getComponent(MapDrawItem).getAttrDat();
+        const panelDat = {
             type: type,
-            dat: dat,
+            dat: attrDat,
         };
         EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, panelDat, this._trackNd);
     }
 
 
     //属性面板刷新节点
-    public refreshNdAttr(attrDat: attrPanelType) {
+    public refreshNdAttr(attrDat) {
         if (!this._trackNd) return;
         if (!this._mapLoader) return;
         const type = attrDat.type;
         let dat;
         switch (type) {
             case UnitType.Default:
-                dat = attrDat.dat as attrPanelTypeBase;
+                dat = attrDat.dat;
                 const worldPos = MapTool.converMapPosToWorldPos(dat.pos);
                 const localPos = this._trackNd.parent.convertToNodeSpaceAR(worldPos);
                 this._trackNd.setPosition(localPos);
                 break;
             case UnitType.Room:
-                dat = attrDat.dat as attrPanelTypeRoom;
-                const hasNd = this._mapLoader.getRoomNode(Number(dat.roomId));
+                dat = attrDat.dat;
+                const newCfgId = Number(dat.cfgId);
+                const hasNd = this._mapLoader.getRoomNode(newCfgId);
                 if (!hasNd) {
                     const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
-                    const newCfgId = Number(dat.roomId);
                     this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);
                     this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
                     this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
@@ -187,20 +113,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
                 break;
             case UnitType.PathPoint:
-                dat = attrDat.dat as attrPanelTypePoint;
-                const links = dat.links as cc.Node[];
-                const controller = this._trackNd.getComponent(MapDrawP);
-                if (controller) {
-                    controller.setId(dat.roomId);
-                    controller.setLinks(links);
-                }
-                break;
-            case UnitType.Door:
-                dat = attrDat.dat as attrPanelTypeDoor;
-                const doorCom = this._trackNd.getComponent(MapDrawDoor);
-                if (doorCom) {
-                    doorCom.setHp(dat.hp);
-                }
+                this._trackNd.getComponent(MapDrawP).setAttrDat(dat);
                 break;
             case UnitType.Ladder:
                 const drawItem = this._trackNd.getComponent(MapDrawItem);
@@ -208,55 +121,13 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     drawItem.setAttrDat(attrDat.dat);
                 }
                 break;
+            case UnitType.Door:
             case UnitType.EnemyRefresh:
-                dat = attrDat.dat as attrPanelTypeEnemyRefresh;
-                const enemyRefreshCom = this._trackNd.getComponent(MapDrawEnemyRefresh);
-                if (enemyRefreshCom) {
-                    enemyRefreshCom.setRoomId(Number(dat.roomId));
-                    enemyRefreshCom.setParam(dat.param);
-                    enemyRefreshCom.setRefresId(dat.refreshId);
-                }
-                break;
             case UnitType.SurviveDat:
-                dat = attrDat.dat as attrPanelTypeSurviveRefresh;
-                const surviveRefreshCom = this._trackNd.getComponent(MapDrawSurvive);
-                if (surviveRefreshCom) {
-                    surviveRefreshCom.setRoomId(Number(dat.roomId));
-                    surviveRefreshCom.setWeight(dat.weight);
-                }
-                break;
             case UnitType.FightSoul:
-                dat = attrDat.dat as attrPanelTypeFightSoul;
-                const fightSoulCom = this._trackNd.getComponent(MapDrawFightSoul);
-                if (fightSoulCom) {
-                    fightSoulCom.setRoomId(Number(dat.roomId));
-                    fightSoulCom.setWeight(dat.weight);
-                    fightSoulCom.setIsGuide(dat.isGuide);
-                }
-                break;
-
-            //下面的机制，融合为通用item
             case UnitType.Portal:
-                dat = attrDat.dat as attrPanelTypePortal;
-                const portalCom = this._trackNd.getComponent(MapDrawPortal);
-                if (portalCom) {
-                    portalCom.setLinkP(dat.linkP);
-                    portalCom.setOffsetX(dat.offsetX);
-                    portalCom.setAnimPs(dat.animPs);
-                }
-                break;
             case UnitType.Cable:
-                dat = attrDat.dat as attrPanelTypeCable;
-                const cableCom = this._trackNd.getComponent(MapDrawCable);
-                const startP = dat.startP;
-                const endP = dat.endP;
-                const pointPs = dat.points;
-                if (cableCom) {
-                    cableCom.setSpeed(dat.speed);
-                    cableCom.setStartP(startP);
-                    cableCom.setEndP(endP);
-                    cableCom.setPoints(pointPs);
-                }
+                this._trackNd.getComponent(MapDrawItem).setAttrDat(dat);
                 break;
             default:
                 dat = attrDat.dat;
