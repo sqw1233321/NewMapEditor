@@ -17,11 +17,11 @@ export default class AttrPanelPrefab extends cc.Component {
     attrItem: cc.Prefab;
 
     private _attrCfg: AttrCfgType;
-    private _attrNodeMap: Map<number, AttrItem> = new Map();
+    private _attrNodeMap: Map<string, AttrItem> = new Map();
     private _dat;
     private _type: UnitType;
 
-    private _properties:AttrPanelPropertyType[] = [];
+    private _properties: AttrPanelPropertyType[] = [];
 
     //传入当前节点的属性配置，和属性现有值
     init(attrCfg: AttrCfgType, dat, isNew: boolean) {
@@ -36,10 +36,10 @@ export default class AttrPanelPrefab extends cc.Component {
     }
 
     private setDefault() {
+        AttrPanelItemBase.curPropertyId = "";
         this.attrCont.removeAllChildren();
         this._attrNodeMap.clear();
     }
-
 
     private setUI() {
         //筛选条件属性
@@ -50,7 +50,7 @@ export default class AttrPanelPrefab extends cc.Component {
 
         //筛选出需要删除的属性
         const propertyIds = new Set(this._properties.map(p => p.ID));
-        const idToRemove: number[] = [];
+        const idToRemove: string[] = [];
         this._attrNodeMap.forEach((controller, id) => {
             if (!propertyIds.has(id)) {
                 idToRemove.push(id);
@@ -70,7 +70,7 @@ export default class AttrPanelPrefab extends cc.Component {
         this._properties.forEach((property, index) => {
             const curController = this._attrNodeMap.get(property.ID);
             if (curController) {
-                curController.node.setSiblingIndex(index)
+                curController.node.setSiblingIndex(index);
                 curController.init(property, null, 0, ``, this.afterEditorCb, this._dat[`${property.ClassPropertyName}`]);
                 return;
             }
@@ -94,6 +94,7 @@ export default class AttrPanelPrefab extends cc.Component {
         return dat;
     }
 
+    //被修改的属性id
     private afterEditorCb() {
         EventManager.instance.emit(AttrPanelEvent.afterEdit, this._type);
     }
@@ -112,8 +113,9 @@ export default class AttrPanelPrefab extends cc.Component {
             const needValue = conditionProperties[1];
             const targetProperty = properties.find(p => Number(p.ID) === targetId);
             const targetValue = this._dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue;
-            return isNotEqual ? needValue != targetValue : needValue == targetValue;
+            return isNotEqual ? needValue !== targetValue : needValue === targetValue;
         })
         return res;
     }
+
 }

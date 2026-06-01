@@ -10033,6 +10033,9 @@
     "itemSetting": {
       "__uuid__": "a7690aa1-4fde-4ff7-96a5-b8efc3e9daf0"
     },
+    "defaultSp": {
+      "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
+    },
     "_id": "7bsk1VGb5LK6+LJiyTAZqY"
   }
 ]

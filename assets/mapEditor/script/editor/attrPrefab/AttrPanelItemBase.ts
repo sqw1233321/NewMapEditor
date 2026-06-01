@@ -9,6 +9,9 @@ const { ccclass, property } = cc._decorator;
 //通用属性面板item
 @ccclass
 export default class AttrPanelItemBase extends cc.Component {
+    //当前操作的属性id
+    static curPropertyId: string = "";
+
     @property(cc.Label)
     descLb: cc.Label;
 
@@ -26,6 +29,7 @@ export default class AttrPanelItemBase extends cc.Component {
 
     //EditBox编辑完成
     public onAfterEdit() {
+        AttrPanelItemBase.curPropertyId = this._cfg.ID;
         this._afterEditorCb?.();
     }
 
@@ -38,6 +42,7 @@ export default class AttrPanelItemBase extends cc.Component {
             else {
                 setter(pids);
             }
+            AttrPanelItemBase.curPropertyId = this._cfg.ID;
             this._afterEditorCb?.();
         }
 

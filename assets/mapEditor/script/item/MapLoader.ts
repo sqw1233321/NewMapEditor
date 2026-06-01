@@ -152,16 +152,13 @@ export default class MapLoader extends cc.Component {
 
   public initRoom(
     cfgId: number,
-    roomDat: any,
-    color: cc.Color,
-    unlockPointIds: string[]
+    roomDat: any
   ) {
     const roomNd = this._roomNodeMap.get(cfgId);
     if (!roomNd) return;
 
     const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
     mapDrawRoom.init(UnitType.Room, roomDat);
-    mapDrawRoom.setColor(color);
   }
 
   // ==================== 每帧更新 ====================
@@ -474,34 +471,9 @@ export default class MapLoader extends cc.Component {
     // 新房间重新 init
     if (isNewRoom) {
       const worldPos = roomCom.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
-      const size = roomCom.node.getContentSize();
-      const roomDat: MapDrawDatRoom = {
-        cfgId: newCfgId,
-        layer: layer,
-        pos: { x: worldPos.x, y: worldPos.y },
-        size: { width: size.width, height: size.height },
-        pathPointIds: [],
-        unLockPointIds: [],
-        doors: [],
-        ladders: [],
-        enemyRefreshDatas: [],
-        enemyCreateDatas: [],
-        baseItemDatas: [],
-        searchItemDatas: [],
-        survivorDatas: [],
-        fightSoulDatas: [],
-        unLockType: 0,
-        unLockNeed: [],
-        outSide: false,
-        addLv: 0,
-        baseArea: false,
-        roomMonster: []
-      };
-      // 颜色
-      let color = cc.Color.WHITE;
-      const bgNd = roomCom.node.getChildByName("bg");
-      if (bgNd) color = bgNd.color;
-      roomCom.init(UnitType.Room, roomDat);
+      roomCom.updateRoomId(newCfgId);
+      roomCom.changeLayer(layer);
+      roomCom.getAttrDat()["pos"] = { x: worldPos.x, y: worldPos.y };
       //新房间自动命名后也算手动命名
       if (isAutoName) roomCom.setManulSet(true);
     }

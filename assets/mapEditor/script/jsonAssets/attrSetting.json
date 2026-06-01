@@ -8,7 +8,7 @@
                     "Name": "配置名称",
                     "ClassPropertyName": "cfgId",
                     "Type": "label",
-                    "DefaultValue": ""
+                    "DefaultValue": 0
                 },
                 {
                     "ID": "2",
@@ -22,14 +22,14 @@
                             "Name": "宽",
                             "ClassPropertyName": "width",
                             "Type": "label",
-                            "DefaultValue": 0
+                            "DefaultValue": 700
                         },
                         {
                             "ID": "2-2",
                             "Name": "高",
                             "ClassPropertyName": "height",
                             "Type": "label",
-                            "DefaultValue": 0
+                            "DefaultValue": 320
                         }
                     ]
                 },

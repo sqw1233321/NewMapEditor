@@ -27,16 +27,6 @@ export default class MapBuilder {
   // ==================== 回调接口 ====================
   public onBuildComplete?: () => void;
 
-  // ==================== 私有变量 ====================
-  private _roomColors = [
-    new cc.Color(255, 80, 80),   // 红
-    new cc.Color(80, 255, 80),   // 绿
-    new cc.Color(80, 160, 255),  // 蓝
-    new cc.Color(255, 200, 80),  // 黄
-    new cc.Color(200, 80, 255),  // 紫
-    new cc.Color(80, 255, 220),  // 青
-  ];
-
   // ==================== 初始化 ====================
 
   public init(mapLoader: MapLoader, prefabs: {
@@ -133,42 +123,15 @@ export default class MapBuilder {
     rooms.forEach((room: MapDrawDatRoom) => {
       const roomNd = cc.instantiate(this.mapDrawItemPrefab);
       roomNd.parent = layerCont;
-      const anchor = this.getItemAnchor(UnitType.Room);
-      roomNd.setAnchorPoint(anchor[0], anchor[1]);
-      roomNd.groupIndex = this.getGroupIndex(UnitType.Room);
-
-      roomNd.removeComponent(cc.Sprite);
-
       const localPos = this.applyOffset(room.pos, roomNd.parent);
       roomNd.setPosition(localPos);
-
-      const bg = new cc.Node();
-      bg.setAnchorPoint(0, 0);
-      bg.name = "bg";
-      roomNd.addChild(bg);
-      const bgSp = bg.addComponentSafe(cc.Sprite);
-      bgSp.spriteFrame = this.defaultSp;
-      bgSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-
-      const nameNd = new cc.Node();
-      nameNd.name = "name";
-      nameNd.setAnchorPoint(0, 1);
-      roomNd.addChild(nameNd);
-      nameNd.addComponentSafe(cc.Label).fontSize = 40;
-
-      const unitCont = new cc.Node();
-      unitCont.name = "unitCont";
-      roomNd.addChild(unitCont);
-
-      const pointCont = new cc.Node();
-      pointCont.name = "pointCont";
-      roomNd.addChild(pointCont);
 
       this._mapLoader.addRoomToLayer(roomNd, room.layer);
       this._mapLoader.registerRoomNode(room.cfgId, roomNd);
 
       const roomCom = roomNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.Room));
       //静态房间，名称已经修改过
+      (roomCom as MapDrawRoom).setDefaultUI();
       (roomCom as MapDrawRoom).setManulSet(true);
     });
   }
@@ -177,8 +140,7 @@ export default class MapBuilder {
     const rooms = mapData.rooms || [];
 
     rooms.forEach((room: MapDrawDatRoom, index: number) => {
-      const color = this._roomColors[index % this._roomColors.length];
-      this._mapLoader.initRoom(room.cfgId, room, color, room.unLockPointIds || []);
+      this._mapLoader.initRoom(room.cfgId, room);
     });
   }
 
@@ -209,11 +171,11 @@ export default class MapBuilder {
         const pointNd = cc.instantiate(this.mapDrawItemPrefab);
         pointNd.name = p.id;
         pointNd.parent = pointCont;
-        const anchor = this.getItemAnchor(UnitType.PathPoint);
+        const anchor = DynamicGetter.Ins.getItemAnchor(UnitType.PathPoint);
         pointNd.setAnchorPoint(anchor[0], anchor[1]);
         const localPos = this.applyOffset(p.pos, pointCont);
         pointNd.setPosition(localPos);
-        pointNd.groupIndex = this.getGroupIndex(UnitType.PathPoint);
+        pointNd.groupIndex = DynamicGetter.Ins.getGroupIndex(UnitType.PathPoint);
 
         const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
         pointCom.init(UnitType.PathPoint, p);
@@ -256,8 +218,8 @@ export default class MapBuilder {
         const datArr = room[key] as any[];
         datArr.forEach(dat => {
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
-          const anchor = this.getItemAnchor(type);
-          const groupIndex = this.getGroupIndex(type);
+          const anchor = DynamicGetter.Ins.getItemAnchor(type);
+          const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
           itemNd.setAnchorPoint(anchor[0], anchor[1]);
           itemNd.groupIndex = groupIndex;
           itemNd.name = `Item${key}`;
@@ -383,24 +345,4 @@ export default class MapBuilder {
   //     control.init(startP, endP, points, dat);
   //   });
   // }
-
-
-
-  private getItemAnchor(type: UnitType) {
-    const settings = DynamicGetter.Ins.getItemSetting();
-    const setting = settings.find((t: any) => t.ClassName === type);
-    if (setting) {
-      return setting.itemAnchor;
-    }
-    return [0.5, 0.5];
-  }
-
-  private getGroupIndex(type: UnitType) {
-    const settings = DynamicGetter.Ins.getItemSetting();
-    const setting = settings.find((t: any) => t.ClassName === type);
-    if (setting) {
-      return setting.cameraGroupIndex;
-    }
-    return 0;
-  }
 }

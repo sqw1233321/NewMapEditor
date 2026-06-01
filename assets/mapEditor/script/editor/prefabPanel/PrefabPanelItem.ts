@@ -5,6 +5,7 @@ import { UnitType } from "../../type/mapTypes";
 import { DragType } from "../../type/types";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import MapDrawItem from "../mapDrawElement/MapDrawItem";
+import MapDrawItemBase from "../mapDrawElement/MapDrawItemBase";
 import { ReflectionMgr } from "../ReflectionMgr";
 
 const { ccclass, property } = cc._decorator;
@@ -75,6 +76,7 @@ export default class PrefabPanelItem extends cc.Component {
         itemNd.setPosition(this.node.getPosition());
         itemNd.groupIndex = this._dat.cameraGroupIndex;
         const controller = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(this._type)) as MapDrawItem;
+        (controller as MapDrawItemBase).setDefaultUI();
         controller.init(this._type);
 
         const mousePos = cc.v3(event.getLocation()); // 世界 UI 坐标

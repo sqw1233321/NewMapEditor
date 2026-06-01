@@ -19,6 +19,9 @@ export default class DynamicGetter extends cc.Component {
     @property(cc.JsonAsset)
     itemSetting: cc.JsonAsset;
 
+    @property(cc.SpriteFrame)
+    defaultSp: cc.SpriteFrame;
+
     static Ins: DynamicGetter
 
     protected onLoad(): void {
@@ -42,6 +45,28 @@ export default class DynamicGetter extends cc.Component {
                 }
             });
         });
+    }
+
+    public getItemAnchor(type) {
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => t.ClassName === type);
+        if (setting) {
+            return setting.itemAnchor;
+        }
+        return [0.5, 0.5];
+    }
+
+    public getGroupIndex(type) {
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => t.ClassName === type);
+        if (setting) {
+            return setting.cameraGroupIndex;
+        }
+        return 0;
+    }
+
+    public getDefaultSp(): cc.SpriteFrame {
+        return this.defaultSp;
     }
 
 }

@@ -3,6 +3,7 @@ import MapLoader from "./MapLoader";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapDrawP from "./MapDrawP";
 import { ReflectionMgr } from "../editor/ReflectionMgr";
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 
 
 const { ccclass, property } = cc._decorator;
@@ -26,6 +27,18 @@ export default class MapDrawRoom extends MapDrawItem {
     //模式相关
     private _unlockBindHighlight = false;
     private _savedBgColor: cc.Color = null;
+
+    //颜色相关
+    static roomColors = [
+        new cc.Color(255, 80, 80),   // 红
+        new cc.Color(80, 255, 80),   // 绿
+        new cc.Color(80, 160, 255),  // 蓝
+        new cc.Color(255, 200, 80),  // 黄
+        new cc.Color(200, 80, 255),  // 紫
+        new cc.Color(80, 255, 220),  // 青
+    ];
+
+    static colorIndex = 0;
 
     private _canNotEditKeys = [
         "doors",
@@ -58,11 +71,13 @@ export default class MapDrawRoom extends MapDrawItem {
 
     //==============初始化相关===============
     public init(type: UnitType, dat?) {
-        const canEditDat = this.filterAttrDats(dat);
+        let canEditDat = dat;
+        //筛选可编辑属性
+        if (dat) canEditDat = this.filterAttrDats(dat);
         super.init(type, canEditDat);
         this._pointCont = this.node.getChildByName("pointCont");
         this._unitCont = this.node.getChildByName("unitCont");
-        this._layer = dat["layer"];
+        this._layer = dat ? dat["layer"] : -1;
         this.initUI();
         this.setSubDats();
     }
@@ -79,39 +94,54 @@ export default class MapDrawRoom extends MapDrawItem {
         return resDat;
     }
 
-
     //==============UI操作相关===============
+    //设置房间的初始ui信息
+    public setDefaultUI() {
+        const anchor = DynamicGetter.Ins.getItemAnchor(UnitType.Room);
+        this.node.setAnchorPoint(anchor[0], anchor[1]);
+        this.node.groupIndex = DynamicGetter.Ins.getGroupIndex(UnitType.Room);
+        this.node.removeComponent(cc.Sprite);
+
+        const bg = new cc.Node();
+        bg.setAnchorPoint(0, 0);
+        bg.name = "bg";
+        this.node.addChild(bg);
+        const bgSp = bg.addComponentSafe(cc.Sprite);
+        const defaultSp = DynamicGetter.Ins.getDefaultSp();
+        bgSp.spriteFrame = defaultSp;
+        bgSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        const color = MapDrawRoom.roomColors[(MapDrawRoom.colorIndex++) % MapDrawRoom.roomColors.length];
+        bg.color = new cc.Color(color.r, color.g, color.b);
+        bg.opacity = 80;
+
+        const nameNd = new cc.Node();
+        nameNd.name = "name";
+        nameNd.setAnchorPoint(0, 1);
+        this.node.addChild(nameNd);
+        nameNd.addComponentSafe(cc.Label).fontSize = 40;
+
+        const unitCont = new cc.Node();
+        unitCont.name = "unitCont";
+        this.node.addChild(unitCont);
+
+        const pointCont = new cc.Node();
+        pointCont.name = "pointCont";
+        this.node.addChild(pointCont);
+    }
+
+    private initUI() {
+        const size = this._canEditdat.size;
+        this.setSize(size);
+        this.setRoomNameLb();
+    }
+
     public setSize(size: { width: number; height: number }) {
+        if (!size) return;
         this.node.setContentSize(size.width, size.height);
         const bg = this.node.getChildByName("bg");
         bg.setContentSize(size.width, size.height);
         const roomName = this.node.getChildByName("name");
         roomName.setPosition(cc.v2(0, this.node.getContentSize().height - 20));
-    }
-
-
-    private initUI() {
-        this.node.name = `room_${this._canEditdat["cfgId"]}`;
-        const size = this._canEditdat.size;
-        if (size) {
-            this.node.setContentSize(
-                this._canEditdat.size.width,
-                this._canEditdat.size.height,
-            );
-            const bg = this.node.getChildByName("bg");
-            bg.setContentSize(size.width, size.height);
-        }
-        this.setRoomNameLb();
-    }
-
-    //设置颜色
-    public setColor(color: cc.Color) {
-        const bg = this.node.getChildByName("bg");
-        if (bg) {
-            bg.color = new cc.Color(color.r, color.g, color.b);
-            bg.opacity = 80;
-        }
-        this.initUI();
     }
 
     private setRoomNameLb() {
@@ -129,6 +159,12 @@ export default class MapDrawRoom extends MapDrawItem {
         this._layer = newLayer;
     }
 
+    public updateRoomId(roomId: number) {
+        this._canEditdat["cfgId"] = roomId;
+        this.refreshDat();
+        this.setRoomNameLb();
+    }
+
     public setManulSet(isManual: boolean) {
         if (this._cfgIdManuallySet) return;
         this._cfgIdManuallySet = isManual;
@@ -136,12 +172,6 @@ export default class MapDrawRoom extends MapDrawItem {
 
     public getManulSet() {
         return this._cfgIdManuallySet;
-    }
-
-    public updateRoomId(roomId: number) {
-        this._canEditdat["cfgId"] = roomId;
-        this.refreshDat();
-        this.setRoomNameLb();
     }
 
     public getRoomCfgId() {
@@ -168,7 +198,7 @@ export default class MapDrawRoom extends MapDrawItem {
     private setSubDats() {
         this._subDats = [];
         const allSubUnits = this._unitCont.getComponentsInChildren(MapDrawItem);
-        allSubUnits.forEach((units: MapDrawItem) => {
+        allSubUnits?.forEach((units: MapDrawItem) => {
             this._subDats.push(units);
         });
     }

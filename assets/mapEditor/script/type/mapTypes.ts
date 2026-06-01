@@ -29,7 +29,7 @@ export interface AttrCfgType {
 //单个属性类型
 export interface AttrPanelPropertyType {
     //属性id
-    ID: number,
+    ID: string,
     //显示条件（ex:"3_11"  第3个属性值为11时才显示）
     Condition: string,
     //属性名称

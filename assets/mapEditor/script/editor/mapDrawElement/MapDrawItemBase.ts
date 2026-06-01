@@ -76,7 +76,10 @@ export default class MapDrawItemBase extends cc.Component {
         return { width: size.width * mapScale, height: size.height * mapScale };
     }
 
-    //渲染层
+    //================渲染层==============
+    //设置初始UI
+    public setDefaultUI() { }
+
     protected async setSprite(type: UnitType) {
         const itemSettings = DynamicGetter.Ins.getItemSetting();
         const setting = itemSettings.find((t: any) => t.ClassName === type);

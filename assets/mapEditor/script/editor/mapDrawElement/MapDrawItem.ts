@@ -17,8 +17,11 @@ export default class MapDrawItem extends MapDrawItemBase {
   private _jsonDat: any;
   protected _canEditdat: any;
 
+  private _isInit: boolean = false;
 
   public init(type: UnitType, dat?) {
+    if (this._isInit) return;
+    this._isInit = true;
     this._unitType = type;
     this.setSprite(type);
     if (!dat) {
