@@ -43,7 +43,7 @@ export default class AttrPanelItemBase extends cc.Component {
     }
 
     //EditBox编辑完成
-    public onAfterEdit(editId: string = "") {
+    public onAfterEdit(event?, editId: string = "") {
         if (editId) {
             AttrPanelItemBase.curPropertyId = editId;
         }

@@ -348,8 +348,8 @@ export default class AttrItem extends AttrPanelItemBase {
         this.setUI();
         //如果是数组+的话，打开新的那一个子项
         let editStr = ""
-        if (isAdd) editStr = this.getId() + `&{${index}}`
-        this.onAfterEdit(editStr);
+        if (isAdd) editStr = this.getId() + `&{${index + 1}}`
+        this.onAfterEdit(null, editStr);
     }
 
     //子节点显示隐藏
