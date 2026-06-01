@@ -64,21 +64,11 @@ export default class AttrItem extends AttrPanelItemBase {
     public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, name: string, cb: any, ...params: any[]): void {
         super.init(cfg, parentItem, cb, ...params);
         this._layer = layer;
-        this._dat = params[0] ?? this._cfg.DefaultValue;
+        this._dat = params[0] ?? NodeUtil.deepClone(this._cfg.DefaultValue);
         this._uniqueName = name;
-        //没有当前操作的
-        // if (!AttrPanelItemBase.curPropertyId || AttrPanelItemBase.curPropertyId == this._cfg.ID) {
-        //     this.handleDat();
-        //     this.setUIDefault();
-        //     this.setUI();
-        // }
         this.handleDat();
         this.setUIDefault();
         this.setUI();
-        //不是最后一层，设置子项
-        if (!this._isLastLayer) {
-            this.setSub();
-        }
     }
 
     private handleDat() {
@@ -159,6 +149,11 @@ export default class AttrItem extends AttrPanelItemBase {
         //选点类型打开选点按钮
         if (this._type == AttrCfgTypeEnum.pointArray) {
             this.singleSelectPoint.active = this._canWrite;
+        }
+
+        //不是最后一层，设置子项
+        if (!this._isLastLayer) {
+            this.setSub();
         }
     }
 
@@ -304,6 +299,7 @@ export default class AttrItem extends AttrPanelItemBase {
             const curIndex = Number(this._uniqueName);
             this._parentItem.setArrayDat(true, curIndex, this._cfg.Properties[0].DefaultValue);
         }
+        this.onAfterEdit();
     }
 
     public onClickDeleteBtn() {
@@ -315,6 +311,7 @@ export default class AttrItem extends AttrPanelItemBase {
             const curIndex = Number(this._uniqueName);
             this._parentItem.setArrayDat(false, curIndex);
         }
+        this.onAfterEdit();
     }
 
     //TODO:编辑按钮

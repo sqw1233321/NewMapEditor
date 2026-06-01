@@ -1,5 +1,5 @@
 import { EventManager } from "../../frameWork/EventManager";
-import { UnitType, AttrCfgType, AttrPanelPropertyType } from "../../type/mapTypes";
+import { UnitType, AttrCfgType, AttrPanelPropertyType, AttrCfgTypeEnum } from "../../type/mapTypes";
 import { AttrPanelEvent } from "../EditPanel";
 import AttrItem from "./AttrItem";
 import AttrPanelItemBase from "./AttrPanelItemBase";
@@ -109,10 +109,11 @@ export default class AttrPanelPrefab extends cc.Component {
             const isNotEqual = condition.includes("!=");
             const splitStr = isNotEqual ? "!=" : "=";
             const conditionProperties = condition.split(splitStr);
-            const targetId = Number(conditionProperties[0]);
+            const targetId = conditionProperties[0];
             const needValue = conditionProperties[1];
-            const targetProperty = properties.find(p => Number(p.ID) === targetId);
-            const targetValue = this._dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue;
+            const targetProperty = properties.find(p => p.ID === targetId);
+            const targetValue = `${this._dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue}`;
+            //不管什么类型都转化为string，就能直接比较了（感觉会有问题呢）
             return isNotEqual ? needValue !== targetValue : needValue === targetValue;
         })
         return res;

@@ -29,4 +29,27 @@ export class NodeUtil {
             cb?.(nd, index, dat);
         });
     }
+
+    static deepClone<T>(obj: T): T {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        if (obj instanceof Date) {
+            return new Date(obj.getTime()) as any;
+        }
+        if (obj instanceof Array) {
+            const cloneArr: any[] = [];
+            obj.forEach((item) => {
+                cloneArr.push(this.deepClone(item));
+            });
+            return cloneArr as any;
+        }
+        const cloneObj = {} as T;
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                cloneObj[key] = this.deepClone(obj[key]);
+            }
+        }
+        return cloneObj;
+    }
 }
