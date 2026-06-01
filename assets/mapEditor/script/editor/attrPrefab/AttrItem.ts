@@ -61,24 +61,57 @@ export default class AttrItem extends AttrPanelItemBase {
     private _isShowSub: boolean;
 
     //描述，父cfg，递归层级，特殊名称（数组index），回调，数据
-    public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, name: string, cb: any, ...params: any[]): void {
-        super.init(cfg, parentItem, cb, ...params);
+    public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, index: number, cb: any, ...params: any[]): void {
+        super.initBase(cfg, parentItem?.getId() ?? "", index, parentItem, cb, ...params);
         this._layer = layer;
         this._dat = params[0] ?? NodeUtil.deepClone(this._cfg.DefaultValue);
-        this._uniqueName = name;
+        this._uniqueName = index == undefined ? `` : `${index}`;
         this.handleDat();
         this.setUIDefault();
         this.setUI();
         //如果有当前正在编辑的属性
         if (AttrPanelItemBase.curPropertyId) {
             console.log("当前正在编辑的属性id   ", AttrPanelItemBase.curPropertyId);
-            // 判断当前的属性是否时它之前的属性或者就是它本身，把子节点打开（方法内判断了是否时最后一层的哈，不用担心）
-            const isPrefix = AttrPanelItemBase.curPropertyId.startsWith(this._cfg.ID + '-');
-            const isEqual = this._cfg.ID === AttrPanelItemBase.curPropertyId;
-            if (isPrefix || isEqual) {
+            if (this.isParentOrSelf(this.getId(), AttrPanelItemBase.curPropertyId)) {
                 this.setShowSub(true);
             }
         }
+    }
+
+    // 判断 currentId 是否是 targetId 的祖先或自身
+    private isParentOrSelf(currentId: string, targetId: string): boolean {
+        const currentSegs = currentId.split('-');
+        const targetSegs = targetId.split('-');
+
+        // 自身
+        if (currentId === targetId) return true;
+
+        // current 必须比 target 短（或等长但相等已在上面处理）
+        if (currentSegs.length > targetSegs.length) return false;
+
+        // 按层级逐段比较
+        for (let i = 0; i < currentSegs.length; i++) {
+            const curSeg = currentSegs[i];
+            const tgtSeg = targetSegs[i];
+
+            // 提取属性名（去掉 &{n}）
+            const curProp = curSeg.replace(/&\{\d+\}/, '');
+            const tgtProp = tgtSeg.replace(/&\{\d+\}/, '');
+
+            // 属性名必须相同
+            if (curProp !== tgtProp) return false;
+
+            // 如果当前段有数组索引，索引必须相同
+            const curIndexMatch = curSeg.match(/&\{(\d+)\}/);
+            const tgtIndexMatch = tgtSeg.match(/&\{(\d+)\}/);
+            if (curIndexMatch && tgtIndexMatch) {
+                if (curIndexMatch[1] !== tgtIndexMatch[1]) return false;
+            }
+            if (!curIndexMatch && tgtIndexMatch) return false;
+            if (curIndexMatch && !tgtIndexMatch) return false;
+        }
+
+        return true;
     }
 
     private handleDat() {
@@ -183,7 +216,7 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._cfg.Type == AttrCfgTypeEnum.object) {
             NodeUtil.autoRefreshChildren(this.subCont, this._cfg.Properties, (nd, index, property) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(property, this, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
+                attrItem.init(property, this, this._layer + 1, undefined, this._afterEditorCb, this._dat[property.ClassPropertyName]);
                 this._subItems.push(attrItem);
             }, this.node);
             //对象必须有按钮
@@ -203,7 +236,7 @@ export default class AttrItem extends AttrPanelItemBase {
         else if (this._cfg.Type == AttrCfgTypeEnum.array) {
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
+                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, index, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
 
@@ -231,7 +264,7 @@ export default class AttrItem extends AttrPanelItemBase {
         else if (this._cfg.Type == AttrCfgTypeEnum.pointArray) {
             NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                 const attrItem = nd.getComponent(AttrItem);
-                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
+                attrItem.init(this._cfg.Properties[0], this, this._layer + 1, index, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
 
@@ -313,7 +346,10 @@ export default class AttrItem extends AttrPanelItemBase {
             this._dat.splice(index, 1);
         }
         this.setUI();
-        this.onAfterEdit();
+        //如果是数组+的话，打开新的那一个子项
+        let editStr = ""
+        if (isAdd) editStr = this.getId() + `&{${index}}`
+        this.onAfterEdit(editStr);
     }
 
     //子节点显示隐藏
@@ -349,7 +385,7 @@ export default class AttrItem extends AttrPanelItemBase {
                 NodeUtil.autoRefreshChildren(this.subCont, this._dat, (nd, index, dat) => {
                     const pid = dat ?? "";
                     const subItem = nd.getComponent(AttrItem);
-                    subItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, pid);
+                    subItem.init(this._cfg.Properties[0], this, this._layer + 1, index, this._afterEditorCb, pid);
                     this._subItems.push(subItem);
                 }, this.node);
             });

@@ -19,17 +19,37 @@ export default class AttrPanelItemBase extends cc.Component {
     protected _parentItem: AttrItem;
     protected _parentCfg: AttrPanelPropertyType;
     protected _afterEditorCb: () => void;
+    protected _id: string;
 
-    public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, cb, ...params) {
+    public initBase(cfg: AttrPanelPropertyType, parentId: string, index: number, parentItem: AttrItem, cb, ...params) {
         this._cfg = cfg;
+        this._id = parentId ?? "";
+        //数组类型加入id 1-1-3&{2}-4-5&{1}
+        if (index != undefined) {
+            this._id += `&{${index}}`;
+        }
+        else {
+            const curCfgId = this._cfg.ID.split("-").pop();
+            if (!this._id) this._id += `${curCfgId}`;
+            else this._id += `-${curCfgId}`;
+        }
         this._parentItem = parentItem;
         this._parentCfg = parentItem?.getCfg() ?? null;
         this._afterEditorCb = cb;
     }
 
+    public getId() {
+        return this._id;
+    }
+
     //EditBox编辑完成
-    public onAfterEdit() {
-        AttrPanelItemBase.curPropertyId = this._cfg.ID;
+    public onAfterEdit(editId: string = "") {
+        if (editId) {
+            AttrPanelItemBase.curPropertyId = editId;
+        }
+        else {
+            AttrPanelItemBase.curPropertyId = this._id;
+        }
         this._afterEditorCb?.();
     }
 
@@ -42,7 +62,7 @@ export default class AttrPanelItemBase extends cc.Component {
             else {
                 setter(pids);
             }
-            AttrPanelItemBase.curPropertyId = this._cfg.ID;
+            AttrPanelItemBase.curPropertyId = this._id;
             this._afterEditorCb?.();
         }
 
