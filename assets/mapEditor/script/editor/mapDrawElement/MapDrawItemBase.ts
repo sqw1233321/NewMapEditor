@@ -1,10 +1,3 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { MapEditorEvent } from "../../event/eventTypes";
 import { EventManager } from "../../frameWork/EventManager";
 import { ModeMgr } from "../../frameWork/ModeMgr";
@@ -24,6 +17,10 @@ export default class MapDrawItemBase extends cc.Component {
     protected onLoad(): void {
         this.itemSp = this.node.getComponent(cc.Sprite);
         this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
+    }
+
+    protected update(dt: number): void {
+        this.onUpdate();
     }
 
     public getPos() {
@@ -112,4 +109,18 @@ export default class MapDrawItemBase extends cc.Component {
             }
         }
     }
+
+    //=============生命周期=================
+
+    protected onBeforeInit() { }
+
+    protected onAfterInit() { }
+
+    protected onAttrChange() { }
+
+    protected onDragMove() { }
+
+    protected onDragEnd() { }
+
+    protected onUpdate() { }
 }

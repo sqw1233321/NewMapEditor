@@ -17,7 +17,6 @@ const { ccclass, property } = cc._decorator;
  */
 export default class MapBuilder {
   // ==================== Prefab 配置 ====================
-  defaultSp: cc.SpriteFrame = null;
   mapDrawItemPrefab: cc.Prefab = null;
 
 
@@ -30,11 +29,9 @@ export default class MapBuilder {
   // ==================== 初始化 ====================
 
   public init(mapLoader: MapLoader, prefabs: {
-    defaultSp: cc.SpriteFrame;
     mapDrawItemPrefab: cc.Prefab;
   }) {
     this._mapLoader = mapLoader;
-    this.defaultSp = prefabs.defaultSp;
     this.mapDrawItemPrefab = prefabs.mapDrawItemPrefab;
   }
 
@@ -104,7 +101,7 @@ export default class MapBuilder {
       nd.name = isCreate ? "playerCreate" : "playerExit";
       const sp = nd.addComponentSafe(cc.Sprite);
       sp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-      sp.spriteFrame = this.defaultSp;
+      sp.spriteFrame = DynamicGetter.Ins.getDefaultSp();
       nd.setContentSize(50, 50);
       nd.color = isCreate ? cc.Color.ORANGE : cc.Color.CYAN;
 
@@ -229,36 +226,11 @@ export default class MapBuilder {
             const adjustedPos = this.applyOffset(pos, itemNd.parent);
             itemNd.setPosition(adjustedPos.x, adjustedPos.y);
           }
-          this.specialBuild(itemNd, type, dat);
           const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
           control.init(type, dat);
         })
       });
     });
-  }
-
-  //之后改成脚本实现
-  private specialBuild(itemNd: cc.Node, type: UnitType, dat: any) {
-    if (type === UnitType.Ladder) {
-      itemNd.setAnchorPoint(0.5, 0);
-      const pos = dat["pos"];
-      if (pos) {
-        const adjustedPos = this.applyOffset(pos, itemNd.parent);
-        itemNd.setPosition(adjustedPos.x, adjustedPos.y);
-      }
-
-      // 设置高度
-      const startNd = this.getPointById(dat.bindPointIds?.[0]);
-      const endNd = this.getPointById(dat.bindPointIds?.[1]);
-      if (endNd && startNd) {
-        const startCom = startNd?.getComponent(MapDrawP);
-        const endCom = endNd?.getComponent(MapDrawP);
-        if (startCom && endCom) {
-          const height = endCom.getPos().y - startCom.getPos().y;
-          itemNd.setContentSize(itemNd.width, height);
-        }
-      }
-    }
   }
 
 

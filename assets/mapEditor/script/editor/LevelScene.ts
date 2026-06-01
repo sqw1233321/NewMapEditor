@@ -24,6 +24,7 @@ import MapBgPrefab from "./MapBgPrefab";
 import { MapBgManager } from "./MapBgManager";
 import { PopUid } from "./PopConfigs";
 import MapDrawItem from "./mapDrawElement/MapDrawItem";
+import MapDrawItemBase from "./mapDrawElement/MapDrawItemBase";
 
 const { ccclass, property } = cc._decorator;
 
@@ -275,8 +276,7 @@ export default class LevelScene extends cc.Component {
             this._mapInteraction.trySnapDraggedPointY(itemDat);
           }
 
-          // 梯子联动
-          this._mapInteraction.syncLadderWithDraggedNode(itemDat, this._isShiftDown);
+          itemDat.getComponent(MapDrawItemBase)["onDragMove"]();
 
           // 更新 hover
           this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
@@ -436,10 +436,7 @@ export default class LevelScene extends cc.Component {
       this._mapInteraction.trySnapDraggedPointY(itemDat);
     }
 
-    // 梯子重新计算位置
-    if (type === UnitType.Ladder) {
-      this._mapInteraction.syncLadderToBindPoints(itemDat.getComponent(MapDrawLadder));
-    }
+    itemDat.getComponent(MapDrawItemBase)["onDragEnd"]();
 
     // 没有实际拖拽，不更新数据，直接return
     if (!this._isDrag) {

@@ -21,6 +21,7 @@ export default class MapDrawItem extends MapDrawItemBase {
 
   public init(type: UnitType, dat?) {
     if (this._isInit) return;
+    this.onBeforeInit();
     this._isInit = true;
     this._unitType = type;
     this.setSprite(type);
@@ -29,6 +30,7 @@ export default class MapDrawItem extends MapDrawItemBase {
     }
     this._jsonDat = dat;
     this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
+    this.onAfterInit();
   }
 
   //获取默认数据
@@ -72,6 +74,7 @@ export default class MapDrawItem extends MapDrawItemBase {
       }
       this._canEditdat[key] = resultDat;
     });
+    this.onAttrChange();
   }
 
   //获取属性面板数据
@@ -274,6 +277,7 @@ export default class MapDrawItem extends MapDrawItemBase {
     // 检查 Type 是否为 point 或 pointArray
     return { isPoint: propertyConfig.Type === "point" || propertyConfig.Type === "pointArray", type: propertyConfig.Type };
   }
+
 
 }
 

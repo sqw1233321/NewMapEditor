@@ -57,6 +57,7 @@
         "Texture": "ladder",
         "Name": "梯子",
         "iconScale": 0.5,
+        "script": "MapDrawLadder",
         "itemAnchor": [
             0.5,
             0

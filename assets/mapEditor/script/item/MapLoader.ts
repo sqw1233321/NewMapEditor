@@ -11,6 +11,7 @@ import MapBuilder from "./MapBuilder";
 import { MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapDrawTool } from "./MapDrawTool";
+import { ScriptSystemEvent } from "../event/scriptSystemEvent";
 
 const { ccclass, property } = cc._decorator;
 
@@ -24,10 +25,6 @@ const { ccclass, property } = cc._decorator;
  */
 @ccclass
 export default class MapLoader extends cc.Component {
-  // ==================== Prefab 属性 ====================
-  @property(cc.SpriteFrame)
-  defaultSp: cc.SpriteFrame = null;
-
   @property(cc.Prefab)
   mapDrawItemPrefab: cc.Prefab = null;
 
@@ -58,6 +55,8 @@ export default class MapLoader extends cc.Component {
 
   onLoad(): void {
     MapLoader.ins = this;
+    EventManager.instance.on(ScriptSystemEvent.moveUnitToRoomByWorldPos, this.moveUnitToRoomByWorldPos, this);
+    EventManager.instance.on(ScriptSystemEvent.rebuildPointIds, this.rebuildPointIdsByLayer, this);
 
     // 初始化子模块
     this._mapSerializer = new MapSerializer();
@@ -82,9 +81,13 @@ export default class MapLoader extends cc.Component {
 
     this._mapBuilder = new MapBuilder();
     this._mapBuilder.init(this, {
-      defaultSp: this.defaultSp,
       mapDrawItemPrefab: this.mapDrawItemPrefab,
     });
+  }
+
+  protected onDestroy(): void {
+    EventManager.instance.off(ScriptSystemEvent.moveUnitToRoomByWorldPos, this.moveUnitToRoomByWorldPos, this);
+    EventManager.instance.off(ScriptSystemEvent.rebuildPointIds, this.rebuildPointIdsByLayer, this);
   }
 
   /**
@@ -566,7 +569,13 @@ export default class MapLoader extends cc.Component {
     }
   }
 
-  //移动item到房间内（区分了路径点和普通房间内item）
+  /**
+   * 移动一个item到房间内
+   * @param unitNode 要移动的item节点
+   * @param targetRoomId 目标房间ID
+   * @param rebuildIds 是否重建路径点ID
+   * @returns 
+   */
   public moveUnitToRoom(
     unitNode: cc.Node,
     targetRoomId: number,
@@ -592,9 +601,7 @@ export default class MapLoader extends cc.Component {
     if (prevParent === targetPointCont) {
       const targetRoomCom = targetRoomNd.getComponent(MapDrawRoom);
       targetRoomCom?.refreshDat();
-      if (rebuildIds) {
-        this.rebuildPointIdsByLayer();
-      }
+      this.rebuildPointIdsByLayer();
       return true;
     }
 
@@ -613,11 +620,15 @@ export default class MapLoader extends cc.Component {
     return true;
   }
 
-  //移动路径点到房间内，通过世界坐标
-  public movePathPointToRoomByWorldPos(
+  /**
+   * 移动一个item到房间内，通过坐标的方式
+   * @param pointNode 
+   * @param worldPos 
+   * @returns 
+   */
+  public moveUnitToRoomByWorldPos(
     pointNode: cc.Node,
     worldPos: cc.Vec2,
-    rebuildIds: boolean = true
   ): boolean {
     if (!pointNode || !cc.isValid(pointNode) || !worldPos) return false;
     let hitRoomId: number = null;
@@ -639,7 +650,7 @@ export default class MapLoader extends cc.Component {
     });
 
     if (hitRoomId === null) return false;
-    return this.moveUnitToRoom(pointNode, hitRoomId, rebuildIds);
+    return this.moveUnitToRoom(pointNode, hitRoomId);
   }
 
   private findOwnerRoomByNode(nd: cc.Node): MapDrawRoom | null {
