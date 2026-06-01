@@ -57,7 +57,7 @@ export default class AttrItem extends AttrPanelItemBase {
 
     private _canWrite: boolean;
 
-    //是否展示子节点
+    //是否展示子节点（一开始别赋值啊，有大作用，判断object的arrow显示的时候）
     private _isShowSub: boolean;
 
     //描述，父cfg，递归层级，特殊名称（数组index），回调，数据
@@ -69,6 +69,16 @@ export default class AttrItem extends AttrPanelItemBase {
         this.handleDat();
         this.setUIDefault();
         this.setUI();
+        //如果有当前正在编辑的属性
+        if (AttrPanelItemBase.curPropertyId) {
+            console.log("当前正在编辑的属性id   ", AttrPanelItemBase.curPropertyId);
+            // 判断当前的属性是否时它之前的属性或者就是它本身，把子节点打开（方法内判断了是否时最后一层的哈，不用担心）
+            const isPrefix = AttrPanelItemBase.curPropertyId.startsWith(this._cfg.ID + '-');
+            const isEqual = this._cfg.ID === AttrPanelItemBase.curPropertyId;
+            if (isPrefix || isEqual) {
+                this.setShowSub(true);
+            }
+        }
     }
 
     private handleDat() {
@@ -96,9 +106,13 @@ export default class AttrItem extends AttrPanelItemBase {
     }
 
     private setUI() {
-        //子层相关
-        this.hideBtn.active = !this._isLastLayer;
-        this.setShowSub(!this._isLastLayer);
+        //最后一层不显示sub
+        if (this._isLastLayer) {
+            this.hideBtn.active = false;
+            this._isShowSub = false;
+            this.subCont.active = false;
+            this.arrowBg.angle = 90;
+        }
         //名称
         if (this._uniqueName) {
             this.descLb.node.active = true;
@@ -114,8 +128,10 @@ export default class AttrItem extends AttrPanelItemBase {
                 case AttrCfgTypeEnum.number:
                 case AttrCfgTypeEnum.string:
                     this.singleLable.node.active = true;
-                    this.singleLable.string = this._dat;
                     this.singleLable.enabled = this._canWrite;
+                    //不理解这里为啥enabled为false之后有些它的子节点被隐藏了
+                    if (!this._canWrite) this.singleLable.node.children[1].active = true;
+                    this.singleLable.string = this._dat;
                     break;
                 case AttrCfgTypeEnum.boolean:
                     this.singleBool.node.active = true;
@@ -124,8 +140,9 @@ export default class AttrItem extends AttrPanelItemBase {
                     break;
                 case AttrCfgTypeEnum.point:
                     this.singleLable.node.active = true;
-                    this.singleLable.string = this._dat;
                     this.singleLable.enabled = false;
+                    this.singleLable.node.children[1].active = true;
+                    this.singleLable.string = this._dat;
                     this.singleSelectPoint.active = this._canWrite;
                     break;
             }
@@ -169,7 +186,18 @@ export default class AttrItem extends AttrPanelItemBase {
                 attrItem.init(property, this, this._layer + 1, ``, this._afterEditorCb, this._dat[property.ClassPropertyName]);
                 this._subItems.push(attrItem);
             }, this.node);
-            this.setShowSub(true);
+            //对象必须有按钮
+            this.hideBtn.active = true;
+            let showSub = false;
+            //第一次的话必定展示
+            if (this._isShowSub == undefined) {
+                showSub = true;
+            }
+            //之后只会根据手动结果来展示
+            else {
+                showSub = this._isShowSub;
+            }
+            this.setShowSub(showSub);
         }
         //如果当前是数组，根据dat来确定个数，更具prpoerties[0]来确定描述
         else if (this._cfg.Type == AttrCfgTypeEnum.array) {
@@ -178,10 +206,26 @@ export default class AttrItem extends AttrPanelItemBase {
                 attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
-            const isShowSub = this._dat.length > 0;
-            this.setShowSub(isShowSub);
+
             //子项没数据了，把按钮也隐藏了
-            this.hideBtn.active = isShowSub;
+            if (this._dat.length <= 0) {
+                this.setShowSub(false);
+                this.hideBtn.active = false;
+            }
+            else {
+                //子项有数据，按钮得在啊
+                this.hideBtn.active = true;
+                let showSub = false;
+                //第一次的话必定展示
+                if (this._isShowSub == undefined) {
+                    showSub = true;
+                }
+                //之后只会根据手动结果来展示
+                else {
+                    showSub = this._isShowSub;
+                }
+                this.setShowSub(showSub);
+            }
         }
         //选点数组
         else if (this._cfg.Type == AttrCfgTypeEnum.pointArray) {
@@ -190,10 +234,26 @@ export default class AttrItem extends AttrPanelItemBase {
                 attrItem.init(this._cfg.Properties[0], this, this._layer + 1, `${index}`, this._afterEditorCb, dat);
                 this._subItems.push(attrItem);
             }, this.node);
-            const isShowSub = this._dat.length > 0;
-            this.setShowSub(isShowSub);
+
             //子项没数据了，把按钮也隐藏了
-            this.hideBtn.active = isShowSub;
+            if (this._dat.length <= 0) {
+                this.setShowSub(false);
+                this.hideBtn.active = false;
+            }
+            else {
+                //子项有数据，按钮得在啊
+                this.hideBtn.active = true;
+                let showSub = false;
+                //第一次的话必定展示
+                if (this._isShowSub == undefined) {
+                    showSub = true;
+                }
+                //之后只会根据手动结果来展示
+                else {
+                    showSub = this._isShowSub;
+                }
+                this.setShowSub(showSub);
+            }
         }
     }
 
@@ -214,12 +274,14 @@ export default class AttrItem extends AttrPanelItemBase {
         //递归调用所有子项获得数据，需要根据类型来填充dat的字段
         if (this._type == AttrCfgTypeEnum.object) {
             resDat = {};
+            //可以这样筛选的原因是，如果subCont被隐藏，自己点还是会有自己的active状态的，所以除非直接隐藏子节点
             this._subItems.filter(subItem => subItem.node.active).forEach(subItem => {
                 resDat[subItem.getCfg().ClassPropertyName] = subItem.getDat();
             })
         }
         else if (this._type == AttrCfgTypeEnum.array) {
             resDat = [];
+            //可以这样筛选的原因是，如果subCont被隐藏，自己点还是会有自己的active状态的，所以除非直接隐藏子节点
             this._subItems.filter(subItem => subItem.node.active).forEach(subItem => {
                 resDat.push(subItem.getDat())
             })
@@ -251,22 +313,29 @@ export default class AttrItem extends AttrPanelItemBase {
             this._dat.splice(index, 1);
         }
         this.setUI();
+        this.onAfterEdit();
     }
 
     //子节点显示隐藏
     public setShowSub(isShow: boolean) {
+        //是否是最后一层
+        if (this._isLastLayer) {
+            return;
+        }
         this._isShowSub = isShow;
         this.subCont.active = isShow;
         this.arrowBg.angle = isShow ? 0 : 90;
+        //父节点节点关闭，所有子节点关闭
+        if (!isShow) {
+            this.subCont.children.forEach(child => {
+                child.getComponent(AttrItem).setShowSub(false);
+            })
+        }
     }
 
     //=============外部操作==============
     //点击三角，展示子项
     public onClickArrow() {
-        //是否是最后一层
-        if (this._isLastLayer) {
-            return;
-        }
         this.setShowSub(!this._isShowSub);
     }
 
@@ -297,25 +366,25 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._type == AttrCfgTypeEnum.array) {
             this._dat.push(this._cfg.Properties[0].DefaultValue);
             this.setUI();
+            this.onAfterEdit();
         }
         //父节点是数组
         else if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
             const curIndex = Number(this._uniqueName);
             this._parentItem.setArrayDat(true, curIndex, this._cfg.Properties[0].DefaultValue);
         }
-        this.onAfterEdit();
     }
 
     public onClickDeleteBtn() {
         if (this._type == AttrCfgTypeEnum.array) {
             this._dat.pop();
             this.setUI();
+            this.onAfterEdit();
         }
         else if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
             const curIndex = Number(this._uniqueName);
             this._parentItem.setArrayDat(false, curIndex);
         }
-        this.onAfterEdit();
     }
 
     //TODO:编辑按钮
