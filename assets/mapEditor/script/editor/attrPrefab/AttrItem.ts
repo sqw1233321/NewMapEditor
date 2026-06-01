@@ -111,7 +111,8 @@ export default class AttrItem extends AttrPanelItemBase {
         //是否直接在属性面板上编辑
         if (this._isShowEditorLayer) {
             switch (this._type) {
-                case AttrCfgTypeEnum.label:
+                case AttrCfgTypeEnum.number:
+                case AttrCfgTypeEnum.string:
                     this.singleLable.node.active = true;
                     this.singleLable.string = this._dat;
                     this.singleLable.enabled = this._canWrite;
@@ -199,8 +200,11 @@ export default class AttrItem extends AttrPanelItemBase {
     //获得数据
     public getDat() {
         //值类型直接返回值（递归的退出条件）
-        if (this._type == AttrCfgTypeEnum.label) {
+        if (this._type == AttrCfgTypeEnum.string) {
             return this.singleLable.string;
+        }
+        if (this._type == AttrCfgTypeEnum.number) {
+            return Number(this.singleLable.string);
         }
         if (this._type == AttrCfgTypeEnum.boolean) {
             return this.singleBool.isChecked;

@@ -58,7 +58,8 @@ export enum AttrCfgPermissionsEnum {
 
 //属性类型枚举
 export enum AttrCfgTypeEnum {
-    label = "label",
+    string = "string",
+    number = "number",
     boolean = "boolean",
     array = "array",
     object = "object",
