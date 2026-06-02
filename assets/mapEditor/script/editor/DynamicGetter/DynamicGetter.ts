@@ -65,6 +65,24 @@ export default class DynamicGetter extends cc.Component {
         return 0;
     }
 
+    public getExportNameByUnitType(type) {
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => t.ClassName === type);
+        if (setting) {
+            return setting.ExportName;
+        }
+        return "";
+    }
+
+    public getUnitTypeByExportName(exportName:string){
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => t.ExportName === exportName);
+        if (setting) {
+            return setting.ClassName;
+        }
+        return "";
+    }
+
     public getDefaultSp(): cc.SpriteFrame {
         return this.defaultSp;
     }

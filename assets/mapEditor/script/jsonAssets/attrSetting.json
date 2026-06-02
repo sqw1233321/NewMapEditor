@@ -319,6 +319,48 @@
                     "DefaultValue": 0
                 }
             ]
+        },
+        {
+            "ClassName": "Portal",
+            "Properties": [
+                {
+                    "ID": "1",
+                    "Name": "连接点id",
+                    "ClassPropertyName": "linkId",
+                    "Type": "point",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "2",
+                    "Name": "偏移x",
+                    "ClassPropertyName": "offsetX",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "3",
+                    "Name": "传送门类型",
+                    "ClassPropertyName": "portalType",
+                    "Type": "number",
+                    "PERMISSIONS": "readonly",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "4",
+                    "Name": "辅助动画点",
+                    "ClassPropertyName": "animPIds",
+                    "Type": "pointArray",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "4-1",
+                            "Type": "string",
+                            "PERMISSIONS": "readonly",
+                            "DefaultValue": ""
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

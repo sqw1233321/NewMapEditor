@@ -136,31 +136,33 @@ export default class MapDrawItem extends MapDrawItemBase {
   public getExportDat() {
     const resDat = {};
     const json = DynamicGetter.Ins.getAttrSetting()
-    json.typeArr.forEach((t: AttrCfgType) => {
-      if (t.ClassName === this._unitType) {
-        t.Properties.forEach((p: AttrPanelPropertyType) => {
-          const key = p.ClassPropertyName;
-          let resultDat = this._canEditdat[key];
-          //如果是点，要把node转化为id
-          const pointCheck = this.checkPropertyIsPoint(key);
-          if (pointCheck.isPoint) {
-            const type = pointCheck.type;
-            if (type === "point") {
-              const pointNd = resultDat as cc.Node;
-              resultDat = pointNd?.getComponent(MapDrawItem)?.getAttrDat()["id"] ?? "";
-            } else if (type === "pointArray") {
-              resultDat = [];
-              const points = this._canEditdat[key] as cc.Node[];
-              points?.forEach((pNd: any) => {
-                if (!cc.isValid(pNd)) return;
-                resultDat.push(pNd.getComponent(MapDrawItem).getAttrDat()["id"]);
-              });
-            }
+    //基础属性写入
+    resDat["pos"] = this.getPos();
+    //特殊属性写入
+    const typeJson = json.typeArr.find((t: AttrCfgType) => t.ClassName == this._unitType);
+    if (typeJson) {
+      typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
+        const key = p.ClassPropertyName;
+        let resultDat = this._canEditdat[key];
+        //如果是点，要把node转化为id
+        const pointCheck = this.checkPropertyIsPoint(key);
+        if (pointCheck.isPoint) {
+          const type = pointCheck.type;
+          if (type === "point") {
+            const pointNd = resultDat as cc.Node;
+            resultDat = pointNd?.getComponent(MapDrawItem)?.getAttrDat()["id"] ?? "";
+          } else if (type === "pointArray") {
+            resultDat = [];
+            const points = this._canEditdat[key] as cc.Node[];
+            points?.forEach((pNd: any) => {
+              if (!cc.isValid(pNd)) return;
+              resultDat.push(pNd.getComponent(MapDrawItem).getAttrDat()["id"]);
+            });
           }
-          resDat[key] = resultDat ?? p.DefaultValue;
-        });
-      }
-    });
+        }
+        resDat[key] = resultDat ?? p.DefaultValue;
+      });
+    }
     return resDat;
   }
 

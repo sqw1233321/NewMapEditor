@@ -15,9 +15,9 @@ export interface MapDrawDatType {
 
 
 export class MapDrawDat {
-    private _jsonDat: MapDrawDatType;
+    private _jsonDat;
 
-    public setDat(dat: MapDrawDatType) {
+    public setDat(dat) {
         this._jsonDat = dat;
     }
 

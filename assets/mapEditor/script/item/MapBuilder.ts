@@ -64,31 +64,29 @@ export default class MapBuilder {
 
     const mapData = json.json;
 
-    // 1. 设置区域信息
+    //设置区域信息
     this._mapLoader.setAreaInfo(mapData.areaInfo || []);
 
-    // 2. 构建基础节点
+    //构建基础节点
     this.buildPlayerNodes(mapData, containers.playerCreate, containers.playerExit);
 
-    // 3. 构建房间
+    //构建房间
     this.buildRooms(mapData, containers.layerCont);
 
-    // 4. 构建路径点
+    //构建路径点
     this.buildPathPoints(mapData);
 
-    // 5. 构建房间内物品
+    //构建房间内物品
     this.buildRommUnits(mapData);
 
-    // 6. 初始化房间
+    //初始化房间
     this.initRooms(mapData);
 
-    // 7. 更新 Layer bounds
+    //更新 Layer bounds
     this._mapLoader.updateAllLayerBounds();
 
-    // 8. 构建房间外物品
-    // this.buildPortalUnits(mapData, containers.outRoomUnitCont);
-    // this.buildStoneUnits(mapData, containers.outRoomUnitCont);
-    // this.buildCableUnits(mapData, containers.outRoomUnitCont);
+    //构建房间外物品
+    this.buildOutSideUnits(mapData, containers.outRoomUnitCont);
 
     this.onBuildComplete?.();
   }
@@ -200,7 +198,7 @@ export default class MapBuilder {
     });
   }
 
-  // ==================== 房间内物品 ====================
+  // ==================== 构建通用物品 ====================
 
   //绘制房间内物品
   private buildRommUnits(mapData: any) {
@@ -208,7 +206,7 @@ export default class MapBuilder {
     rooms.forEach((room: MapDrawDatRoom) => {
       const keys = Object.keys(room);
       keys.forEach((key: string) => {
-        const type = MapItemConvert.convertUnitType(key);
+        const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
         if (!type) return;
         const roomNd = this.getRoomByCfgId(room.cfgId);
         if (!roomNd) return;
@@ -233,9 +231,35 @@ export default class MapBuilder {
     });
   }
 
+  //绘制房间外机制
+  private buildOutSideUnits(mapData: any, outRoomUnitCont: cc.Node) {
+    const mechanism = mapData.mechanism || {};
+    Object.keys(mechanism).forEach((key: any) => {
+      const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
+      if (!type) return;
+      const datArr = mechanism[key] as any[];
+      datArr.forEach(dat => {
+        const itemNd = cc.instantiate(this.mapDrawItemPrefab);
+        const anchor = DynamicGetter.Ins.getItemAnchor(type);
+        const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
+        itemNd.setAnchorPoint(anchor[0], anchor[1]);
+        itemNd.groupIndex = groupIndex;
+        itemNd.name = `Mechanism${key}`;
+        itemNd.parent = outRoomUnitCont;
+        const pos = dat["pos"];
+        if (pos) {
+          const adjustedPos = this.applyOffset(pos, itemNd.parent);
+          itemNd.setPosition(adjustedPos.x, adjustedPos.y);
+        }
+        const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
+        control.init(type, dat);
+      })
+    });
+
+  }
+
 
   // ==================== 房间外物品 ====================
-
   // private buildPortalUnits(mapData: any, outRoomUnitCont: cc.Node) {
   //   let nameId = 0;
   //   const portals: MapDrawDatPortal[] = mapData.portalDatas || [];

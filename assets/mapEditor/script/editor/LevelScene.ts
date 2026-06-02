@@ -689,7 +689,8 @@ export default class LevelScene extends cc.Component {
     //初始化工具类
     const width = mapDat.size.width;
     const height = mapDat.size.height;
-    MapTool.init(this.mapLoader, cc.v2(width, height));
+    //可能之前有些地图数据是错的（字符串类型），这里纠正一下类型
+    MapTool.init(this.mapLoader, cc.v2(Number(width), Number(height)));
 
     //设置地图缩放范围
     const graphSize = this.mapGraph.getContentSize();

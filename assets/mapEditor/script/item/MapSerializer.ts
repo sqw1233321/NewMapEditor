@@ -43,20 +43,18 @@ export default class MapSerializer {
     const size = { width: s.x, height: s.y };
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
-    const { portalDatas, cableDatas, stoneDatas } = this.collectOutRoomUnits();
+    const mechanismObj = this.collectOutRoomUnits();
     const playerCreatePos = this.collectPlayerPos(this._getPlayerCreate());
     const playerExitPos = this.collectPlayerPos(this._getPlayerExit());
     const areaInfo = this.collectAreaInfo();
 
-    const outDat: MapDrawDatType = {
+    const outDat = {
       size,
       pathPoints,
       rooms,
       playerCreatePos,
       playerExitPos,
-      portalDatas,
-      scooterDatas: cableDatas,
-      rockDatas: stoneDatas,
+      mechanism: mechanismObj,
       areaInfo,
     };
 
@@ -106,33 +104,17 @@ export default class MapSerializer {
     return rooms;
   }
 
-  private collectOutRoomUnits(): {
-    portalDatas: MapDrawDatPortalData[];
-    cableDatas: MapDrawDatCableData[];
-    stoneDatas: MapDrawDatStoneData[];
-  } {
-    const portalDatas: MapDrawDatPortalData[] = [];
-    const cableDatas: MapDrawDatCableData[] = [];
-    const stoneDatas: MapDrawDatStoneData[] = [];
-
+  private collectOutRoomUnits(): {} {
     const outRoomUnits = this._getOutRoomUnits();
+    let resObj = {};
     outRoomUnits.children.forEach((unit) => {
       const controller = unit.getComponent(MapDrawItem);
       if (!controller) return;
-      switch (controller.getType()) {
-        case UnitType.Portal:
-          portalDatas.push(controller.getExportDat() as unknown as MapDrawDatPortalData);
-          break;
-        case UnitType.Cable:
-          cableDatas.push(controller.getExportDat() as unknown as MapDrawDatCableData);
-          break;
-        case UnitType.Stone:
-          stoneDatas.push(controller.getExportDat() as unknown as MapDrawDatStoneData);
-          break;
-      }
+      const exportName = controller.getExportName();
+      if (!resObj[`${exportName}`]) resObj[`${exportName}`] = [];
+      resObj[`${exportName}`].push(controller.getExportDat());
     });
-
-    return { portalDatas, cableDatas, stoneDatas };
+    return resObj;
   }
 
   private collectPlayerPos(playerNd: cc.Node): { x: number; y: number } {

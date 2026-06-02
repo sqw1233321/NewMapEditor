@@ -1,6 +1,7 @@
 [
     {
         "ClassName": "Room",
+        "ExportName": "rooms",
         "Texture": "",
         "Color": "#582D2DBB",
         "Name": "房间",
@@ -21,6 +22,7 @@
     },
     {
         "ClassName": "PathPoint",
+        "ExportName": "pathPoints",
         "Texture": "",
         "Color": "#FF0000",
         "Name": "路径点",
@@ -126,6 +128,25 @@
         "itemAnchor": [
             0.5,
             0
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Portal",
+        "ExportName": "portalDatas",
+        "Color": "#0F00FF",
+        "Name": "传送门",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
         ],
         "cameraGroupIndex": 0
     }
