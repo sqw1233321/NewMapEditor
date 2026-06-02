@@ -27,10 +27,6 @@ export default class MapDrawP extends MapDrawItem {
             EventManager.instance.emit(MapEditorEvent.PathPointLinkClick, this.node);
             return true;
         }
-        if (ModeMgr.instance.curModeType == ModeType.LadderBind) {
-            EventManager.instance.emit(MapEditorEvent.LadderBindPointClick, this.node);
-            return true;
-        }
         //选点模式
         if (ModeMgr.instance.curModeType == ModeType.SelectPoint) {
             EventManager.instance.emit(MapEditorEvent.SelectPointClick, this.node);

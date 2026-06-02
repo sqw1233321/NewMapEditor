@@ -1,4 +1,3 @@
-import LadderBindMode from "../editor/modes/LadderBindMode";
 import ModeBase from "../editor/modes/ModeBase";
 import PathPointLinkMode from "../editor/modes/PathPointLinkMode";
 import SelectPointMode from "../editor/modes/SelectPointMode";
@@ -11,7 +10,6 @@ import { Singleton } from "./Singleton";
 export class ModeMgr extends Singleton<ModeMgr> {
     //模式
     private _pathPointMode: PathPointLinkMode;
-    private _ladderMode: LadderBindMode;
     private _selectPointMode: SelectPointMode;
 
     private _allMode: ModeBase[] = [];
@@ -28,11 +26,9 @@ export class ModeMgr extends Singleton<ModeMgr> {
         this._pathPointMode = new PathPointLinkMode(deactivateOthers, {
             onChanged: () => { },
         });
-        this._ladderMode = new LadderBindMode(deactivateOthers, {
-            onChanged: () => { },
-        });
+
         this._selectPointMode = new SelectPointMode(deactivateOthers);
-        this._allMode = [this._pathPointMode, this._ladderMode, this._selectPointMode];
+        this._allMode = [this._pathPointMode, this._selectPointMode];
         this._allMode.forEach(mode => {
             mode.mount();
         })
@@ -60,11 +56,6 @@ export class ModeMgr extends Singleton<ModeMgr> {
             case ModeType.PathPointLink:
                 this._pathPointMode.setEnabled(true);
                 this._pathPointMode.setCancelCb(param[0]);
-                break;
-            case ModeType.LadderBind:
-                this._ladderMode.setEnabled(true);
-                const ladderNd = param[0] as cc.Node;
-                this._ladderMode.setLadder(ladderNd);
                 break;
             case ModeType.SelectPoint:
                 const isMulti = param[0];

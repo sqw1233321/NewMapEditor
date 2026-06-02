@@ -28,6 +28,5 @@ export interface HoverType {
 
 export enum ModeType {
   PathPointLink = "PathPointLink",
-  LadderBind = "LadderBind",
   SelectPoint = "SelectPoint",
 }

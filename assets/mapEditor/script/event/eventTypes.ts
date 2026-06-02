@@ -3,8 +3,6 @@ export enum MapEditorEvent {
     DragItem = "DragItem",
     /** 连线模式：点击路径点（payload 为 cc.Node） */
     PathPointLinkClick = "PathPointLinkClick",
-    /** 梯子绑定模式：点击路径点（payload 为 cc.Node） */
-    LadderBindPointClick = "LadderBindPointClick",
     /**开启通用选点模式 */
     OpenSelectPointMode = "OpenSelectPointMode",
     /** 通用路径点选择模式：点击路径点（payload 为 cc.Node） */

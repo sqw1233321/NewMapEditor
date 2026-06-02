@@ -71,7 +71,7 @@ export default class AttrItem extends AttrPanelItemBase {
         this.setUI();
         //如果有当前正在编辑的属性
         if (AttrPanelItemBase.curPropertyId) {
-            console.log("当前正在编辑的属性id   ", AttrPanelItemBase.curPropertyId);
+            // console.log("当前正在编辑的属性id   ", AttrPanelItemBase.curPropertyId);
             if (this.isParentOrSelf(this.getId(), AttrPanelItemBase.curPropertyId)) {
                 this.setShowSub(true);
             }
