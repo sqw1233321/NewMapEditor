@@ -47,7 +47,11 @@ export class AttrMgr extends Singleton<AttrMgr> {
 
     //节点刷新属性面板
     public refreshAttrPanel() {
-        if (!this._trackNd) return;
+        if (!this._trackNd || !cc.isValid(this._trackNd)) {
+            //清空一下属性面板
+            EventManager.instance.emit(MapEditorEvent.RefreshAttrPanel, null, this._trackNd);
+            return;
+        }
         const itemDat = this._trackNd;
         const controller = itemDat.getComponent(MapDrawItem);
         const type = controller.getType();

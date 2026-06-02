@@ -203,8 +203,19 @@ export default class LevelScene extends cc.Component {
 
   // ==================== 区域判断 ====================
 
+  //是否在可拖拽区域
   private isWorldPosInEditorArea(worldPos: cc.Vec2): boolean {
     const validNodes = [this.mapGraph, this.itemPanelNd];
+    return this.checkArea(worldPos, validNodes);
+  }
+  //判断是否在地图区域
+  private isWorldPosMapArea(worldPos: cc.Vec2): boolean {
+    const validNodes = [this.mapGraph];
+    return this.checkArea(worldPos, validNodes);
+  }
+
+  //区域检测
+  private checkArea(worldPos: cc.Vec2, validNodes: cc.Node[]): boolean {
     for (const node of validNodes) {
       if (MapTool.isWorldPosInNodeRect(worldPos, node)) return true;
     }
@@ -226,8 +237,13 @@ export default class LevelScene extends cc.Component {
     const dragOffset = this._dragDat.dragOffset;
     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
 
-    // 更新 hover
-    this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+    const worldPos = dragDat.itemNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+    //不在地图区域内不显示hover
+    if (this.isWorldPosMapArea(worldPos)) {
+      this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+    } else {
+      this.clearHover();
+    }
 
     // 刷新属性面板
     AttrMgr.instance.setTrackNd(itemDat);
@@ -237,6 +253,8 @@ export default class LevelScene extends cc.Component {
   // ==================== 鼠标事件 ====================
 
   private onMouseWheel(event: cc.Event.EventMouse) {
+    const worldPos = event.getLocation();
+    if (!this.isWorldPosInEditorArea(worldPos)) return;
     this.clearHoverDat();
     this.hoverDrawer.clear();
     const delta = event.getScrollY();
@@ -254,7 +272,9 @@ export default class LevelScene extends cc.Component {
       this._isLeftDown = true;
       this.clearHoverDat();
       this.hoverDrawer?.clear();
-      this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+      if (this.isWorldPosMapArea(worldPos)) {
+        this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+      }
     } else if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       this._isRightDown = true;
       this.clearHoverDat();
@@ -263,8 +283,12 @@ export default class LevelScene extends cc.Component {
   }
 
   private onMouseMove(event: cc.Event.EventMouse) {
+    const worldPos = event.getLocation();
+    if (!this.isWorldPosInEditorArea(worldPos)) {
+      this.clearHover();
+      return;
+    }
     this._isDrag = true;
-
     // 左键拖拽
     if (this._isLeftDown) {
       if (this._dragDat) {
@@ -282,7 +306,11 @@ export default class LevelScene extends cc.Component {
           itemDat.getComponent(MapDrawItemBase)["onDragMove"]();
 
           // 更新 hover
-          this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+          if (this.isWorldPosMapArea(worldPos)) {
+            this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+          } else {
+            this.clearHover();
+          }
 
           // 刷新属性面板
           AttrMgr.instance.refreshAttrPanel();
@@ -297,14 +325,19 @@ export default class LevelScene extends cc.Component {
     }
     // 悬停显示
     else {
-      this.handleHover(event.target);
+      this.handleHover(event.target, event.getLocation());
     }
   }
 
 
   //悬停显示
-  private handleHover(target: any) {
+  private handleHover(target: any, worldPos: cc.Vec2) {
     if (!(target instanceof cc.Node)) return;
+    //不在地图区域内不显示hover
+    if (!this.isWorldPosMapArea(worldPos)) {
+      this.clearHover();
+      return;
+    }
 
     const hoverNd = target;
     if (hoverNd.name === this._hoverDat?.name) return;
@@ -363,6 +396,11 @@ export default class LevelScene extends cc.Component {
   }
 
   private onMouseUp(event: cc.Event.EventMouse) {
+    const worldPos = event.getLocation();
+    if (!this.isWorldPosInEditorArea(worldPos)) {
+      this._dragDat = null;
+      return;
+    }
     if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       const wasRightDown = this._isRightDown;
       this._isRightDown = false;
@@ -374,7 +412,7 @@ export default class LevelScene extends cc.Component {
       this.handleDragEnd(event);
     }
     //清除hover
-    this.clearDragRoomHover();
+    this.clearHover();
   }
 
   private handleDragEnd(event: cc.Event.EventMouse) {
@@ -385,6 +423,17 @@ export default class LevelScene extends cc.Component {
 
     if (!itemDat || !cc.isValid(itemDat) || !itemParent || !cc.isValid(itemParent)) {
       this._dragDat = null;
+      return;
+    }
+
+    //不在地图区域内直接删除
+    const worldPos = event.getLocation();
+    if (!this.isWorldPosMapArea(worldPos)) {
+      this._dragDat.itemNode.destroy();
+      this._dragDat = null;
+      this.clearHover();
+      AttrMgr.instance.setTrackNd(null);
+      AttrMgr.instance.refreshAttrPanel()
       return;
     }
 
@@ -426,7 +475,9 @@ export default class LevelScene extends cc.Component {
     if (!targetParent) {
       this._dragDat.itemNode.destroy();
       this._dragDat = null;
-      this.clearDragRoomHover();
+      this.clearHover();
+      AttrMgr.instance.setTrackNd(null);
+      AttrMgr.instance.refreshAttrPanel()
       return;
     }
 
@@ -466,7 +517,7 @@ export default class LevelScene extends cc.Component {
     }
     // 房间内item 刷新来源/目标房间数据
     else if (!this._mapInteraction.isOutRoomUnitType(type)) {
-      this.refreshRoomDataOnMove(itemDat.parent, itemParent, targetParent);
+      this.refreshRoomDataOnMove(itemDat, targetParent);
     }
 
     AttrMgr.instance.refreshAttrPanel();
@@ -499,13 +550,14 @@ export default class LevelScene extends cc.Component {
   }
 
   //房间内item 刷新来源/目标房间数据
-  private refreshRoomDataOnMove(newParent: cc.Node, oldParent: cc.Node, targetParent: cc.Node) {
+  private refreshRoomDataOnMove(targetNd: cc.Node, targetParent: cc.Node) {
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
-    const oldOwnerRoom = MapTool.findOwnerRoomByNode(oldParent);
+    const oldRoomId = targetNd.getComponent(MapDrawItem).getRoomId();
+    const oldOwnerRoom = MapLoader.ins.getRoomNode(oldRoomId)?.getComponent(MapDrawRoom);
     const newOwnerRoom = MapTool.findOwnerRoomByNode(targetParent);
 
     if (oldOwnerRoom && cc.isValid(oldOwnerRoom.node)) {
-      oldOwnerRoom.refreshDat();
+      oldOwnerRoom.getComponent(MapDrawRoom).refreshDat();
     }
     if (newOwnerRoom && cc.isValid(newOwnerRoom.node) && newOwnerRoom !== oldOwnerRoom) {
       newOwnerRoom.refreshDat();
@@ -514,7 +566,7 @@ export default class LevelScene extends cc.Component {
   }
 
   //清除hover
-  private clearDragRoomHover() {
+  private clearHover() {
     this._mapInteraction.clearDragHover(this._dragDat, this._hoverDat, this.hoverDrawer);
   }
 
@@ -666,6 +718,7 @@ export default class LevelScene extends cc.Component {
     EditorSetting.Instance.setMapScale(scale);
     const realScale = EditorSetting.Instance.getMapScale();
     this.editorRoot.scale = realScale;
+    this.dragLayer.scale = realScale;
   }
 
   private clearHoverDat() {

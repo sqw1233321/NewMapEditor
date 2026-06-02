@@ -78,6 +78,10 @@ export default class EditPanel extends cc.Component {
   }
 
   private refreshAttr(attrDat, trackNd: cc.Node) {
+    if(!trackNd || !cc.isValid(trackNd)){
+      this.clear();
+      return;
+    }
     this._dat = attrDat;
     const isNew = attrDat.type !== UnitType.Default && trackNd !== this._trackNd;
     if (isNew) this._trackNd = trackNd;

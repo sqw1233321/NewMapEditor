@@ -3,6 +3,7 @@ import PathPointLinkMode from "../editor/modes/PathPointLinkMode";
 import SelectPointMode from "../editor/modes/SelectPointMode";
 import { MapEditorEvent } from "../event/eventTypes";
 import { ModeType } from "../type/types";
+import { AttrMgr } from "./AttrMgr";
 import { EventManager } from "./EventManager";
 import { Singleton } from "./Singleton";
 
@@ -24,7 +25,7 @@ export class ModeMgr extends Singleton<ModeMgr> {
             this.clear();
         };
         this._pathPointMode = new PathPointLinkMode(deactivateOthers, {
-            onChanged: () => { },
+            onChanged: () => { AttrMgr.instance.refreshAttrPanel(); },
         });
 
         this._selectPointMode = new SelectPointMode(deactivateOthers);

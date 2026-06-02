@@ -40,8 +40,24 @@ export default class MapTool {
         node: cc.Node | null,
     ): boolean {
         if (!node || !cc.isValid(node)) return false;
-        const box = node.getBoundingBoxToWorld();
+        //不能用node的BoundingBox因为会算上子节点的
+        const box = this.getNodeSelfBoundingBox(node);
         return box.contains(worldPos);
+    }
+
+    static getNodeSelfBoundingBox(node: cc.Node): cc.Rect {
+        const size = node.getContentSize();
+        const centerLocal = cc.v2(
+            size.width * (0.5 - node.anchorX),
+            size.height * (0.5 - node.anchorY)
+        );
+        const centerWorld = node.convertToWorldSpaceAR(centerLocal);
+        return new cc.Rect(
+            centerWorld.x - (size.width * node.scaleX) / 2,
+            centerWorld.y - (size.height * node.scaleY) / 2,
+            size.width * node.scaleX,
+            size.height * node.scaleY
+        );
     }
 
 

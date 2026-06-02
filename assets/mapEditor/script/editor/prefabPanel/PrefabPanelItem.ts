@@ -12,6 +12,9 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class PrefabPanelItem extends cc.Component {
+    @property(cc.Node)
+    selectNd: cc.Node;
+
     @property(cc.Sprite)
     itemSp: cc.Sprite;
 
@@ -29,7 +32,7 @@ export default class PrefabPanelItem extends cc.Component {
     private _dat;
 
     protected onLoad(): void {
-        this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        this.selectNd.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
     }
 
     public async init(dat) {
@@ -67,7 +70,14 @@ export default class PrefabPanelItem extends cc.Component {
 
     //事件操作（参考 MapDrawUnitBase 的拖拽结构）
     protected onMouseDown(event: cc.Event.EventMouse) {
-        if (event.target !== this.node) return;
+        if (event.target !== this.selectNd) return;
+        const scrollView = this._findScrollViewInParents(this.node);
+        if (scrollView) {
+            scrollView.enabled = false;
+            this.scheduleOnce(() => {
+                scrollView.enabled = true;
+            })
+        }
         event.stopPropagation();
         if (event.getButton() !== cc.Event.EventMouse.BUTTON_LEFT) return;
         // 生成一个实例，放在面板同一父节点下，交给 LevelScene.startDrag 统一接管
@@ -91,4 +101,16 @@ export default class PrefabPanelItem extends cc.Component {
         };
         EventManager.instance.emit(MapEditorEvent.DragItem, dragDat);
     }
+
+    // 向上找到最近的 ScrollView 祖先节点
+    private _findScrollViewInParents(node: cc.Node): cc.ScrollView | null {
+        let parent = node.parent;
+        while (parent) {
+            const sv = parent.getComponent(cc.ScrollView);
+            if (sv) return sv;
+            parent = parent.parent;
+        }
+        return null;
+    }
+
 }
