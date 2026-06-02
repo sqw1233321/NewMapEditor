@@ -36,9 +36,13 @@ export default class EditPanel extends cc.Component {
   private _hasUniqueAttr: boolean = true;
 
   protected onLoad(): void {
-    const attrSetting = DynamicGetter.Ins.getAttrSetting();
-    this._attrObj = attrSetting as AttrCfgTypes;
     this.clear();
+
+    EventManager.instance.on(
+      MapEditorEvent.EditorInitComplete,
+      this.init,
+      this
+    )
 
     EventManager.instance.on(
       MapEditorEvent.RefreshAttrPanel,
@@ -60,6 +64,12 @@ export default class EditPanel extends cc.Component {
 
   protected onDestroy(): void {
     EventManager.instance.off(
+      MapEditorEvent.EditorInitComplete,
+      this.init,
+      this
+    )
+
+    EventManager.instance.off(
       MapEditorEvent.RefreshAttrPanel,
       this.refreshAttr,
       this,
@@ -73,6 +83,12 @@ export default class EditPanel extends cc.Component {
     EventManager.instance.off(AttrPanelEvent.afterEdit,
       this.onChangeAttr,
       this)
+  }
+
+
+  private init() {
+    const attrSetting = DynamicGetter.Ins.getAttrSetting();
+    this._attrObj = attrSetting as AttrCfgTypes;
   }
 
   private refreshAttr(attrDat, trackNd: cc.Node) {

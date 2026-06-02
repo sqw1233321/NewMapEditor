@@ -1,4 +1,6 @@
 export enum MapEditorEvent {
+    //编辑器初始化完成
+    EditorInitComplete = "EditorInitComplete",
     //拖拽节点
     DragItem = "DragItem",
     /** 连线模式：点击路径点（payload 为 cc.Node） */

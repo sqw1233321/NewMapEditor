@@ -5,6 +5,8 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
 import PrefabPanelItem from "./prefabPanel/PrefabPanelItem";
 
@@ -19,7 +21,24 @@ export default class PrefabPanel extends cc.Component {
     @property(cc.Prefab)
     itemPrefab: cc.Prefab;
 
-    protected start(): void {
+    protected onLoad(): void {
+        EventManager.instance.on(
+            MapEditorEvent.EditorInitComplete,
+            this.init,
+            this
+        )
+    }
+
+    protected onDestroy(): void {
+        EventManager.instance.on(
+            MapEditorEvent.EditorInitComplete,
+            this.init,
+            this
+        )
+    }
+
+
+    private init(): void {
         const itemSettings = DynamicGetter.Ins.getItemSetting();
         for (const setting of itemSettings) {
             const itemNode = cc.instantiate(this.itemPrefab) as cc.Node;

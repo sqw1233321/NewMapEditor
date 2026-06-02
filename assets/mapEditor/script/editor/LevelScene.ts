@@ -25,6 +25,7 @@ import { MapBgManager } from "./MapBgManager";
 import { PopUid } from "./PopConfigs";
 import MapDrawItem from "./mapDrawElement/MapDrawItem";
 import MapDrawItemBase from "./mapDrawElement/MapDrawItemBase";
+import DynamicGetter from "./DynamicGetter/DynamicGetter";
 
 const { ccclass, property } = cc._decorator;
 
@@ -146,13 +147,17 @@ export default class LevelScene extends cc.Component {
     //初始化mapLoader
     this.mapLoader.getComponent(MapLoader).init();
     // 加载图集配置
-    if (!CC_DEBUG) await MapBgManager.instance.loadMapData();
+    if (CC_BUILD) await MapBgManager.instance.loadMapData();
+    //记载机制的json表
+    await DynamicGetter.Ins.loadDynamicJson();
     //自动命名默认为true
     this.autoRenameTog.isChecked = true;
     EditorSetting.Instance.setAutoRename(true);
-    if (CC_DEBUG && this.testJson) {
+    if (!CC_BUILD && this.testJson) {
       this.changeMap(JSON.stringify(this.testJson.json), "test.json");
     }
+    //初始化完成
+    EventManager.instance.emit(MapEditorEvent.EditorInitComplete);
   }
 
   protected onDestroy(): void {
@@ -172,7 +177,6 @@ export default class LevelScene extends cc.Component {
       this.updateFile,
       this
     );
-
 
     this._keyInputHandler?.stopListen();
 
@@ -706,7 +710,7 @@ export default class LevelScene extends cc.Component {
     //一开始先存一次快照
     this.saveUndoSnapshot();
     //更换背景
-    if (!CC_DEBUG) await this.changeMapBg();
+    if (CC_BUILD) await this.changeMapBg();
     //清除快照
     this._undoManager.clear();
   }

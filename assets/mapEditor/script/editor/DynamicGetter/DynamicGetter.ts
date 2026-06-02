@@ -1,12 +1,3 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import { ResLoader } from "../../frameWork/ResLoader";
-
 const { ccclass, property } = cc._decorator;
 
 //动态json获取（TODO:后续这些json会放到外壳中，获取外部生成的接送）
@@ -27,6 +18,29 @@ export default class DynamicGetter extends cc.Component {
     protected onLoad(): void {
         DynamicGetter.Ins = this;
     }
+
+    public async loadDynamicJson() {
+        if (!CC_BUILD) return true;
+        const loaders = [
+            ['jsonAssets/attrSetting.json', 'attrSetting'],
+            ['jsonAssets/itemSetting.json', 'itemSetting'],
+        ];
+        const results = await Promise.all(
+            loaders.map(([fileName, propName]) =>
+                window.electronAPI.readFile(fileName).then((result: any) => {
+                    if (!result.success) {
+                        console.warn(`[DynamicGetter] ${fileName} 加载失败:`, result.error);
+                        return false;
+                    }
+                    this[propName] = {};
+                    this[propName].json = JSON.parse(result.content);
+                    return true;
+                })
+            )
+        );
+        return results.every((ok) => ok);
+    }
+
 
     public getAttrSetting(): any {
         return this.attrSetting.json;

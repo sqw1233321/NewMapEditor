@@ -1,11 +1,10 @@
-import MapBgPrefab from "./MapBgPrefab";
-
 declare global {
     interface Window {
         electronAPI: {
             writeFile: (fileName: string, content: string) => Promise<any>;
             openFileDialog: () => Promise<any>;
             createFile: (fileName: string, jsonContent: string) => Promise<any>;
+            readFile: (filePath: string) => Promise<any>;
             selectAtlasFolder: () => Promise<{ success: boolean; path?: string }>;
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;
