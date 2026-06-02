@@ -13,7 +13,6 @@ import {
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
 import MapLoader from "../item/MapLoader";
-import MapDrawLadder from "../item/MapDrawLadder";
 import { AttrMgr } from "../frameWork/AttrMgr";
 import { ModeMgr } from "../frameWork/ModeMgr";
 import MapInteraction from "../item/MapInteraction";
@@ -313,6 +312,7 @@ export default class LevelScene extends cc.Component {
     const room = hoverNd.getComponent(MapDrawRoom);
     let boxes: HoverType[];
 
+    const isArea = target.name.startsWith("mapArea");
     if (room) {
       const main = this._mapInteraction.buildHoverBoxForNode(hoverNd);
       if (!main) {
@@ -328,6 +328,14 @@ export default class LevelScene extends cc.Component {
         const h = this._mapInteraction.buildHoverBoxForNode(u.node);
         if (h) boxes.push(h);
       }
+    } else if (isArea) {
+      const h = this._mapInteraction.buildHoverBoxForNode(hoverNd, true);
+      if (!h) {
+        this.clearHoverDat();
+        this.hoverDrawer.clear();
+        return;
+      }
+      boxes = [h];
     } else {
       const h = this._mapInteraction.buildHoverBoxForNode(hoverNd);
       if (!h) {

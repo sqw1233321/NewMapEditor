@@ -16,7 +16,7 @@ export default class MapSerializer {
   private _getOutRoomUnits: () => cc.Node;
   private _getPlayerCreate: () => cc.Node;
   private _getPlayerExit: () => cc.Node;
-  private _getAreaInfo: () => number[];
+  private _getLayerMap: () => Map<number, cc.Node>;
 
   public init(config: {
     getPathPoints: () => Map<string, cc.Node>;
@@ -24,14 +24,14 @@ export default class MapSerializer {
     getOutRoomUnits: () => cc.Node;
     getPlayerCreate: () => cc.Node;
     getPlayerExit: () => cc.Node;
-    getAreaInfo: () => number[];
+    getLayerMap: () => Map<number, cc.Node>;
   }) {
     this._getPathPoints = config.getPathPoints;
     this._getRoomNodes = config.getRoomNodes;
     this._getOutRoomUnits = config.getOutRoomUnits;
     this._getPlayerCreate = config.getPlayerCreate;
     this._getPlayerExit = config.getPlayerExit;
-    this._getAreaInfo = config.getAreaInfo;
+    this._getLayerMap = config.getLayerMap;
   }
 
   /**
@@ -122,7 +122,8 @@ export default class MapSerializer {
     return playerNd.addComponentSafe(MapDrawItem).getPos();
   }
 
+  //area信息（ex:5_8）
   private collectAreaInfo(): number[] {
-    return this._getAreaInfo().map((info) => Number(info));
+
   }
 }

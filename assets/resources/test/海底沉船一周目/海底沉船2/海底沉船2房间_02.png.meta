@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "0f03cf9f-bacc-4be8-b5de-80594118c355",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 1411,
+  "height": 1827,
+  "platformSettings": {},
+  "subMetas": {
+    "海底沉船2房间_02": {
+      "ver": "1.0.6",
+      "uuid": "762a8fa2-96d4-4de2-827c-e9c15fc27a9a",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "0f03cf9f-bacc-4be8-b5de-80594118c355",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": -254.5,
+      "trimX": 0,
+      "trimY": 509,
+      "width": 1411,
+      "height": 1318,
+      "rawWidth": 1411,
+      "rawHeight": 1827,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

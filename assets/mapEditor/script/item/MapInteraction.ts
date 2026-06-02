@@ -6,6 +6,7 @@ import MapLoader from "./MapLoader";
 import { DragType, HoverType } from "../type/types";
 import { UnitType } from "../type/mapTypes";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
+import HoverDrawer from "../editor/HoverDrawer";
 
 /**
  * 地图交互辅助类
@@ -38,14 +39,29 @@ export default class MapInteraction {
   }
 
   /** 构建悬停框信息（与 MapDrawUnitBase 的命中盒一致） */
-  public buildHoverBoxForNode(hoverNd: cc.Node): HoverType | null {
-    const controller = hoverNd.getComponent(MapDrawItem);
-    if (!controller) return null;
+  public buildHoverBoxForNode(hoverNd: cc.Node, isArea = false): HoverType | null {
     const mapScale = EditorSetting.Instance.getMapScale();
     const offset = cc.v2(
       hoverNd.anchorX * hoverNd.getContentSize().width * mapScale,
       hoverNd.anchorY * hoverNd.getContentSize().height * mapScale,
     );
+    //区域单独处理
+    if (isArea) {
+      const ndName = hoverNd.name;
+      const areaIndex = ndName.split("_")[1];
+      return {
+        name: `Area_${areaIndex}`,
+        worldPos: hoverNd
+          .convertToWorldSpaceAR(cc.Vec2.ZERO)
+          .clone()
+          .subtract(offset),
+        width: hoverNd.getContentSize().width * mapScale,
+        height: hoverNd.getContentSize().height * mapScale,
+      };
+    }
+    //MapDrawItem处理
+    const controller = hoverNd.getComponent(MapDrawItem);
+    if (!controller) return null;
     return {
       name: hoverNd.name,
       worldPos: hoverNd
@@ -129,7 +145,7 @@ export default class MapInteraction {
   public updateDragRoomHover(
     dragDat: DragType,
     hoverDat: HoverType,
-    hoverDrawer: any
+    hoverDrawer: HoverDrawer
   ): { hoverRoomName: string; hoverLayerName: string } {
     if (!dragDat) {
       return { hoverRoomName: "", hoverLayerName: "" };

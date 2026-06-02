@@ -41,7 +41,6 @@ export default class MapLoader extends cc.Component {
   private _pointMap = new Map<string, cc.Node>();
 
   // ==================== 其他数据 ====================
-  private _areaInfo: number[] = [];
   private _fileName: string = "";
 
   static ins: MapLoader = null;
@@ -66,7 +65,7 @@ export default class MapLoader extends cc.Component {
       getOutRoomUnits: () => this._outRoomUnitCont,
       getPlayerCreate: () => this._playerCreateNd,
       getPlayerExit: () => this._playerExitNd,
-      getAreaInfo: () => this._areaInfo
+      getLayerMap: () => this._layerNodeMap,
     });
 
     MapDrawTool.instance.init({
@@ -150,7 +149,6 @@ export default class MapLoader extends cc.Component {
     this._roomNodeMap.clear();
     this._pointMap.clear();
     this._layerNodeMap.clear();
-    this._areaInfo = [];
   }
 
   public initRoom(
@@ -807,11 +805,6 @@ export default class MapLoader extends cc.Component {
     return this._outRoomUnitCont;
   }
 
-  public setAreaInfo(areaInfo: number[]) {
-    this._areaInfo = areaInfo;
-    EventManager.instance.emit(MapEditorEvent.RefreshAreaInfo, this._areaInfo);
-  }
-
   public getPathLinkWorldSegmentsForRoom(ownerCfgId: number): Array<{ p0: cc.Vec2; p1: cc.Vec2 }> {
     return this._mapLineDrawer?.getPathLinkWorldSegmentsForRoom(ownerCfgId) ?? [];
   }
@@ -833,4 +826,31 @@ export default class MapLoader extends cc.Component {
     return this._fileName;
   }
 
+  //===================区域信息相关===================
+  private _mapBgNd: cc.Node;
+
+  public setAreaInfo(mapBgNd: cc.Node) {
+    this._mapBgNd = mapBgNd;
+  }
+
+  public getAreaInfo(): string {
+    let areaInfo = "";
+    const cont = this._mapBgNd.children[0];
+    const layerMap = this._layerNodeMap;
+    
+
+    cont.children.forEach((areaNd, index) => {
+      layerMap.forEach((layerNd, layerNo) => {
+        //layerNd是否与areaNd相交
+        const layerRect = layerNd.getBoundingBoxToWorld();
+        const areaRect = areaNd.getBoundingBoxToWorld();
+        if (layerRect.intersects(areaRect)) {
+          let start = "_";
+          if (!areaInfo) start = "";
+          areaInfo += `${start}${layerNo}`;
+        }
+      })
+    })
+    return areaInfo;
+  }
 }

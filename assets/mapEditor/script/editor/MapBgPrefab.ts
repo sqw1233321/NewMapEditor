@@ -51,6 +51,12 @@ export default class MapBgPrefab extends cc.Component {
         this.areaCont.getComponent(cc.Layout).spacingY = this._dat.areaOffset - oneAreaSize.height;
         NodeUtil.autoRefreshChildrenNum(this.areaCont, this._dat.areaNumber, (nd, index, dat) => {
             const bgCont = this.areaCont.children[index];
+
+            //为了hover信息
+            bgCont.name = `mapArea_${index + 1}`;
+            bgCont.targetOff(this);
+            bgCont.on(cc.Node.EventType.MOUSE_DOWN, () => { }, this);
+
             bgCont.setContentSize(oneAreaSize);
             NodeUtil.autoRefreshChildren(bgCont, this._spArr[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
                 const sp = bgNd.getComponent(cc.Sprite);
@@ -59,7 +65,6 @@ export default class MapBgPrefab extends cc.Component {
         });
         //保证区域一的中心在原点
         this.areaCont.setPosition(this.areaCont.position.x, -oneAreaSize.height / 2);
-
     }
 
 }

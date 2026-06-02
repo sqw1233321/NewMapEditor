@@ -27,11 +27,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
             this.refreshNdAttr,
             this,
         );
-        EventManager.instance.on(
-            MapEditorEvent.UpdateAreaInfoFormPanel,
-            this.refreshAreaInfo,
-            this
-        )
     }
 
     protected onDestroy(): void {
@@ -40,11 +35,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
             this.refreshNdAttr,
             this,
         );
-        EventManager.instance.off(
-            MapEditorEvent.UpdateAreaInfoFormPanel,
-            this.refreshAreaInfo,
-            this
-        )
     }
 
     public setTrackNd(trackNd: cc.Node) {
@@ -142,10 +132,4 @@ export class AttrMgr extends Singleton<AttrMgr> {
         //使用现在的属性回写一次属性面板
         this.refreshAttrPanel();
     }
-
-    //更新区域信息
-    private refreshAreaInfo(areaInfo: number[]) {
-        this._mapLoader.setAreaInfo(areaInfo);
-    }
-
 }

@@ -25,10 +25,6 @@ export default class EditPanel extends cc.Component {
   @property(AttrPanelPrefab)
   prefabAttr: AttrPanelPrefab;
 
-  //areaInfo
-  @property(cc.EditBox)
-  areaInfoLb: cc.EditBox;
-
   private _dat;
   private _attrObj: AttrCfgTypes;
 
@@ -49,11 +45,6 @@ export default class EditPanel extends cc.Component {
       this.refreshAttr,
       this,
     );
-    EventManager.instance.on(
-      MapEditorEvent.RefreshAreaInfo,
-      this.setAreaInfo,
-      this
-    )
     EventManager.instance.on(MapEditorEvent.ClearEditPanel, this.clear, this);
     EventManager.instance.on(
       AttrPanelEvent.afterEdit,
@@ -74,11 +65,6 @@ export default class EditPanel extends cc.Component {
       this.refreshAttr,
       this,
     );
-    EventManager.instance.off(
-      MapEditorEvent.RefreshAreaInfo,
-      this.setAreaInfo,
-      this
-    )
     EventManager.instance.off(MapEditorEvent.ClearEditPanel, this.clear, this);
     EventManager.instance.off(AttrPanelEvent.afterEdit,
       this.onChangeAttr,
@@ -138,20 +124,4 @@ export default class EditPanel extends cc.Component {
     }
   }
 
-
-  //============区域信息相关===============
-  public setAreaInfo(areaInfo: number[]) {
-    let str = "";
-    areaInfo.forEach((areaIndex, index) => {
-      str += `${areaIndex}`;
-      if (index >= areaInfo.length - 1) return;
-      str += "_"
-    })
-    this.areaInfoLb.string = str;
-  }
-
-  public areaInfoChange() {
-    const areaInfo = this.areaInfoLb.string.split("_").map(a => Number(a));
-    EventManager.instance.emit(MapEditorEvent.UpdateAreaInfoFormPanel, areaInfo);
-  }
 }

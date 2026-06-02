@@ -63,10 +63,7 @@ export default class MapBuilder {
     if (!json) return;
 
     const mapData = json.json;
-
-    //设置区域信息
-    this._mapLoader.setAreaInfo(mapData.areaInfo || []);
-
+    
     //构建基础节点
     this.buildPlayerNodes(mapData, containers.playerCreate, containers.playerExit);
 
