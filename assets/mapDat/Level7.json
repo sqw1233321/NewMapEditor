@@ -2419,12 +2419,15 @@
             {
                 "linkId": "",
                 "pos": {
-                    "x": -2602.28,
-                    "y": 530.52
+                    "x": 924.2,
+                    "y": -1119.76
                 },
                 "offsetX": 0,
-                "portalType": 0,
-                "animPIds": []
+                "uniqueType": 2,
+                "animPIds": [
+                    "P0_0",
+                    "P0_1"
+                ]
             },
             {
                 "linkId": "P0_0",

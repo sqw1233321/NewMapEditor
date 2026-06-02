@@ -13,6 +13,7 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawItemBase extends cc.Component {
     public itemSp: cc.Sprite = null;
+    protected _uniqueType: number = -1;
 
     protected onLoad(): void {
         this.itemSp = this.node.getComponent(cc.Sprite);
@@ -78,8 +79,7 @@ export default class MapDrawItemBase extends cc.Component {
     public setDefaultUI() { }
 
     protected async setSprite(type: UnitType) {
-        const itemSettings = DynamicGetter.Ins.getItemSetting();
-        const setting = itemSettings.find((t: any) => t.ClassName === type);
+        const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
         if (setting) {
             if (setting.Texture) {
                 const path = `texture/item/drawItem/${setting.Texture}_item`;

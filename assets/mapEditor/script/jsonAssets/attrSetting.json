@@ -226,10 +226,14 @@
                     "ClassPropertyName": "bindPointIds",
                     "Type": "array",
                     "PERMISSIONS": "readonly",
-                    "DefaultValue": [],
+                    "DefaultValue": [
+                        "",
+                        ""
+                    ],
                     "Properties": [
                         {
-                            "ClassPropertyName": "start",
+                            "ID": "2-1",
+                            "ClassPropertyName": "",
                             "Type": "point",
                             "DefaultValue": ""
                         }
@@ -325,24 +329,24 @@
             "Properties": [
                 {
                     "ID": "1",
+                    "Name": "传送门类型",
+                    "ClassPropertyName": "uniqueType",
+                    "Type": "number",
+                    "PERMISSIONS": "readonly",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "2",
                     "Name": "连接点id",
                     "ClassPropertyName": "linkId",
                     "Type": "point",
                     "DefaultValue": ""
                 },
                 {
-                    "ID": "2",
+                    "ID": "3",
                     "Name": "偏移x",
                     "ClassPropertyName": "offsetX",
                     "Type": "number",
-                    "DefaultValue": 0
-                },
-                {
-                    "ID": "3",
-                    "Name": "传送门类型",
-                    "ClassPropertyName": "portalType",
-                    "Type": "number",
-                    "PERMISSIONS": "readonly",
                     "DefaultValue": 0
                 },
                 {

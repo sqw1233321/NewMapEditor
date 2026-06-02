@@ -173,7 +173,7 @@ export default class MapBuilder {
         pointNd.groupIndex = DynamicGetter.Ins.getGroupIndex(UnitType.PathPoint);
 
         const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
-        pointCom.init(UnitType.PathPoint, p);
+        pointCom.init(UnitType.PathPoint,-1, p);
 
         this._mapLoader.registerPoint(p.id, pointNd);
       });
@@ -206,12 +206,14 @@ export default class MapBuilder {
     rooms.forEach((room: MapDrawDatRoom) => {
       const keys = Object.keys(room);
       keys.forEach((key: string) => {
-        const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
-        if (!type) return;
+        const isUnit = !!DynamicGetter.Ins.getUnitTypeByExportName(key);
+        if (!isUnit) return;
         const roomNd = this.getRoomByCfgId(room.cfgId);
         if (!roomNd) return;
         const datArr = room[key] as any[];
         datArr.forEach(dat => {
+          const type = DynamicGetter.Ins.getUnitTypeByExportName(key, dat.uniqueType ?? -1);
+          if (!type) return;
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
           const anchor = DynamicGetter.Ins.getItemAnchor(type);
           const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
@@ -225,7 +227,7 @@ export default class MapBuilder {
             itemNd.setPosition(adjustedPos.x, adjustedPos.y);
           }
           const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
-          control.init(type, dat);
+          control.init(type, dat.uniqueType ?? -1, dat);
         })
       });
     });
@@ -235,10 +237,10 @@ export default class MapBuilder {
   private buildOutSideUnits(mapData: any, outRoomUnitCont: cc.Node) {
     const mechanism = mapData.mechanism || {};
     Object.keys(mechanism).forEach((key: any) => {
-      const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
-      if (!type) return;
       const datArr = mechanism[key] as any[];
       datArr.forEach(dat => {
+        const type = DynamicGetter.Ins.getUnitTypeByExportName(key, dat.uniqueType ?? -1);
+        if (!type) return;
         const itemNd = cc.instantiate(this.mapDrawItemPrefab);
         const anchor = DynamicGetter.Ins.getItemAnchor(type);
         const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
@@ -252,7 +254,7 @@ export default class MapBuilder {
           itemNd.setPosition(adjustedPos.x, adjustedPos.y);
         }
         const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
-        control.init(type, dat);
+        control.init(type, dat.uniqueType ?? -1, dat);
       })
     });
 

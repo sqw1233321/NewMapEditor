@@ -83,8 +83,8 @@ export default class MapDrawP extends MapDrawItem {
         return this.links.indexOf(other) >= 0;
     }
 
-    public init(type: UnitType, dat?) {
-        super.init(type, dat);
+    public init(type: UnitType, uniqueType: number = -1, dat?) {
+        super.init(type, uniqueType, dat);
         this.initUI();
     }
 

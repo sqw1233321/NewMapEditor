@@ -91,14 +91,8 @@
         "ExportName": "searchItemDatas",
         "Texture": "searchItem",
         "Name": "搜索点",
-        "iconSize": [
-            50,
-            50
-        ],
-        "itemSize": [
-            50,
-            50
-        ],
+        "iconScale": 0.7,
+        "itemScale": 0.7,
         "itemAnchor": [
             0.5,
             0.5
@@ -133,9 +127,10 @@
     },
     {
         "ClassName": "Portal",
+        "uniqueType": 0,
         "ExportName": "portalDatas",
         "Color": "#0F00FF",
-        "Name": "传送门",
+        "Name": "通用传送门",
         "iconSize": [
             50,
             50
@@ -144,6 +139,62 @@
             50,
             50
         ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Portal",
+        "uniqueType": 1,
+        "ExportName": "portalDatas",
+        "Name": "掉落传送门",
+        "Texture": "dropProtal",
+        "iconScale": 0.3,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Portal",
+        "uniqueType": 2,
+        "ExportName": "portalDatas",
+        "Name": "船",
+        "Texture": "ship",
+        "iconScale": 0.25,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Portal",
+        "uniqueType": 3,
+        "ExportName": "portalDatas",
+        "Texture": "aijiPortal",
+        "Name": "埃及传送门",
+        "iconScale": 0.18,
+        "itemScale": 0.3,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Portal",
+        "uniqueType": 4,
+        "ExportName": "portalDatas",
+        "Name": "玛雅传送门",
+        "Texture": "mayaPortal",
+        "iconScale": 0.3,
+        "itemScale": 0.7,
         "itemAnchor": [
             0.5,
             0.5

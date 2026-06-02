@@ -161,7 +161,7 @@ export default class MapLoader extends cc.Component {
     if (!roomNd) return;
 
     const mapDrawRoom = roomNd.addComponentSafe(MapDrawRoom);
-    mapDrawRoom.init(UnitType.Room, roomDat);
+    mapDrawRoom.init(UnitType.Room, -1, roomDat);
   }
 
   // ==================== 每帧更新 ====================

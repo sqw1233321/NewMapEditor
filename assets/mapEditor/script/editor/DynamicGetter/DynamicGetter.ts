@@ -47,36 +47,57 @@ export default class DynamicGetter extends cc.Component {
         });
     }
 
-    public getItemAnchor(type) {
+    public getItemSettingByUnitType(unitType: string, uniqueType: number = -1) {
+        const hasType = uniqueType >= 0;
         const settings = DynamicGetter.Ins.getItemSetting();
-        const setting = settings.find((t: any) => t.ClassName === type);
+        const setting = settings.find((t: any) => {
+            let res = t.ClassName === unitType;
+            if (hasType) {
+                res &&= t.uniqueType === uniqueType;
+            }
+            return res;
+        });
+        return setting;
+    }
+
+    public getItemAnchor(unitType: string) {
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => t.ClassName === unitType);
         if (setting) {
             return setting.itemAnchor;
         }
         return [0.5, 0.5];
     }
 
-    public getGroupIndex(type) {
+    public getGroupIndex(unitType: string) {
         const settings = DynamicGetter.Ins.getItemSetting();
-        const setting = settings.find((t: any) => t.ClassName === type);
+        const setting = settings.find((t: any) => t.ClassName === unitType);
         if (setting) {
             return setting.cameraGroupIndex;
         }
         return 0;
     }
 
-    public getExportNameByUnitType(type) {
+    public getExportNameByUnitType(unitType: string) {
         const settings = DynamicGetter.Ins.getItemSetting();
-        const setting = settings.find((t: any) => t.ClassName === type);
+        const setting = settings.find((t: any) => t.ClassName === unitType);
         if (setting) {
             return setting.ExportName;
         }
         return "";
     }
 
-    public getUnitTypeByExportName(exportName:string){
+    public getUnitTypeByExportName(exportName: string, uniqueType: number = -1) {
+        const hasType = uniqueType >= 0;
         const settings = DynamicGetter.Ins.getItemSetting();
-        const setting = settings.find((t: any) => t.ExportName === exportName);
+        const setting = settings.find((t: any) => {
+            let res = t.ExportName === exportName;
+            //有type还要判断type是否相等
+            if (hasType) {
+                res &&= t.uniqueType === uniqueType;
+            }
+            return res;
+        });
         if (setting) {
             return setting.ClassName;
         }

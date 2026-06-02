@@ -19,15 +19,16 @@ export default class MapDrawItem extends MapDrawItemBase {
 
   private _isInit: boolean = false;
 
-  public init(type: UnitType, dat?) {
+  public init(type: UnitType, uniqueType: number = -1, dat?) {
     if (this._isInit) return;
     this.onBeforeInit();
     this._isInit = true;
     this._unitType = type;
-    this.setSprite(type);
+    this._uniqueType = uniqueType;
     if (!dat) {
       dat = this.getDefaultDat();
     }
+    this.setSprite(type);
     this._jsonDat = dat;
     this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
     this.onAfterInit();
@@ -37,6 +38,9 @@ export default class MapDrawItem extends MapDrawItemBase {
   private getDefaultDat(): any {
     const json = DynamicGetter.Ins.getAttrSetting();
     const dat = this.getDefaultDataByClassName(json, this._unitType);
+    if (this._uniqueType) {
+      dat["uniqueType"] = this._uniqueType;
+    }
     return dat;
   }
 
