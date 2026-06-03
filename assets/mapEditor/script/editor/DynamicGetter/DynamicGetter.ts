@@ -5,16 +5,6 @@ const { ccclass, property } = cc._decorator;
 //动态json获取（TODO:后续这些json会放到外壳中，获取外部生成的接送）
 @ccclass
 export default class DynamicGetter extends cc.Component {
-
-    @property(cc.JsonAsset)
-    attrSetting: cc.JsonAsset;
-
-    @property(cc.JsonAsset)
-    itemSetting: cc.JsonAsset;
-
-    @property(cc.JsonAsset)
-    dropDownSetting: cc.JsonAsset;
-
     @property(cc.SpriteFrame)
     defaultSp: cc.SpriteFrame;
 
@@ -25,39 +15,70 @@ export default class DynamicGetter extends cc.Component {
     }
 
     public async loadDynamicJson() {
-        if (!CC_BUILD) return true;
-        const loaders = [
-            ['jsonAssets/attrSetting.json', 'attrSetting'],
-            ['jsonAssets/itemSetting.json', 'itemSetting'],
-            ['jsonAssets/dropDownSetting.json', 'dropDownSetting'],
-        ];
-        const results = await Promise.all(
-            loaders.map(([fileName, propName]) =>
-                window.electronAPI.readFile(fileName).then((result: any) => {
-                    if (!result.success) {
-                        console.warn(`[DynamicGetter] ${fileName} 加载失败:`, result.error);
-                        return false;
-                    }
-                    this[propName] = {};
-                    this[propName].json = JSON.parse(result.content);
-                    return true;
-                })
-            )
-        );
-        return results.every((ok) => ok);
+        //debug模式使用resource加载
+        if (!CC_BUILD) {
+            const loadDir = (dir: string): Promise<cc.JsonAsset[]> => {
+                return new Promise((resolve, reject) => {
+                    cc.resources.loadDir(dir, cc.JsonAsset, (err, assets) => {
+                        if (err) {
+                            console.error(`[DynamicGetter] 加载 ${dir} 失败:`, err);
+                            reject(err);
+                            return;
+                        }
+                        resolve(assets);
+                    });
+                });
+            };
+            try {
+                const [editorAssets, outerAssets] = await Promise.all([
+                    loadDir('editorJsonAssets'),
+                    loadDir('outerJsonAssets'),
+                ]);
+                // 如果需要统一处理
+                const allJsonAssets = [...editorAssets, ...outerAssets];
+                console.log('加载完成:', allJsonAssets.map(a => a.name));
+                allJsonAssets.forEach((asset) => {
+                    this[asset.name] = asset;
+                });
+                console.log(this);
+            } catch (err) {
+                console.error('[DynamicGetter] 加载失败:', err);
+            }
+        }
+        //node运行使用node加载
+        else {
+            const loaders = [
+                ['jsonAssets/attrSetting.json', 'attrSetting'],
+                ['jsonAssets/itemSetting.json', 'itemSetting'],
+                ['jsonAssets/dropDownSetting.json', 'dropDownSetting'],
+            ];
+            await Promise.all(
+                loaders.map(([fileName, propName]) =>
+                    window.electronAPI.readFile(fileName).then((result: any) => {
+                        if (!result.success) {
+                            console.warn(`[DynamicGetter] ${fileName} 加载失败:`, result.error);
+                            return false;
+                        }
+                        this[propName] = {};
+                        this[propName].json = JSON.parse(result.content);
+                        return true;
+                    })
+                )
+            );
+        }
     }
 
 
     public getAttrSetting(): any {
-        return this.attrSetting.json;
+        return this["attrSetting"].json;
     }
 
     public getItemSetting(): any {
-        return this.itemSetting.json;
+        return this["itemSetting"].json;
     }
 
     public getDropDownSetting(): any {
-        return this.dropDownSetting.json;
+        return this["dropDownSetting"].json;
     }
 
     public getSprite(iconPath: string): Promise<cc.SpriteFrame> {

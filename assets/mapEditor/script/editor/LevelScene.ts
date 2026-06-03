@@ -179,7 +179,7 @@ export default class LevelScene extends cc.Component {
       this.updateFile,
       this
     );
-    
+
     EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
 
     this._keyInputHandler?.stopListen();
@@ -638,6 +638,14 @@ export default class LevelScene extends cc.Component {
   public async onClickImport() {
     const result = await this._mapExporter?.import();
     await this.changeMap(result.content, result.fileName);
+  }
+
+  public async onClickImportExcel() {
+
+  }
+
+  public async onCLickExportExcel() {
+
   }
 
 
