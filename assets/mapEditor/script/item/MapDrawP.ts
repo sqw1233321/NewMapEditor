@@ -18,8 +18,8 @@ export default class MapDrawP extends MapDrawItem {
     private _linkHighlight = false;
     private _savedTint: cc.Color = null;
 
-    public getType() {
-        return UnitType.PathPoint;
+    static getUniqueType(dat): number {
+        return -1;
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {

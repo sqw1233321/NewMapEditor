@@ -85,9 +85,12 @@ export default class PrefabPanelItem extends cc.Component {
         itemNd.parent = this.node.parent;
         itemNd.setPosition(this.node.getPosition());
         itemNd.groupIndex = this._dat.cameraGroupIndex;
-        const controller = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(this._type)) as MapDrawItem;
+        const classCtor = ReflectionMgr.getMapDrawClass(this._type);
+        //这直接从配置里拿出
+        const uniqueType = this._dat.uniqueType ?? -1;
+        const controller = itemNd.addComponentSafe(classCtor) as MapDrawItem;
         (controller as MapDrawItemBase).setDefaultUI();
-        controller.init(this._type, this._dat.uniqueType ?? -1);
+        controller.init(this._type, uniqueType);
 
         const mousePos = cc.v3(event.getLocation()); // 世界 UI 坐标
         const dragOffset = itemNd.position.sub(

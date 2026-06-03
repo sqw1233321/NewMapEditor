@@ -1800,41 +1800,39 @@
         "x": -472.35,
         "y": 85.48
     },
-    "mechanism": {
-        "portalDatas": [
-            {
-                "linkId": "P2_8",
-                "pos": {
-                    "x": 880.52,
-                    "y": 3341.19
-                },
-                "offsetX": 0,
-                "uniqueType": 0,
-                "animPIds": []
+    "portalDatas": [
+        {
+            "linkId": "P2_8",
+            "pos": {
+                "x": 880.52,
+                "y": 3341.19
             },
-            {
-                "linkId": "",
-                "pos": {
-                    "x": 924.2,
-                    "y": -1456.96
-                },
-                "offsetX": 0,
-                "uniqueType": 2,
-                "animPIds": [
-                    "P0_4",
-                    "P0_3",
-                    "P0_1",
-                    "P0_0",
-                    "P5_0",
-                    "P5_1",
-                    "P5_4",
-                    "P5_3"
-                ]
-            }
-        ],
-        "scooterDatas": [],
-        "rockDatas": []
-    },
+            "offsetX": 0,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "",
+            "pos": {
+                "x": 924.2,
+                "y": -1456.96
+            },
+            "offsetX": 0,
+            "portalType": 2,
+            "animPIds": [
+                "P0_4",
+                "P0_3",
+                "P0_1",
+                "P0_0",
+                "P5_0",
+                "P5_1",
+                "P5_4",
+                "P5_3"
+            ]
+        }
+    ],
+    "scooterDatas": [],
+    "rockDatas": [],
     "areaInfo": [
         5,
         8

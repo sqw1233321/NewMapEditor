@@ -74,6 +74,19 @@ export default class DynamicGetter extends cc.Component {
         return setting;
     }
 
+    public getItemSettingByExportName(exportName: string, uniqueType: number = -1) {
+        const hasType = uniqueType >= 0;
+        const settings = DynamicGetter.Ins.getItemSetting();
+        const setting = settings.find((t: any) => {
+            let res = t.ExportName === exportName;
+            if (hasType) {
+                res &&= t.uniqueType === uniqueType;
+            }
+            return res;
+        });
+        return setting;
+    }
+
     public getItemAnchor(unitType: string) {
         const settings = DynamicGetter.Ins.getItemSetting();
         const setting = settings.find((t: any) => t.ClassName === unitType);

@@ -51,6 +51,10 @@ export default class MapDrawRoom extends MapDrawItem {
         "fightSoulDatas"
     ];
 
+    static getUniqueType(dat): number {
+        return -1;
+    }
+
     /** 解锁点绑定模式：高亮当前选中的房间 */
     public setUnlockBindHighlight(on: boolean) {
         if (on === this._unlockBindHighlight) return;

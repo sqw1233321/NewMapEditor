@@ -43,7 +43,6 @@ export default class MapSerializer {
     const size = { width: s.x, height: s.y };
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
-    const mechanismObj = this.collectOutRoomUnits();
     const playerCreatePos = this.collectPlayerPos(this._getPlayerCreate());
     const playerExitPos = this.collectPlayerPos(this._getPlayerExit());
     const areaInfo = this.collectAreaInfo();
@@ -54,9 +53,10 @@ export default class MapSerializer {
       rooms,
       playerCreatePos,
       playerExitPos,
-      mechanism: mechanismObj,
       areaInfo,
     };
+    //补充机制字段
+    this.collectOutRoomUnits(outDat);
 
     mapDat.setDat(outDat);
     return mapDat.createJson();
@@ -104,17 +104,15 @@ export default class MapSerializer {
     return rooms;
   }
 
-  private collectOutRoomUnits(): {} {
+  private collectOutRoomUnits(outDat: any): {} {
     const outRoomUnits = this._getOutRoomUnits();
-    let resObj = {};
     outRoomUnits.children.forEach((unit) => {
       const controller = unit.getComponent(MapDrawItem);
       if (!controller) return;
       const exportName = controller.getExportName();
-      if (!resObj[`${exportName}`]) resObj[`${exportName}`] = [];
-      resObj[`${exportName}`].push(controller.getExportDat());
+      if (!outDat[`${exportName}`]) outDat[`${exportName}`] = [];
+      outDat[`${exportName}`].push(controller.getExportDat());
     });
-    return resObj;
   }
 
   private collectPlayerPos(playerNd: cc.Node): { x: number; y: number } {

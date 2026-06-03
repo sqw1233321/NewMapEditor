@@ -2414,85 +2414,83 @@
         "x": -283.09,
         "y": 1147.36
     },
-    "mechanism": {
-        "portalDatas": [
-            {
-                "linkId": "",
-                "pos": {
-                    "x": 924.2,
-                    "y": -1119.76
-                },
-                "offsetX": 0,
-                "uniqueType": 2,
-                "animPIds": [
-                    "P0_0",
-                    "P0_1"
-                ]
+    "portalDatas": [
+        {
+            "linkId": "",
+            "pos": {
+                "x": 924.2,
+                "y": -1119.76
             },
-            {
-                "linkId": "P0_0",
-                "pos": {
-                    "x": -634.66,
-                    "y": 2894.3
-                },
-                "offsetX": 100,
-                "portalType": 0,
-                "animPIds": []
+            "offsetX": 0,
+            "portalType": 2,
+            "animPIds": [
+                "P0_0",
+                "P0_1"
+            ]
+        },
+        {
+            "linkId": "P0_0",
+            "pos": {
+                "x": -634.66,
+                "y": 2894.3
             },
-            {
-                "linkId": "P1_2",
-                "pos": {
-                    "x": -1022.76,
-                    "y": 3259.09
-                },
-                "offsetX": -100,
-                "portalType": 0,
-                "animPIds": []
+            "offsetX": 100,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "P1_2",
+            "pos": {
+                "x": -1022.76,
+                "y": 3259.09
             },
-            {
-                "linkId": "P12_0",
-                "pos": {
-                    "x": -953.69,
-                    "y": 782.04
-                },
-                "offsetX": 100,
-                "portalType": 0,
-                "animPIds": []
+            "offsetX": -100,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "P12_0",
+            "pos": {
+                "x": -953.69,
+                "y": 782.04
             },
-            {
-                "linkId": "P9_2",
-                "pos": {
-                    "x": 1293.31,
-                    "y": -349.27
-                },
-                "offsetX": 100,
-                "portalType": 0,
-                "animPIds": []
+            "offsetX": 100,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "P9_2",
+            "pos": {
+                "x": 1293.31,
+                "y": -349.27
             },
-            {
-                "linkId": "P3_0",
-                "pos": {
-                    "x": -1314.46,
-                    "y": 4028.65
-                },
-                "offsetX": 100,
-                "portalType": 0,
-                "animPIds": []
+            "offsetX": 100,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "P3_0",
+            "pos": {
+                "x": -1314.46,
+                "y": 4028.65
             },
-            {
-                "linkId": "P10_6",
-                "pos": {
-                    "x": 368.55,
-                    "y": 406.66
-                },
-                "offsetX": -100,
-                "portalType": 0,
-                "animPIds": []
-            }
-        ],
-        "scooterDatas": [],
-        "rockDatas": []
-    },
+            "offsetX": 100,
+            "portalType": 0,
+            "animPIds": []
+        },
+        {
+            "linkId": "P10_6",
+            "pos": {
+                "x": 368.55,
+                "y": 406.66
+            },
+            "offsetX": -100,
+            "portalType": 0,
+            "animPIds": []
+        }
+    ],
+    "scooterDatas": [],
+    "rockDatas": [],
     "areaInfo": [
         7,
         14

@@ -63,7 +63,7 @@ export default class MapBuilder {
     if (!json) return;
 
     const mapData = json.json;
-    
+
     //构建基础节点
     this.buildPlayerNodes(mapData, containers.playerCreate, containers.playerExit);
 
@@ -170,7 +170,7 @@ export default class MapBuilder {
         pointNd.groupIndex = DynamicGetter.Ins.getGroupIndex(UnitType.PathPoint);
 
         const pointCom = pointNd.addComponentSafe(ReflectionMgr.getMapDrawClass(UnitType.PathPoint)) as MapDrawItem;
-        pointCom.init(UnitType.PathPoint,-1, p);
+        pointCom.init(UnitType.PathPoint, -1, p);
 
         this._mapLoader.registerPoint(p.id, pointNd);
       });
@@ -209,8 +209,10 @@ export default class MapBuilder {
         if (!roomNd) return;
         const datArr = room[key] as any[];
         datArr.forEach(dat => {
-          const type = DynamicGetter.Ins.getUnitTypeByExportName(key, dat.uniqueType ?? -1);
+          const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
           if (!type) return;
+          const classCtor = ReflectionMgr.getMapDrawClass(type);
+          const uniqueType = classCtor["getUniqueType"]?.(dat) ?? -1;
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
           const anchor = DynamicGetter.Ins.getItemAnchor(type);
           const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
@@ -224,7 +226,7 @@ export default class MapBuilder {
             itemNd.setPosition(adjustedPos.x, adjustedPos.y);
           }
           const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
-          control.init(type, dat.uniqueType ?? -1, dat);
+          control.init(type, uniqueType, dat);
         })
       });
     });
@@ -232,12 +234,17 @@ export default class MapBuilder {
 
   //绘制房间外机制
   private buildOutSideUnits(mapData: any, outRoomUnitCont: cc.Node) {
-    const mechanism = mapData.mechanism || {};
-    Object.keys(mechanism).forEach((key: any) => {
-      const datArr = mechanism[key] as any[];
+    Object.keys(mapData ?? {}).forEach((key: any) => {
+      //排除这两货和房间有关的·
+      if (["pathPoints", "rooms"].includes(key)) return;
+      const setting = DynamicGetter.Ins.getItemSettingByExportName(key);
+      if (!setting) return;
+      const datArr = mapData[key] as any[];
       datArr.forEach(dat => {
-        const type = DynamicGetter.Ins.getUnitTypeByExportName(key, dat.uniqueType ?? -1);
+        const type = DynamicGetter.Ins.getUnitTypeByExportName(key);
         if (!type) return;
+        const classCtor = ReflectionMgr.getMapDrawClass(type);
+        const uniqueType = classCtor["getUniqueType"]?.(dat) ?? -1;
         const itemNd = cc.instantiate(this.mapDrawItemPrefab);
         const anchor = DynamicGetter.Ins.getItemAnchor(type);
         const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
@@ -251,7 +258,7 @@ export default class MapBuilder {
           itemNd.setPosition(adjustedPos.x, adjustedPos.y);
         }
         const control = itemNd.addComponentSafe(ReflectionMgr.getMapDrawClass(type)) as MapDrawItem;
-        control.init(type, dat.uniqueType ?? -1, dat);
+        control.init(type, uniqueType, dat);
       })
     });
 

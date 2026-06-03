@@ -19,6 +19,10 @@ export default class MapDrawItem extends MapDrawItemBase {
 
   private _isInit: boolean = false;
 
+  static getUniqueType(dat): number {
+    return -1;
+  }
+
   public init(type: UnitType, uniqueType: number = -1, dat?) {
     if (this._isInit) return;
     this.onBeforeInit();
@@ -35,12 +39,9 @@ export default class MapDrawItem extends MapDrawItemBase {
   }
 
   //获取默认数据
-  private getDefaultDat(): any {
+  protected getDefaultDat(): any {
     const json = DynamicGetter.Ins.getAttrSetting();
     const dat = this.getDefaultDataByClassName(json, this._unitType);
-    if (this._uniqueType) {
-      dat["uniqueType"] = this._uniqueType;
-    }
     return dat;
   }
 

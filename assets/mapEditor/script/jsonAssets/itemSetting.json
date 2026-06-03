@@ -143,7 +143,8 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawPortal"
     },
     {
         "ClassName": "Portal",
@@ -157,7 +158,8 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawPortal"
     },
     {
         "ClassName": "Portal",
@@ -171,7 +173,8 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawPortal"
     },
     {
         "ClassName": "Portal",
@@ -185,7 +188,8 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawPortal"
     },
     {
         "ClassName": "Portal",
@@ -199,6 +203,7 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawPortal"
     }
 ]
