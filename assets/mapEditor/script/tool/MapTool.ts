@@ -16,6 +16,10 @@ export default class MapTool {
         this._size = size;
     }
 
+    static changeSize(size: cc.Vec2) {
+        this._size = size;
+    }
+
     static getSize() {
         return this._size;
     }

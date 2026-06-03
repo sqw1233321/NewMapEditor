@@ -825,32 +825,4 @@ export default class MapLoader extends cc.Component {
   public getFileName(): string {
     return this._fileName;
   }
-
-  //===================区域信息相关===================
-  private _mapBgNd: cc.Node;
-
-  public setAreaInfo(mapBgNd: cc.Node) {
-    this._mapBgNd = mapBgNd;
-  }
-
-  public getAreaInfo(): string {
-    let areaInfo = "";
-    const cont = this._mapBgNd.children[0];
-    const layerMap = this._layerNodeMap;
-    
-
-    cont.children.forEach((areaNd, index) => {
-      layerMap.forEach((layerNd, layerNo) => {
-        //layerNd是否与areaNd相交
-        const layerRect = layerNd.getBoundingBoxToWorld();
-        const areaRect = areaNd.getBoundingBoxToWorld();
-        if (layerRect.intersects(areaRect)) {
-          let start = "_";
-          if (!areaInfo) start = "";
-          areaInfo += `${start}${layerNo}`;
-        }
-      })
-    })
-    return areaInfo;
-  }
 }

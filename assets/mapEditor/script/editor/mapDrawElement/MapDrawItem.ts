@@ -1,3 +1,4 @@
+import MapDrawP from "../../item/MapDrawP";
 import { MapDrawTool } from "../../item/MapDrawTool";
 import { AttrCfgType, AttrCfgTypes, AttrPanelPropertyType, UnitType } from "../../type/mapTypes";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
@@ -93,13 +94,13 @@ export default class MapDrawItem extends MapDrawItemBase {
         const type = pointCheck.type;
         if (type === "point") {
           const pointNd = this._canEditdat[key] as cc.Node;
-          resultDat = pointNd?.getComponent(MapDrawItem)?._canEditdat["id"] ?? "";
+          resultDat = pointNd?.getComponent(MapDrawP)?.getId() ?? "";
         } else if (type === "pointArray") {
           resultDat = [];
           const pointNds = this._canEditdat[key] as cc.Node[];
           pointNds?.forEach((pNd: cc.Node) => {
             if (!cc.isValid(pNd)) return;
-            resultDat.push(pNd.getComponent(MapDrawItem)._canEditdat["id"]);
+            resultDat.push(pNd.getComponent(MapDrawP)?.getId() ?? "");
           });
         }
       }
@@ -155,13 +156,13 @@ export default class MapDrawItem extends MapDrawItemBase {
           const type = pointCheck.type;
           if (type === "point") {
             const pointNd = resultDat as cc.Node;
-            resultDat = pointNd?.getComponent(MapDrawItem)?.getAttrDat()["id"] ?? "";
+            resultDat = pointNd?.getComponent(MapDrawP)?.getId() ?? "";
           } else if (type === "pointArray") {
             resultDat = [];
             const points = this._canEditdat[key] as cc.Node[];
             points?.forEach((pNd: any) => {
               if (!cc.isValid(pNd)) return;
-              resultDat.push(pNd.getComponent(MapDrawItem).getAttrDat()["id"]);
+              resultDat.push(pNd.getComponent(MapDrawP).getId() ?? "");
             });
           }
         }

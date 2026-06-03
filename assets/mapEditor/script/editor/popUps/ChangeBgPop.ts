@@ -1,3 +1,5 @@
+import { MapEditorEvent } from "../../event/eventTypes";
+import { EventManager } from "../../frameWork/EventManager";
 import EditorSetting from "../EditorSetting";
 import { EditorMapEntry, MapBgManager } from "../MapBgManager";
 import PopBase from "../PopBase";
@@ -25,7 +27,7 @@ export default class ChangeBgPop extends PopBase {
 
     private _levelBgName: string = "";
 
-    public showPop(dat: { cb }): void {
+    public showPop(dat: {}): void {
         this._dat = dat;
         const curFileInfo = EditorSetting.Instance.getFileInfo();
         const mapEditorDat = MapBgManager.instance.getMapEditorDat(curFileInfo?.fileName ?? "");
@@ -78,7 +80,7 @@ export default class ChangeBgPop extends PopBase {
         }
         MapBgManager.instance.updateMapDataEntry(dat);
         //可以同步因为这个地方改的内存中的数据。
-        this._dat.cb?.();
+        EventManager.instance.emit(MapEditorEvent.ChangeMapBg);
         this.hidePop();
     }
 

@@ -1,5 +1,9 @@
+import { MapEditorEvent } from "../../event/eventTypes";
+import { EventManager } from "../../frameWork/EventManager";
 import MapExporter from "../../item/MapExporter";
 import PopBase from "../PopBase";
+import { PopUid } from "../PopConfigs";
+import PopManager from "../PopManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -15,9 +19,6 @@ export default class CreateFilePop extends PopBase {
     @property(cc.EditBox)
     sizeY: cc.EditBox;
 
-    @property(cc.EditBox)
-    areaNumLb: cc.EditBox;
-
     private _dat;
 
     public showPop(dat: { exporter: MapExporter, cb }): void {
@@ -25,12 +26,11 @@ export default class CreateFilePop extends PopBase {
         this.fileNameEdit.string = 'newMap';
         this.sizeX.string = `2906`;
         this.sizeY.string = `3654`;
-        this.areaNumLb.string = `0`;
     }
 
     //选择现有图片集
     public onClickSelectBg() {
-        
+        PopManager.ins.showPopUp(PopUid.ChangeBgPop);
     }
 
 

@@ -17,6 +17,7 @@ export default class MapBgPrefab extends cc.Component {
 
     private _dat;
     private _spArr: cc.SpriteFrame[][] = [];
+    private _size: { width: number, height: number }
     /**
      * 
      * @param dat { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[][] }
@@ -39,7 +40,27 @@ export default class MapBgPrefab extends cc.Component {
             { length: dat.areaNumber },
             (_, i) => dat.sps.slice(i * count, (i + 1) * count)
         );
+        this.setSize();
         this.setUI();
+    }
+
+    private setSize() {
+        const oneSpSize = this._spArr[0][0]["_originalSize"];
+        const row = this._dat.oneAreaSize.y;
+        const col = this._dat.oneAreaSize.x;
+        const oneAreaSize = new cc.Size(col * oneSpSize.width, row * oneSpSize.height);
+        const sizeWidth = oneAreaSize.width;
+        const areaNum = this._spArr.length;
+        const sizeHeight = oneAreaSize.height * areaNum + (this._dat.areaOffset - oneAreaSize.height) * (areaNum - 1);
+        this._size = {
+            width: sizeWidth,
+            height: sizeHeight
+        }
+    }
+
+    //获取size
+    public getSize() {
+        return this._size;
     }
 
     private setUI() {
@@ -62,9 +83,34 @@ export default class MapBgPrefab extends cc.Component {
                 const sp = bgNd.getComponent(cc.Sprite);
                 sp.spriteFrame = bgSprite;
             });
+            bgCont.getComponent(cc.Layout).updateLayout();
         });
+        this.areaCont.width = this.areaCont.children[0].width;
+        this.areaCont.getComponent(cc.Layout).updateLayout();
         //保证区域一的中心在原点
         this.areaCont.setPosition(this.areaCont.position.x, -oneAreaSize.height / 2);
+    }
+
+    //获取区域信息
+    public getAreaInfo(layerNodeMap: Map<number, cc.Node>): string {
+        let areaInfo = "";
+        const cont = this.areaCont;
+        if (cont.children.length <= 1) return areaInfo;
+        cont.children.forEach((areaNd, index) => {
+            let start = "_";
+            if (!areaInfo) start = "";
+            let curLayerMax = 0;
+            layerNodeMap.forEach((layerNd, layerNo) => {
+                //layerNd是否与areaNd相交
+                const layerRect = layerNd.getBoundingBoxToWorld();
+                const areaRect = areaNd.getBoundingBoxToWorld();
+                if (layerRect.intersects(areaRect)) {
+                    curLayerMax = Math.max(layerNo, curLayerMax);
+                }
+            })
+            areaInfo += `${start}${curLayerMax}`;
+        })
+        return areaInfo;
     }
 
 }

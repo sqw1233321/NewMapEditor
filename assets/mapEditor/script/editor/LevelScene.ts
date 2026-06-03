@@ -25,6 +25,7 @@ import { PopUid } from "./PopConfigs";
 import MapDrawItem from "./mapDrawElement/MapDrawItem";
 import MapDrawItemBase from "./mapDrawElement/MapDrawItemBase";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
+import { MapDrawTool } from "../item/MapDrawTool";
 
 const { ccclass, property } = cc._decorator;
 
@@ -121,6 +122,8 @@ export default class LevelScene extends cc.Component {
       this
     );
 
+    EventManager.instance.on(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
+
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
     this._keyInputHandler.onShiftDown = () => this._isShiftDown = true;
@@ -176,6 +179,8 @@ export default class LevelScene extends cc.Component {
       this.updateFile,
       this
     );
+    
+    EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
 
     this._keyInputHandler?.stopListen();
 
@@ -626,11 +631,7 @@ export default class LevelScene extends cc.Component {
   //更换背景
   public async onClickChangeBg() {
     //打开弹窗
-    PopManager.ins.showPopUp(PopUid.ChangeBgPop, {
-      cb: async () => {
-        await this.changeMapBg();
-      }
-    });
+    PopManager.ins.showPopUp(PopUid.ChangeBgPop);
   }
 
   //导入
@@ -784,13 +785,16 @@ export default class LevelScene extends cc.Component {
       const prefab = cc.instantiate(this.magBgPrefab);
       prefab.parent = this.mapCanvasNd;
       prefab.setPosition(0, 0);
+      MapDrawTool.instance.setMapBgPrefab(prefab);
     }
     const mapBg = this.mapCanvasNd.children[0];
-
-
     // 从 MapBgManager 获取当前地图对应的背景图数据
     const mapDta = this.fileNameLb.string ?? "Level1";
     const bgData = await MapBgManager.instance.loadBgByMapDta(mapDta);
-    mapBg.getComponent(MapBgPrefab).init(bgData);
+    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
+    mapBgHandler?.init(bgData);
+    const size = mapBgHandler.getSize();
+    //通过背景图更新一下size
+    MapTool.changeSize(cc.v2(size.width, size.height));
   }
 }

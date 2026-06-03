@@ -11,15 +11,82 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawP extends MapDrawItem {
     private _nameNd: cc.Node;
-
+    private _id: string;
     links: cc.Node[] = [];
 
     protected _type: UnitType.PathPoint;
     private _linkHighlight = false;
     private _savedTint: cc.Color = null;
 
+    private _canNotEditKeys = [
+        "id"
+    ];
+
     static getUniqueType(dat): number {
         return -1;
+    }
+
+    public init(type: UnitType, uniqueType: number = -1, dat?) {
+        let canEditDat = dat;
+        //筛选可编辑属性
+        if (dat) canEditDat = this.filterAttrDats(dat);
+        super.init(type, uniqueType, canEditDat);
+        this._id = dat?.["id"] ?? "";
+        this.initUI();
+    }
+
+    //筛选可编辑属性节点
+    private filterAttrDats(dat) {
+        const keys = Object.keys(dat);
+        //不能在属性面板上编辑的属性
+        const canEditKeys = keys.filter(key => !this._canNotEditKeys.includes(key));
+        const resDat = {};
+        canEditKeys.forEach(canEditKey => {
+            resDat[canEditKey] = dat[canEditKey];
+        })
+        return resDat;
+    }
+
+    private initUI() {
+        if (!this._nameNd) {
+            this._nameNd = new cc.Node();
+            this._nameNd.name = "name";
+            this.node.addChild(this._nameNd);
+            this._nameNd.setPosition(cc.v3(0, 25, 0));
+            this._nameNd.addComponentSafe(cc.Label).fontSize = 15;
+        }
+        const label = this._nameNd.getComponent(cc.Label);
+        label.string = `${this._id}`;
+    }
+
+    public getExportDat() {
+        const dat = super.getExportDat();
+        //查漏补缺
+        dat["id"] = this._id;
+        return dat;
+    }
+
+
+    public setLinks(pointNds: cc.Node[]) {
+        const seen = new Set<cc.Node>();
+        this.links = (pointNds || []).filter((nd) => {
+            if (!nd || !cc.isValid(nd)) return false;
+            if (nd === this.node) return false;
+            if (seen.has(nd)) return false;
+            seen.add(nd);
+            return true;
+        });
+        this._canEditdat["links"] = this.links;
+    }
+
+    public getId() {
+        return this._id;
+    }
+
+    public setId(newId: string) {
+        this._id = newId;
+        this.node.name = `${newId}`;
+        this.initUI();
     }
 
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
@@ -77,45 +144,6 @@ export default class MapDrawP extends MapDrawItem {
 
     public hasLinkTo(other: cc.Node): boolean {
         return this.links.indexOf(other) >= 0;
-    }
-
-    public init(type: UnitType, uniqueType: number = -1, dat?) {
-        super.init(type, uniqueType, dat);
-        this.initUI();
-    }
-
-    private initUI() {
-        if (!this._nameNd) {
-            this._nameNd = new cc.Node();
-            this._nameNd.name = "name";
-            this.node.addChild(this._nameNd);
-            this._nameNd.setPosition(cc.v3(0, 25, 0));
-            this._nameNd.addComponentSafe(cc.Label).fontSize = 15;
-        }
-        const label = this._nameNd.getComponent(cc.Label);
-        label.string = `${this._canEditdat["id"]}`;
-    }
-
-    public setLinks(pointNds: cc.Node[]) {
-        const seen = new Set<cc.Node>();
-        this.links = (pointNds || []).filter((nd) => {
-            if (!nd || !cc.isValid(nd)) return false;
-            if (nd === this.node) return false;
-            if (seen.has(nd)) return false;
-            seen.add(nd);
-            return true;
-        });
-        this._canEditdat["links"] = this.links;
-    }
-
-    public getId() {
-        return this._canEditdat.id;
-    }
-
-    public setId(newId: string) {
-        this._canEditdat.id = newId;
-        this.node.name = `${newId}`;
-        this.initUI();
     }
 
 }

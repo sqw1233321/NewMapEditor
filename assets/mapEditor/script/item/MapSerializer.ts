@@ -1,9 +1,11 @@
+import MapBgPrefab from "../editor/MapBgPrefab";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapTool from "../tool/MapTool";
 import { UnitType } from "../type/mapTypes";
 import { MapDrawDat, MapDrawDatType, MapDrawDatPathPoint, MapDrawDatRoom, MapDrawDatPortalData, MapDrawDatCableData, MapDrawDatStoneData } from "./MapDrawDat";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
+import { MapDrawTool } from "./MapDrawTool";
 
 
 /**
@@ -39,24 +41,22 @@ export default class MapSerializer {
    */
   public export(): string {
     const mapDat = new MapDrawDat();
-    const s = MapTool.getSize();
-    const size = { width: s.x, height: s.y };
+    const size = this.collectSize();
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
     const playerCreatePos = this.collectPlayerPos(this._getPlayerCreate());
     const playerExitPos = this.collectPlayerPos(this._getPlayerExit());
-    const areaInfo = this.collectAreaInfo();
-
     const outDat = {
-      size,
+      "size": size,
       pathPoints,
       rooms,
       playerCreatePos,
-      playerExitPos,
-      areaInfo,
+      playerExitPos
     };
     //补充机制字段
     this.collectOutRoomUnits(outDat);
+    //设置areaInfo
+    outDat["areaInfo"] = this.collectAreaInfo();
 
     mapDat.setDat(outDat);
     return mapDat.createJson();
@@ -120,8 +120,29 @@ export default class MapSerializer {
     return playerNd.addComponentSafe(MapDrawItem).getPos();
   }
 
-  //area信息（ex:5_8）
-  private collectAreaInfo(): number[] {
+  private collectSize() {
+    let res = { width: 0, height: 0 };
+    const prefab = MapDrawTool.instance.getMapBgPrefab()
+    if (!prefab) return res;
+    const handler = prefab.getComponent(MapBgPrefab);
+    if (!handler) return res;
+    const size = handler.getSize();
+    res.width = size.width;
+    res.height = size.height;
+    return res;
+  }
 
+  //area信息（ex:[5,8]）
+  private collectAreaInfo(): number[] {
+    let res = [];
+    const prefab = MapDrawTool.instance.getMapBgPrefab()
+    if (!prefab) return res;
+    const handler = prefab.getComponent(MapBgPrefab);
+    if (!handler) return res;
+    const str = handler.getAreaInfo(this._getLayerMap());
+    str.split("_").forEach(key => {
+      res.push(Number(key));
+    })
+    return res;
   }
 }

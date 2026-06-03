@@ -13,6 +13,7 @@ const { ccclass, property } = cc._decorator;
 export class MapDrawTool extends Singleton<MapDrawTool> {
 
     private _getPathPoints: () => Map<string, cc.Node>;
+    private _mapBgPrefabNd: cc.Node;
 
     public static get instance(): MapDrawTool {
         return super.instance as MapDrawTool;
@@ -27,6 +28,14 @@ export class MapDrawTool extends Singleton<MapDrawTool> {
 
     public getPathPointById(id: string): cc.Node {
         return this._getPathPoints().get(id);
+    }
+
+    public setMapBgPrefab(bgPrefab: cc.Node) {
+        this._mapBgPrefabNd = bgPrefab;
+    }
+
+    public getMapBgPrefab() {
+        return this._mapBgPrefabNd;
     }
 
 }
