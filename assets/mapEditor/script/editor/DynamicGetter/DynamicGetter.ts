@@ -81,6 +81,10 @@ export default class DynamicGetter extends cc.Component {
         return this["dropDownSetting"].json;
     }
 
+    public getExcelJson(jsonName: string) {
+        return this[jsonName]?.json;
+    }
+
     public getSprite(iconPath: string): Promise<cc.SpriteFrame> {
         return new Promise((resolve, reject) => {
             cc.resources.load(iconPath, cc.SpriteFrame, null, (err, spriteFrame) => {

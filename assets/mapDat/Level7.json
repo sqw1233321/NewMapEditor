@@ -898,29 +898,10 @@
             "pathPointIds": [
                 "P0_0"
             ],
-            "unlockType": 11,
             "unlockPointIds": [
                 "P0_0",
                 "P0_1"
             ],
-            "unlockRewards": [
-                {
-                    "rewardId": 115,
-                    "rewardCount": 5
-                },
-                {
-                    "rewardId": 120,
-                    "rewardCount": 10
-                },
-                {
-                    "rewardId": 122,
-                    "rewardCount": 2
-                }
-            ],
-            "unlockNeed": 0,
-            "outSide": true,
-            "addLv": 12,
-            "baseArea": true,
             "doors": [],
             "ladders": [],
             "enemyRefreshDatas": [],

@@ -36,6 +36,10 @@ export interface AttrPanelPropertyType {
     Name: string;
     //对应对象字段
     ClassPropertyName: string;
+    //excel名称，如果有这个字段，就从配置表json中读写字段。而不是地图json
+    ExcelName?: string;
+    //正则表达式（用来将excel字段中的一个字符串转化为一个对象）
+    Regex?: string;
     //属性类型
     Type: AttrCfgTypeEnum;
     //以弹窗模式打开的时候，弹窗的名称

@@ -5,6 +5,7 @@ export default class EditorSetting {
     private _maxScale: number = 1.5;
     private _minScale: number = 0;
     private _autoRename = false;
+    private _stageId: number = 0;
 
     // ===================当前地图数据========================
     private _fileInfo: {
@@ -50,6 +51,18 @@ export default class EditorSetting {
     //获取当前房间数据
     public getFileInfo() {
         return this._fileInfo;
+    }
+
+
+    //======================关卡id相关=================
+    public setStageId(stageId: number) {
+        this._stageId = stageId;
+    }
+
+    public getStageId() {
+        //测试用
+        return 7;
+        return this._stageId;
     }
 
 }

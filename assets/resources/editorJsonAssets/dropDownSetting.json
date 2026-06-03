@@ -5,6 +5,10 @@
             "exportValue": 0
         },
         {
+            "showName": "前置锁定房",
+            "exportValue": 1
+        },
+        {
             "showName": "糯米锁定房",
             "exportValue": 2
         },

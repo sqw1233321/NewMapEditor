@@ -152,9 +152,10 @@ export default class LevelScene extends cc.Component {
     if (CC_BUILD) await MapBgManager.instance.loadMapData();
     //记载机制的json表
     await DynamicGetter.Ins.loadDynamicJson();
-    //自动命名默认为true
-    this.autoRenameTog.isChecked = true;
-    EditorSetting.Instance.setAutoRename(true);
+    //自动命名默认为false
+    this.autoRenameTog.isChecked = false;
+    EditorSetting.Instance.setAutoRename(false);
+    //测试用数据
     if (!CC_BUILD && this.testJson) {
       this.changeMap(JSON.stringify(this.testJson.json), "test.json");
     }
@@ -259,7 +260,7 @@ export default class LevelScene extends cc.Component {
 
   private onMouseWheel(event: cc.Event.EventMouse) {
     const worldPos = event.getLocation();
-    if (!this.isWorldPosInEditorArea(worldPos)) return;
+    if (!this.isWorldPosMapArea(worldPos)) return;
     this.clearHoverDat();
     this.hoverDrawer.clear();
     const delta = event.getScrollY();

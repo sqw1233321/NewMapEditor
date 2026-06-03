@@ -183,6 +183,11 @@ export default class MapDrawItem extends MapDrawItemBase {
     return this._exportName;
   }
 
+  //获取导出给各个excelJson的信息
+  public getExportExcelDat() {
+    return null;
+  }
+
 
   //========工具方法========
 
