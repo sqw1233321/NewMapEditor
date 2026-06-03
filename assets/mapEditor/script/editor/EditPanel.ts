@@ -25,6 +25,9 @@ export default class EditPanel extends cc.Component {
   @property(AttrPanelPrefab)
   prefabAttr: AttrPanelPrefab;
 
+  @property(cc.Node)
+  dropDownLayer: cc.Node;
+
   private _dat;
   private _attrObj: AttrCfgTypes;
 
@@ -51,6 +54,7 @@ export default class EditPanel extends cc.Component {
       this.onChangeAttr,
       this
     )
+    EventManager.instance.on(MapEditorEvent.CreateDropDown, this.setDropDown, this);
   }
 
   protected onDestroy(): void {
@@ -68,7 +72,8 @@ export default class EditPanel extends cc.Component {
     EventManager.instance.off(MapEditorEvent.ClearEditPanel, this.clear, this);
     EventManager.instance.off(AttrPanelEvent.afterEdit,
       this.onChangeAttr,
-      this)
+      this);
+    EventManager.instance.off(MapEditorEvent.CreateDropDown, this.setDropDown, this);
   }
 
 
@@ -78,17 +83,21 @@ export default class EditPanel extends cc.Component {
   }
 
   private refreshAttr(attrDat, trackNd: cc.Node) {
-    if(!trackNd || !cc.isValid(trackNd)){
+    if (!trackNd || !cc.isValid(trackNd)) {
       this.clear();
       return;
     }
     this._dat = attrDat;
     const isNew = attrDat.type !== UnitType.Default && trackNd !== this._trackNd;
-    if (isNew) this._trackNd = trackNd;
+    if (isNew) {
+      this._trackNd = trackNd;
+      this.clearDropDown();
+    }
     this.actNd(isNew);
   }
 
   public clear() {
+    this.clearDropDown();
     this.baseAttr.active = false;
     this.prefabAttr.node.active = false;
   }
@@ -126,6 +135,18 @@ export default class EditPanel extends cc.Component {
       };
       EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
     }
+  }
+
+  //将下拉框设置到这个层级上
+  private setDropDown(dropDownNd: cc.Node, worldPos: cc.Vec2) {
+    this.dropDownLayer.addChild(dropDownNd);
+    const localPos = this.dropDownLayer.convertToNodeSpaceAR(worldPos);
+    dropDownNd.setPosition(localPos);
+  }
+
+  //切换追踪点的收把下拉框也要清理完毕
+  private clearDropDown() {
+    this.dropDownLayer.removeAllChildren();
   }
 
 }

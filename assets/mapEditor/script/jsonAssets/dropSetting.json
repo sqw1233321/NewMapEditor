@@ -1,0 +1,20 @@
+{
+    "unlockType": [
+        {
+            "showName": "普通房",
+            "exportValue": 0
+        },
+        {
+            "showName": "糯米锁定房",
+            "exportValue": 2
+        },
+        {
+            "showName": "奖励锁定房",
+            "exportValue": 11
+        },
+        {
+            "showName": "广告锁定房",
+            "exportValue": 12
+        }
+    ]
+}

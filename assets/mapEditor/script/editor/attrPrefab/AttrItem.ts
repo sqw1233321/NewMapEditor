@@ -1,5 +1,8 @@
+import { MapEditorEvent } from "../../event/eventTypes";
+import { EventManager } from "../../frameWork/EventManager";
 import { NodeUtil } from "../../tool/NodeUtil";
-import { AttrCfgPermissionsEnum, AttrCfgTypeEnum, AttrPanelPropertyType } from "../../type/mapTypes";
+import { AttrCfgDropDownType, AttrCfgPermissionsEnum, AttrCfgTypeEnum, AttrPanelPropertyType } from "../../type/mapTypes";
+import AttrItemDropDown from "./AttrItemDropDown";
 import AttrPanelItemBase from "./AttrPanelItemBase";
 
 const { ccclass, property } = cc._decorator;
@@ -18,6 +21,9 @@ export default class AttrItem extends AttrPanelItemBase {
     @property(cc.EditBox)
     singleLable: cc.EditBox;
 
+    @property(cc.Node)
+    dropDownBtn: cc.Node;
+
     @property(cc.Toggle)
     singleBool: cc.Toggle;
 
@@ -35,6 +41,9 @@ export default class AttrItem extends AttrPanelItemBase {
 
     @property(cc.Node)
     subCont: cc.Node;
+
+    @property(cc.Prefab)
+    dropDownPrefab: cc.Prefab;
 
     //所有子项
     private _subItems: AttrItem[] = [];
@@ -59,6 +68,11 @@ export default class AttrItem extends AttrPanelItemBase {
 
     //是否展示子节点（一开始别赋值啊，有大作用，判断object的arrow显示的时候）
     private _isShowSub: boolean;
+
+    //绑定的下拉框
+    private _dropDownNd: cc.Node;
+    //下拉框偏移量
+    private _dropDownOffsetY = -20;
 
     //描述，父cfg，递归层级，特殊名称（数组index），回调，数据
     public init(cfg: AttrPanelPropertyType, parentItem: AttrItem, layer: number, index: number, cb: any, ...params: any[]): void {
@@ -136,6 +150,7 @@ export default class AttrItem extends AttrPanelItemBase {
         cc.isValid(this.addBtn) && (this.addBtn.active = false);
         cc.isValid(this.deleteBtn) && (this.deleteBtn.active = false);
         cc.isValid(this.hideBtn) && (this.hideBtn.active = false);
+        cc.isValid(this.dropDownBtn) && (this.dropDownBtn.active = false);
     }
 
     private setUI() {
@@ -200,6 +215,26 @@ export default class AttrItem extends AttrPanelItemBase {
         //选点类型打开选点按钮
         if (this._type == AttrCfgTypeEnum.pointArray) {
             this.singleSelectPoint.active = this._canWrite;
+        }
+
+        if (this._type == AttrCfgTypeEnum.dropDownNumber || this._type == AttrCfgTypeEnum.dropDownString) {
+            this.singleLable.node.active = this._canWrite;
+            if (this._canWrite) {
+                this.singleLable.enabled = false;
+                this.singleLable.node.children[1].active = true;
+            }
+            this.dropDownBtn.active = this._canWrite;
+            if (!this._dropDownNd) {
+                this._dropDownNd = cc.instantiate(this.dropDownPrefab);
+                const wolrdPos = this.singleLable.node.convertToWorldSpaceAR(cc.v2(0, this._dropDownOffsetY));
+                EventManager.instance.emit(MapEditorEvent.CreateDropDown, this._dropDownNd, wolrdPos);
+                this._dropDownNd.addComponentSafe(AttrItemDropDown).init(this._cfg, this._dat, () => {
+                    this.setDropDownDat();
+                    this.onAfterEdit();
+                });
+                this._dropDownNd.active = false;
+            }
+            this.setDropDownDat();
         }
 
         //不是最后一层，设置子项
@@ -290,6 +325,13 @@ export default class AttrItem extends AttrPanelItemBase {
         }
     }
 
+    //设置下拉框数据
+    private setDropDownDat() {
+        const showLabel = this.singleLable.node.children[1].getComponent(cc.Label);
+        const dat = this._dropDownNd?.getComponent(AttrItemDropDown)?.getDat();
+        showLabel.string = dat.showName;
+    }
+
     //获得数据
     public getDat() {
         //值类型直接返回值（递归的退出条件）
@@ -298,6 +340,10 @@ export default class AttrItem extends AttrPanelItemBase {
         }
         if (this._type == AttrCfgTypeEnum.number) {
             return Number(this.singleLable.string);
+        }
+        if (this._type == AttrCfgTypeEnum.dropDownNumber || this._type == AttrCfgTypeEnum.dropDownString) {
+            const dat = this._dropDownNd?.getComponent(AttrItemDropDown)?.getDat();
+            return dat?.exportValue ?? "";
         }
         if (this._type == AttrCfgTypeEnum.boolean) {
             return this.singleBool.isChecked;
@@ -328,6 +374,15 @@ export default class AttrItem extends AttrPanelItemBase {
         return resDat;
     }
 
+    protected update(dt: number): void {
+        //下拉框位置的更新
+        if (this._dropDownNd && this._dropDownNd.active) {
+            const worldPos = this.singleLable.node.convertToWorldSpaceAR(cc.v2(0, this._dropDownOffsetY));
+            const dropParent = this._dropDownNd.parent;
+            const localPos = dropParent.convertToNodeSpaceAR(worldPos);
+            this._dropDownNd.setPosition(localPos);
+        }
+    }
 
     //=============内部操作==============
     //获取配置
@@ -423,11 +478,13 @@ export default class AttrItem extends AttrPanelItemBase {
         }
     }
 
+    public onClickDropDownBtn() {
+        const isDropDownType = [AttrCfgTypeEnum.dropDownNumber, AttrCfgTypeEnum.dropDownString].includes(this._type);
+        if (!isDropDownType) return;
+        this._dropDownNd.active = !this._dropDownNd.active;
+    }
+
     //TODO:编辑按钮
     public onClickEditBtn() {
     }
-
-
-
-
 }

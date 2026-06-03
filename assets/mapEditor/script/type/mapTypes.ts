@@ -65,6 +65,15 @@ export enum AttrCfgTypeEnum {
     object = "object",
     point = "point",
     pointArray = "pointArray",
+    //下拉框
+    dropDownNumber = "dropDownNumber",
+    dropDownString = "dropDownString",
     //按钮打开弹窗
     openPop = "openPop",
+}
+
+//下拉框属性规范
+export interface AttrCfgDropDownType {
+    showName: string,
+    exportValue: string | number
 }

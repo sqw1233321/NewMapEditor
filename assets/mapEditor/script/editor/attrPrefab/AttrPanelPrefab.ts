@@ -46,8 +46,6 @@ export default class AttrPanelPrefab extends cc.Component {
         this._properties = this._attrCfg.Properties;
         this._properties = this.checkCondition(this._properties);
 
-        //主要注意维护  this._attrNodeMap
-
         //筛选出需要删除的属性
         const propertyIds = new Set(this._properties.map(p => p.ID));
         const idToRemove: string[] = [];
@@ -87,10 +85,25 @@ export default class AttrPanelPrefab extends cc.Component {
     //获取数据  
     getDat() {
         let dat = {};
+        //先都赋值一遍
         this._attrNodeMap.forEach((value, id) => {
-            const key = this._properties.find(p => p.ID === id)?.ClassPropertyName;
+            //写回数据的时候也要用condition筛选一遍
+            const curProperty = this._properties.find(p => p.ID === id);
+            const key = curProperty?.ClassPropertyName;
             dat[key] = value.getComponent(AttrPanelItemBase).getDat();
         })
+
+        //然后筛选掉不符合条件的东西
+        this._attrNodeMap.forEach((value, id) => {
+            //写回数据的时候也要用condition筛选一遍
+            const curProperty = this._properties.find(p => p.ID === id);
+            const canShow = this.checkConditionById(curProperty, dat);
+            const key = curProperty?.ClassPropertyName;
+            if (!canShow) {
+                dat[key] = curProperty.DefaultValue;
+            }
+        })
+
         return dat;
     }
 
@@ -104,19 +117,25 @@ export default class AttrPanelPrefab extends cc.Component {
         let res = [];
         //TODO:现在只能筛选第一层的东西，
         res = properties.filter(property => {
-            if (!property.Condition) return true;
-            const condition = property.Condition;
-            const isNotEqual = condition.includes("!=");
-            const splitStr = isNotEqual ? "!=" : "=";
-            const conditionProperties = condition.split(splitStr);
-            const targetId = conditionProperties[0];
-            const needValue = conditionProperties[1];
-            const targetProperty = properties.find(p => p.ID === targetId);
-            const targetValue = `${this._dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue}`;
-            //不管什么类型都转化为string，就能直接比较了（感觉会有问题呢）
-            return isNotEqual ? needValue !== targetValue : needValue === targetValue;
+            return this.checkConditionById(property);
         })
         return res;
+    }
+
+    private checkConditionById(property: AttrPanelPropertyType, curDat?) {
+        if (!property.Condition) return true;
+        const dat = curDat ?? this._dat;
+        const condition = property.Condition;
+        const isNotEqual = condition.includes("!=");
+        const splitStr = isNotEqual ? "!=" : "=";
+        const conditionProperties = condition.split(splitStr);
+        const targetId = conditionProperties[0];
+        const needValue = conditionProperties[1];
+        const targetProperty = this._properties.find(p => p.ID === targetId);
+        if (!targetProperty) return false;
+        const targetValue = `${dat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue}`;
+        //不管什么类型都转化为string，就能直接比较了（感觉会有问题呢）
+        return isNotEqual ? needValue !== targetValue : needValue === targetValue;
     }
 
 }

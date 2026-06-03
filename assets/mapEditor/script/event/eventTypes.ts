@@ -16,6 +16,7 @@ export enum MapEditorEvent {
     UpdateFromAttrPanel = "UpdateFromAttrPanel",
     //清除属性面板
     ClearEditPanel = "ClearEditPanel",
+    CreateDropDown = "CreateDropDown",
 
     //当前模式显示
     UpdateCurModeDisplay = "UpdateCurModeDisplay",

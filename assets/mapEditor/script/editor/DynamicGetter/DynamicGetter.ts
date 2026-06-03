@@ -1,3 +1,5 @@
+import { AttrCfgDropDownType } from "../../type/mapTypes";
+
 const { ccclass, property } = cc._decorator;
 
 //动态json获取（TODO:后续这些json会放到外壳中，获取外部生成的接送）
@@ -9,6 +11,9 @@ export default class DynamicGetter extends cc.Component {
 
     @property(cc.JsonAsset)
     itemSetting: cc.JsonAsset;
+
+    @property(cc.JsonAsset)
+    dropDownSetting: cc.JsonAsset;
 
     @property(cc.SpriteFrame)
     defaultSp: cc.SpriteFrame;
@@ -24,6 +29,7 @@ export default class DynamicGetter extends cc.Component {
         const loaders = [
             ['jsonAssets/attrSetting.json', 'attrSetting'],
             ['jsonAssets/itemSetting.json', 'itemSetting'],
+            ['jsonAssets/dropDownSetting.json', 'dropDownSetting'],
         ];
         const results = await Promise.all(
             loaders.map(([fileName, propName]) =>
@@ -45,8 +51,13 @@ export default class DynamicGetter extends cc.Component {
     public getAttrSetting(): any {
         return this.attrSetting.json;
     }
+
     public getItemSetting(): any {
         return this.itemSetting.json;
+    }
+
+    public getDropDownSetting(): any {
+        return this.dropDownSetting.json;
     }
 
     public getSprite(iconPath: string): Promise<cc.SpriteFrame> {
@@ -133,6 +144,24 @@ export default class DynamicGetter extends cc.Component {
 
     public getDefaultSp(): cc.SpriteFrame {
         return this.defaultSp;
+    }
+
+    public getDropSettingByName(propertiesName: string): AttrCfgDropDownType[] {
+        const settings = DynamicGetter.Ins.getDropDownSetting();
+        const setting = settings[`${propertiesName}`];
+        if (setting) {
+            return setting;
+        }
+        return null;
+    }
+
+    public getDropSettingIntemByValue(settings: AttrCfgDropDownType[], value): AttrCfgDropDownType {
+        //注意string和number
+        const item = settings.find((t: AttrCfgDropDownType) => t.exportValue === value);
+        if (item) {
+            return item;
+        }
+        return null;
     }
 
 }
