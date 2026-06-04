@@ -16,6 +16,11 @@ import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 export default class MapInteraction {
   private _mapLoader: cc.Node = null;
   private _mapLoaderComp: MapLoader = null;
+  static ins: MapInteraction = null;
+
+  constructor() {
+    MapInteraction.ins = this;
+  }
 
   public init(mapLoader: cc.Node) {
     this._mapLoader = mapLoader;
@@ -246,8 +251,6 @@ export default class MapInteraction {
     return "";
   }
 
-  // ==================== 梯子同步 ====================
-
   /** 设置节点世界坐标（保持世界位置不变） */
   private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
     if (!node || !node.parent) return;
@@ -286,7 +289,12 @@ export default class MapInteraction {
     let leftNo = Number.NEGATIVE_INFINITY;
     let rightNo = Number.POSITIVE_INFINITY;
 
+    const roomId = draggedNode.getComponent(MapDrawP).getRoomId();
+    const room = this._mapLoaderComp.getRoomNode(roomId);
+    const roomPosY = room.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
+
     pointNodes.forEach((nd) => {
+      if (nd.convertToWorldSpaceAR(cc.Vec2.ZERO).y < roomPosY) return;
       const name = nd?.name || "";
       const mm = /^P(\d+)_(\d+)$/.exec(name);
       if (!mm) return;
@@ -307,7 +315,8 @@ export default class MapInteraction {
 
     const curWorld = draggedNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
     const refWorld = refNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    this.setNodeWorldPos(draggedNode, cc.v2(curWorld.x, refWorld.y));
+    const worldPos = cc.v2(curWorld.x, refWorld.y);
+    draggedNode.setPosition(draggedNode.parent.convertToNodeSpaceAR(worldPos));
   }
 
   /** 根据节点找到所属 Layer */
@@ -324,7 +333,7 @@ export default class MapInteraction {
   public findLayerByRoomCfgId(roomId: number): cc.Node | null {
     if (!isFinite(roomId) || !this._mapLoader) return null;
     const rooms = this._mapLoader.getComponentsInChildren(MapDrawRoom);
-    const room = rooms.find((r) => r && r.getRoomId() === roomId);
+    const room = rooms.find((r) => r && r.getRoomCfgId() === roomId);
     if (!room || !room.node) return null;
     return this.findLayerByNode(room.node);
   }

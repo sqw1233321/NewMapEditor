@@ -34,16 +34,18 @@ export default class HandlerPanel extends cc.Component {
         EventManager.instance.on(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
         EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
         EventManager.instance.on(MapEditorEvent.UpdateFile, this.updateFile, this);
+        EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
     }
 
     protected onDestroy(): void {
         EventManager.instance.off(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
         EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
         EventManager.instance.off(MapEditorEvent.UpdateFile, this.updateFile, this);
+        EventManager.instance.off(MapEditorEvent.ChangeStage, this.updateStageId, this);
     }
 
     public afterEditStageId() {
-        EditorSetting.Instance.setStageId(Number(this.curStageLb.string));
+        EditorSetting.Instance.setStageId(Number(this.curStageEditBox.string));
     }
 
     private setAutoRenameUI() {
@@ -56,6 +58,10 @@ export default class HandlerPanel extends cc.Component {
             return;
         }
         this.curModeLb.string = modeType;
+    }
+
+    private updateStageId(stageId: number) {
+        this.curStageLb.string = stageId.toString();
     }
 
     private updateFile(fileName: string) {
