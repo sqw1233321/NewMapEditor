@@ -77,9 +77,12 @@ export default class MapDrawRoom extends MapDrawItem {
     //==============初始化相关===============
     public init(type: UnitType, uniqueType: number = -1, dat?) {
         let canEditDat = dat;
-        this.handleExcelDat(dat);
-        //筛选可编辑属性
-        if (dat) canEditDat = this.filterAttrDats(dat);
+        if (dat){
+            //填充excel数据
+            this.handleExcelDat(dat);
+               //筛选可编辑属性
+            canEditDat = this.filterAttrDats(dat);
+        }
         super.init(type, uniqueType, canEditDat);
         this._pointCont = this.node.getChildByName("pointCont");
         this._unitCont = this.node.getChildByName("unitCont");

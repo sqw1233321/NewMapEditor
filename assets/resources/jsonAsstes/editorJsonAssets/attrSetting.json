@@ -9,7 +9,7 @@
                     "ClassPropertyName": "name",
                     "ExcelName": "AreaBase",
                     "Type": "string",
-                    "DefaultValue": ""
+                    "DefaultValue": "无用之人"
                 },
                 {
                     "ID": "1",

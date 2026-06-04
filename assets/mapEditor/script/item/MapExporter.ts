@@ -35,6 +35,10 @@ export default class MapExporter {
 
   /** 保存（仅编辑器环境写盘） */
   public save() {
+    //合法性检测
+    const isValid = this._mapLoaderComp.checkMapValid()
+    if (!isValid) return;
+
     //外部json
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
@@ -49,6 +53,9 @@ export default class MapExporter {
 
   /** 导出（保存 + 下载） */
   public export() {
+    //合法性检测
+    const isValid = this._mapLoaderComp.checkMapValid()
+    if (!isValid) return;
     //外部json
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;

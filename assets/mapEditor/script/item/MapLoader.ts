@@ -12,6 +12,7 @@ import { MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapDrawTool } from "./MapDrawTool";
 import { ScriptSystemEvent } from "../event/scriptSystemEvent";
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 
 const { ccclass, property } = cc._decorator;
 
@@ -460,13 +461,22 @@ export default class MapLoader extends cc.Component {
       this.reNameSingleLayerRoom(oldLayerNd);
     }
 
-    //自动命名：重新计算新id
+    //自动命名：重新计算新id（注意重名检测）
     const isAutoName = EditorSetting.Instance.getAutoRename();
+    let isDuplicate = false;
     if (isAutoName) {
       const idx = newLayerRooms.findIndex((r) => r === roomCom);
       if (idx < 0) return;
       const newRoomNo = idx + 1;
-      newCfgId = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
+      const autoName = mapNo * 100 + (layer - 1) * 10 + newRoomNo;
+      //重名检测·
+      isDuplicate = DynamicGetter.Ins.checkRoomDuplicate(autoName);
+      if (isDuplicate) {
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "有重名的房间！！！")
+      }
+      else {
+        newCfgId = autoName;
+      }
     }
 
     // 新房间重新 init
@@ -475,8 +485,8 @@ export default class MapLoader extends cc.Component {
       roomCom.updateRoomId(newCfgId);
       roomCom.changeLayer(layer);
       roomCom.getAttrDat()["pos"] = { x: worldPos.x, y: worldPos.y };
-      //新房间自动命名后也算手动命名
-      if (isAutoName) roomCom.setManulSet(true);
+      //新房间自动命名成功后（重复的话就是没成功）后也算手动命名
+      if (isAutoName && !isDuplicate) roomCom.setManulSet(true);
     }
 
     //维护房间表
@@ -718,6 +728,8 @@ export default class MapLoader extends cc.Component {
       otherNd.getComponent(MapDrawP)?.removeLink(pointNd);
     });
 
+
+    //TODO：这些怎么搞
     // 2) 清理梯子绑定
     this._roomNodeMap.forEach((roomNd) => {
       if (!roomNd || !cc.isValid(roomNd)) return;
@@ -793,6 +805,24 @@ export default class MapLoader extends cc.Component {
         mapDrawRoom.refreshDat();
       });
     });
+  }
+
+  //地图合法性检测
+  public checkMapValid() {
+    let res = true;
+
+    let hasNotManualSet = false;
+    this._roomNodeMap.forEach((roomNd) => {
+      if (!roomNd || !cc.isValid(roomNd)) return;
+      const roomCom = roomNd.getComponent(MapDrawRoom);
+      if (!roomCom.getManulSet()) hasNotManualSet = true;
+    });
+    if (hasNotManualSet) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "有未命名的房间！！！")
+    }
+
+    res = res && hasNotManualSet;
+    return res;
   }
 
   // ==================== Getter ====================
