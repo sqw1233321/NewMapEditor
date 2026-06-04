@@ -22,6 +22,7 @@ export default class CreateFilePop extends PopBase {
     private _dat;
 
     public showPop(dat: { exporter: MapExporter, cb }): void {
+        super.showPop();
         this._dat = dat;
         this.fileNameEdit.string = 'newMap';
         this.sizeX.string = `2906`;
@@ -30,7 +31,7 @@ export default class CreateFilePop extends PopBase {
 
     //选择现有图片集
     public onClickSelectBg() {
-        PopManager.ins.showPopUp(PopUid.ChangeBgPop);
+        EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.ChangeBgPop)
     }
 
 

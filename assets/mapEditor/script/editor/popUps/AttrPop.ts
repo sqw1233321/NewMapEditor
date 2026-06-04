@@ -22,6 +22,7 @@ export default class AttrPop extends PopBase {
     private _dat;
 
     public showPop(...params): void {
+        super.showPop();
         this._dat = params;
         this.setUI();
     }

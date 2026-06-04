@@ -1,3 +1,5 @@
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
 import PopBase from "./PopBase";
 import { PopLayerType, PopConfig, PopUid } from "./PopConfigs";
 
@@ -8,28 +10,36 @@ export default class PopManager extends cc.Component {
     @property(cc.Node)
     popLayer: cc.Node = null;
 
-    static ins: PopManager;
-
     // 待处理的弹窗队列
     private _pendingQueue: { uid: PopUid, params: any[] }[] = [];
 
     // 已加载的弹窗缓存
     private _loadedPops: Map<PopUid, cc.Node> = new Map();
 
-    // 当前正在显示的弹窗
-    private _currentPop: cc.Node = null;
+    //当前的所有pop
+    private _currAllPop: {
+        layer: PopLayerType,
+        pop: cc.Node[]
+    }[] = [];
 
     protected onLoad(): void {
-        PopManager.ins = this;
+        EventManager.instance.on(MapEditorEvent.ShowPop, this.showPopUp, this);
+        EventManager.instance.on(MapEditorEvent.HidePop, this.hidePopUp, this);
+    }
+
+    protected onDestroy(): void {
+        EventManager.instance.off(MapEditorEvent.ShowPop, this.showPopUp, this);
+        EventManager.instance.off(MapEditorEvent.HidePop, this.hidePopUp, this);
     }
 
     /**
       * 打开弹窗（加入队列，不会重复打开）
       */
-    public showPopUp(uid: PopUid, ...params: any[]) {
+    private showPopUp(uid: PopUid, ...params: any[]) {
         // 已经在队列中或正在显示，直接忽略
-        if (this._pendingQueue.some(item => item.uid === uid) ||
-            (this._currentPop && this._loadedPops.get(uid) === this._currentPop)) {
+        const isInQueue = this._pendingQueue.some(item => item.uid === uid);
+        const isInShow = this.IsInCurPop(uid);
+        if (isInQueue || isInShow) {
             return;
         }
 
@@ -59,14 +69,11 @@ export default class PopManager extends cc.Component {
         const pop = this._loadedPops.get(uid);
         if (pop) {
             pop.active = false;
+            //维护当前弹窗
+            this.deletePop(uid, pop);
             if (destroy) {
                 pop.destroy();
                 this._loadedPops.delete(uid);
-            }
-            //维护当前弹窗字段
-            const curUid = this._currentPop.getComponent(PopBase).getPopUid();
-            if (curUid === uid) {
-                this._currentPop = null;
             }
         }
         // 触发加载下一个
@@ -127,26 +134,33 @@ export default class PopManager extends cc.Component {
         const pop = this._loadedPops.get(uid);
         if (!pop) return;
 
-        this._currentPop = pop;
-        this._currentPop.active = true;
-
-        // 调用弹窗的 showPop 方法
-        const popComponent = this._currentPop.getComponent("BasePop");
-        if (popComponent && typeof popComponent.showPop === "function") {
-            popComponent.showPop(...params);
+        this.registerPop(uid, pop);
+        const currentPop = this.getCurPopByUid(uid);
+        //当前层的最新pop
+        if (currentPop) {
+            const parent = this.getParentByUid(uid);
+            //刷新一次层级关系
+            // if (parent) {
+            //     const curLayerNds = this.getAllPopByUid(uid);
+            //     parent.children.forEach((popNd: cc.Node) => {
+            //         const uid = popNd.getComponent(PopBase).getPopUid();
+            //         const count = curLayerNds.length;
+            //         const curIndex = curLayerNds.findIndex(nd => nd.getComponent(PopBase).getPopUid() === uid)
+            //         popNd.setSiblingIndex(count - curIndex - 1);
+            //     })
+            // }
+            currentPop.active = true;
+            const handler = currentPop.getComponent(PopBase);
+            if (handler && !handler.getIsInit()) {
+                handler.showPop(...params);
+            }
         }
     }
 
-    public getPopNd(uid: PopUid): cc.Node {
-        const pop = this._loadedPops.get(uid);
-        if (!pop) return;
-
-        if (this._currentPop.getComponent(PopBase).getPopUid() != uid) {
-            console.log("要获取的弹窗不是当前弹窗");
-            return;
-        }
-
-        return this._currentPop;
+    private getParentByUid(popUid: PopUid) {
+        const cfg = PopConfig[popUid];
+        if (!cfg) return;
+        return this.getParent(cfg.layer);
     }
 
     private getParent(layer: PopLayerType) {
@@ -156,5 +170,66 @@ export default class PopManager extends cc.Component {
             default:
                 return this.popLayer;
         }
+    }
+
+    //=============维护当前弹窗队列==================
+    private registerPop(popUid: PopUid, pop: cc.Node) {
+        const cfg = PopConfig[popUid];
+        if (!cfg) return;
+        const curLayerInfo = this._currAllPop.find(item => item.layer === cfg.layer);
+        if (!curLayerInfo) {
+            this._currAllPop.push({
+                layer: cfg.layer,
+                pop: [pop]
+            });
+        } else {
+            curLayerInfo.pop.push(pop);
+        }
+    }
+
+    private deletePop(popUid: PopUid, pop: cc.Node) {
+        const cfg = PopConfig[popUid];
+        if (!cfg) return;
+        const curLayerInfo = this._currAllPop.find(item => item.layer === cfg.layer);
+        if (!curLayerInfo) {
+            return;
+        }
+        curLayerInfo.pop = curLayerInfo.pop.filter(item => item !== pop);
+        if (curLayerInfo.pop.length === 0) {
+            this._currAllPop = this._currAllPop.filter(item => item.layer !== cfg.layer);
+        }
+
+    }
+
+    private getCurPopByUid(uid: PopUid): cc.Node {
+        const cfg = PopConfig[uid];
+        if (!cfg) return null;
+        return this.getCurPopByLayer(cfg.layer);
+    }
+
+
+    private getCurPopByLayer(layer: PopLayerType): cc.Node {
+        const curLayerInfo = this._currAllPop.find(item => item.layer === layer);
+        if (!curLayerInfo) return null;
+        const popCount = curLayerInfo.pop.length;
+        if (popCount === 0) return null;
+        return curLayerInfo.pop[popCount - 1];
+    }
+
+    //当前uid的弹窗是否在当前显示队列中
+    private IsInCurPop(uid: PopUid) {
+        return this._currAllPop.some(item => item.pop.some(pop => pop.getComponent(PopBase).getPopUid() === uid));
+    }
+
+    private getAllPopByUid(uid: PopUid): cc.Node[] {
+        const cfg = PopConfig[uid];
+        if (!cfg) return [];
+        return this.getAllPopByLayer(cfg.layer);
+    }
+
+    private getAllPopByLayer(layer: PopLayerType): cc.Node[] {
+        const curLayerInfo = this._currAllPop.find(item => item.layer === layer);
+        if (!curLayerInfo) return [];
+        return curLayerInfo.pop;
     }
 }

@@ -622,7 +622,7 @@ export default class LevelScene extends cc.Component {
 
   //新建
   public async onClickCreate() {
-    PopManager.ins.showPopUp(PopUid.CreateFilePop, {
+    EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.CreateFilePop, {
       exporter: this._mapExporter, cb: async (jsonContent, fileName) => {
         await this.changeMap(jsonContent, fileName);
       }
@@ -631,8 +631,7 @@ export default class LevelScene extends cc.Component {
 
   //更换背景
   public async onClickChangeBg() {
-    //打开弹窗
-    PopManager.ins.showPopUp(PopUid.ChangeBgPop);
+    EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.ChangeBgPop);
   }
 
   //导入

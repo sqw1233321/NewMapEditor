@@ -34,6 +34,8 @@ export enum MapEditorEvent {
     //============通用相关==============
     //显示弹窗
     ShowPop = "ShowPop",
+    //隐藏弹窗
+    HidePop = "HidePop",
     //显示tip
     ShowTip = "ShowTip"
 }
