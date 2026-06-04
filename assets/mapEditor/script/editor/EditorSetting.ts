@@ -1,3 +1,6 @@
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
+
 export default class EditorSetting {
     private static _ins: EditorSetting;
 
@@ -30,6 +33,8 @@ export default class EditorSetting {
         return EditorSetting._ins;
     }
 
+    //==============地图缩放================
+
     public setMinScale(minScale: number) {
         this._minScale = minScale;
     }
@@ -42,15 +47,18 @@ export default class EditorSetting {
         this._scale = Math.max(this._minScale, Math.min(this._maxScale, scale));
     }
 
+    //==============自动命名================
     public setAutoRename(auto: boolean) {
         this._autoRename = auto;
+        EventManager.instance.emit(MapEditorEvent.UpdateAutoRename, auto);
     }
 
     public getAutoRename() {
         return this._autoRename;
     }
 
-    //设置当前地图数据
+
+    //===================地图数据相关=================
     public setFileInfo(fileInfo: {
         fileName: string,
         fileJson: string
@@ -58,7 +66,6 @@ export default class EditorSetting {
         this._fileInfo = fileInfo;
     }
 
-    //获取当前房间数据
     public getFileInfo() {
         return this._fileInfo;
     }
@@ -67,11 +74,10 @@ export default class EditorSetting {
     //======================关卡id相关=================
     public setStageId(stageId: number) {
         this._stageId = stageId;
+        EventManager.instance.emit(MapEditorEvent.ChangeStage, this._stageId);
     }
 
     public getStageId() {
-        //测试用
-        return 7;
         return this._stageId;
     }
 

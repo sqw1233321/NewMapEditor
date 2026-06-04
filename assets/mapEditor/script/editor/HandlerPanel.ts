@@ -5,24 +5,60 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
-const {ccclass, property} = cc._decorator;
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
+import { ModeType } from "../type/types";
+import EditorSetting from "./EditorSetting";
+
+const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class HandlerPanel extends cc.Component {
+
+    @property(cc.EditBox)
+    curStageEditBox: cc.EditBox;
 
     @property(cc.Label)
-    label: cc.Label = null;
+    curStageLb: cc.Label;
 
-    @property
-    text: string = 'hello';
+    @property(cc.Label)
+    mapNameLb: cc.Label;
 
-    // LIFE-CYCLE CALLBACKS:
+    @property(cc.Label)
+    curModeLb: cc.Label;
 
-    // onLoad () {}
+    @property(cc.Toggle)
+    autoRenameTog: cc.Toggle;
 
-    start () {
-
+    protected onLoad(): void {
+        EventManager.instance.on(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
+        EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
+        EventManager.instance.on(MapEditorEvent.UpdateFile, this.updateFile, this);
     }
 
-    // update (dt) {}
+    protected onDestroy(): void {
+        EventManager.instance.off(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
+        EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
+        EventManager.instance.off(MapEditorEvent.UpdateFile, this.updateFile, this);
+    }
+
+    public afterEditStageId() {
+        EditorSetting.Instance.setStageId(Number(this.curStageLb.string));
+    }
+
+    private setAutoRenameUI() {
+        this.autoRenameTog.isChecked = EditorSetting.Instance.getAutoRename();
+    }
+
+    private updateCurModeDisplay(modeType: ModeType) {
+        if (!modeType) {
+            this.curModeLb.string = "无模式";
+            return;
+        }
+        this.curModeLb.string = modeType;
+    }
+
+    private updateFile(fileName: string) {
+        this.mapNameLb.string = fileName;
+    }
 }

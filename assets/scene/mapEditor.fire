@@ -10530,8 +10530,15 @@
       "__id__": 115
     },
     "_enabled": true,
-    "label": null,
-    "text": "hello",
+    "curModeLb": {
+      "__id__": 206
+    },
+    "autoRenameTog": {
+      "__id__": 173
+    },
+    "fileNameLb": {
+      "__id__": 163
+    },
     "_id": "69onKxFcJC86w3qFzuscxY"
   },
   {
@@ -13234,15 +13241,6 @@
     },
     "hoverDrawer": {
       "__id__": 18
-    },
-    "curModeLb": {
-      "__id__": 206
-    },
-    "autoRenameTog": {
-      "__id__": 173
-    },
-    "fileNameLb": {
-      "__id__": 163
     },
     "magBgPrefab": {
       "__uuid__": "2f15496c-dab5-48f4-a8e6-cf8064d3bd19"

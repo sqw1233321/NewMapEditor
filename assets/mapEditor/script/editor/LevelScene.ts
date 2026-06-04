@@ -58,14 +58,6 @@ export default class LevelScene extends cc.Component {
   @property(HoverDrawer)
   hoverDrawer: HoverDrawer;
 
-  @property(cc.Label)
-  curModeLb: cc.Label;
-
-  @property(cc.Toggle)
-  autoRenameTog: cc.Toggle;
-
-  @property(cc.Label)
-  fileNameLb: cc.Label;
 
   @property(cc.Prefab)
   magBgPrefab: cc.Prefab;
@@ -110,18 +102,6 @@ export default class LevelScene extends cc.Component {
     this.node.on(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
     this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
-    EventManager.instance.on(
-      MapEditorEvent.UpdateCurModeDisplay,
-      this.updateCurModeDisplay,
-      this
-    );
-
-    EventManager.instance.on(
-      MapEditorEvent.UpdateFile,
-      this.updateFile,
-      this
-    );
-
     EventManager.instance.on(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
 
     // 初始化键盘输入处理
@@ -153,7 +133,6 @@ export default class LevelScene extends cc.Component {
     //记载机制的json表
     await DynamicGetter.Ins.loadDynamicJson();
     //自动命名默认为false
-    this.autoRenameTog.isChecked = false;
     EditorSetting.Instance.setAutoRename(false);
     //测试用数据
     if (!CC_BUILD && this.testJson) {
@@ -169,18 +148,6 @@ export default class LevelScene extends cc.Component {
     this.node.off(cc.Node.EventType.MOUSE_MOVE, this.onMouseMove, this);
     this.node.off(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
-    EventManager.instance.off(
-      MapEditorEvent.UpdateCurModeDisplay,
-      this.updateCurModeDisplay,
-      this
-    );
-
-    EventManager.instance.off(
-      MapEditorEvent.UpdateFile,
-      this.updateFile,
-      this
-    );
-
     EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
 
     this._keyInputHandler?.stopListen();
@@ -199,13 +166,6 @@ export default class LevelScene extends cc.Component {
     this.mapLoader.setPosition(localPos);
   }
 
-  private updateCurModeDisplay(modeType: ModeType) {
-    if (!modeType) {
-      this.curModeLb.string = "无模式";
-      return;
-    }
-    this.curModeLb.string = modeType;
-  }
 
   // ==================== 区域判断 ====================
 
@@ -747,25 +707,23 @@ export default class LevelScene extends cc.Component {
     EditorSetting.Instance.setAutoRename(event.isChecked);
   }
 
-  private updateFile(fileName: string) {
-    this.fileNameLb.string = fileName;
-  }
 
   //切换地图
   private async changeMap(jsonContent: string, fileName: string) {
     //设置当前地图数据
+    const name = fileName.split(".")[0];
     EditorSetting.Instance.setFileInfo({
       //去掉.json
-      fileName: fileName.split(".")[0],
+      fileName: name.split(".")[0],
       fileJson: jsonContent,
     })
+    EventManager.instance.emit(MapEditorEvent.UpdateFile, name);
     const mapDat = JSON.parse(jsonContent);
     //初始化工具类
     const width = mapDat.size.width;
     const height = mapDat.size.height;
     //可能之前有些地图数据是错的（字符串类型），这里纠正一下类型
     MapTool.init(this.mapLoader, cc.v2(Number(width), Number(height)));
-
     //设置地图缩放范围
     const graphSize = this.mapGraph.getContentSize();
     const scaleX = graphSize.width / width;
@@ -797,8 +755,9 @@ export default class LevelScene extends cc.Component {
     }
     const mapBg = this.mapCanvasNd.children[0];
     // 从 MapBgManager 获取当前地图对应的背景图数据
-    const mapDta = this.fileNameLb.string ?? "Level1";
-    const bgData = await MapBgManager.instance.loadBgByMapDta(mapDta);
+    const mapDatName = EditorSetting.Instance.getFileInfo()?.fileName;
+    const bgData = await MapBgManager.instance.loadBgByMapDta(mapDatName);
+    if (!bgData) return;
     const mapBgHandler = mapBg.getComponent(MapBgPrefab);
     mapBgHandler?.init(bgData);
     const size = mapBgHandler.getSize();

@@ -15,6 +15,10 @@ export enum MapEditorEvent {
     SelectPointClick = "SelectPointClick",
     //当前模式显示
     UpdateCurModeDisplay = "UpdateCurModeDisplay",
+    //自动命名
+    UpdateAutoRename = "UpdateAutoRename",
+    //切换关卡
+    ChangeStage = "ChangeStage",
 
     //==========属性面板相关==============
     //刷新属性面板
