@@ -821,7 +821,7 @@ export default class MapLoader extends cc.Component {
   private changeFileName(fileName: string) {
     this._fileName = fileName;
     EventManager.instance.emit(
-      MapEditorEvent.updateFile,
+      MapEditorEvent.UpdateFile,
       fileName
     );
   }

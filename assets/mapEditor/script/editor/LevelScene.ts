@@ -117,7 +117,7 @@ export default class LevelScene extends cc.Component {
     );
 
     EventManager.instance.on(
-      MapEditorEvent.updateFile,
+      MapEditorEvent.UpdateFile,
       this.updateFile,
       this
     );
@@ -176,7 +176,7 @@ export default class LevelScene extends cc.Component {
     );
 
     EventManager.instance.off(
-      MapEditorEvent.updateFile,
+      MapEditorEvent.UpdateFile,
       this.updateFile,
       this
     );

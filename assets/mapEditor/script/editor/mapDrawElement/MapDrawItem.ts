@@ -200,7 +200,6 @@ export default class MapDrawItem extends MapDrawItemBase {
       console.warn(`[AttrMgr] 未找到 ClassName: ${className}`);
       return {};
     }
-
     return this.generateDefaultData(typeConfig);
   }
 

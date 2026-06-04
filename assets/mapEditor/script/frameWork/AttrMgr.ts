@@ -98,7 +98,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
                 const hasNd = this._mapLoader.getRoomNode(newCfgId) || DynamicGetter.Ins.checkRoomDuplicate(newCfgId);
                 if (newCfgId != oldCfgId && hasNd) {
-                    console.log("有重名的房间！！！");
+                    EventManager.instance.emit(MapEditorEvent.ShowTip, "有重名的房间！！！")
                     newCfgId = oldCfgId;
                     dat.cfgId = oldCfgId;
                 }

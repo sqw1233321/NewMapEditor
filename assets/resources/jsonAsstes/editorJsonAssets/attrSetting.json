@@ -4,6 +4,14 @@
             "ClassName": "Room",
             "Properties": [
                 {
+                    "ID": "0",
+                    "Name": "描述",
+                    "ClassPropertyName": "name",
+                    "ExcelName": "AreaBase",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
                     "ID": "1",
                     "Name": "配置名称",
                     "ClassPropertyName": "cfgId",
@@ -383,6 +391,14 @@
                     ]
                 }
             ]
+        },
+        {
+            "ClassName": "SluiceGate",
+            "Properties": []
+        },
+        {
+            "ClassName": "Lava",
+            "Properties": []
         }
     ]
 }

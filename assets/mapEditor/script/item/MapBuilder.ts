@@ -250,7 +250,7 @@ export default class MapBuilder {
         const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
         itemNd.setAnchorPoint(anchor[0], anchor[1]);
         itemNd.groupIndex = groupIndex;
-        itemNd.name = `Mechanism${key}`;
+        itemNd.name = `${type}`;
         itemNd.parent = outRoomUnitCont;
         const pos = dat["pos"];
         if (pos) {
