@@ -301,37 +301,30 @@ export default class MapDrawRoom extends MapDrawItem {
         const dat = excelDat[`${key}`];
         if (!dat) return;
         const propertyDat = dat[`${p.ClassPropertyName}`];
-        if (propertyDat == null) return;
-        const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
-        //值类型
-        if (!isArr) {
-            editDat[p.ClassPropertyName] = propertyDat;
-            return;
-        }
-        // 引用类型进行正则匹配
+        if (propertyDat == null || propertyDat == "") return;
+        //解析字段内容
         editDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
     }
 
     private parseObj(excelStr: string, p: AttrPanelPropertyType): any {
         const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
         if (!isArr) {
-            if (p.Type == AttrCfgTypeEnum.number) return Number(excelStr);
-            if (p.Type == AttrCfgTypeEnum.string) return excelStr;
-            if (p.Type == AttrCfgTypeEnum.boolean) return excelStr == "true";
+            if (p.Type == AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(excelStr);
+            if (p.Type == AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return excelStr;
+            if (p.Type == AttrCfgTypeEnum.boolean) return Number(excelStr) == 1;
         }
-        const regex = p.Regex;
-        if (!regex) return;
+        const splitSymbol = p.Split;
+        if (!splitSymbol) return;
         let res;
+        const datArr = excelStr.split(splitSymbol);
         if (p.Type == AttrCfgTypeEnum.array) {
             res = []
-            const datArr = excelStr.match(new RegExp(regex, "g"));
             datArr.forEach((dat) => {
                 res.push(this.parseObj(dat, p.Properties[0]));
             })
         }
         if (p.Type == AttrCfgTypeEnum.object) {
             res = {}
-            const datArr = excelStr.match(new RegExp(regex, "g"));
             datArr.forEach((dat, index) => {
                 res[p.Properties[index].ClassPropertyName] = this.parseObj(dat, p.Properties[index]);
             })
@@ -344,7 +337,7 @@ export default class MapDrawRoom extends MapDrawItem {
         const exportDat = super.getExportDat();
         let dat = {}
         //筛选出在excel中的数据
-        Object.keys(dat).forEach((key) => {
+        Object.keys(exportDat).forEach((key) => {
             if (!this.isPorperTyExcel(key)) return;
             dat[key] = exportDat[key];
         });
@@ -352,54 +345,34 @@ export default class MapDrawRoom extends MapDrawItem {
         Object.keys(dat).forEach((key) => {
             const properTy = DynamicGetter.Ins.getAttrSetting().typeArr.find((t: AttrCfgType) => t.ClassName == UnitType.Room).Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName == key);
             if (!properTy) return;
-            const isArr = properTy.Type == AttrCfgTypeEnum.array || properTy.Type == AttrCfgTypeEnum.object;
-            if (!isArr) {
-                resDat.push({
-                    excelName: properTy.ExcelName,
-                    id: this.getMainKey(properTy.ExcelName, this._canEditdat),
-                    itemName: key,
-                    itemValue: dat[key]
-                });
-            }
-            const itemValue = this.objToString(dat[key], properTy, dat[key]);
+            const itemValue = this.objToString(dat[key], properTy);
             resDat.push({
                 excelName: properTy.ExcelName,
                 id: this.getMainKey(properTy.ExcelName, this._canEditdat),
                 itemName: key,
                 itemValue: itemValue
             });
-
         });
         return resDat;
     }
 
-    private getSeparatorFromOriginal(originalStr: string, regex: string): string {
-        const matches = originalStr.match(new RegExp(regex, "g"));
-        if (!matches || matches.length <= 1) return "";
-        const firstMatch = matches[0];
-        const lastMatch = matches[matches.length - 1];
-        const lastIndex = originalStr.lastIndexOf(lastMatch);
-        const between = originalStr.substring(originalStr.indexOf(firstMatch) + firstMatch.length, lastIndex);
-        return between.substring(0, between.indexOf(matches[1]));
-    }
-    private objToString(data: any, p: AttrPanelPropertyType, originalStr: string = ""): any {
-        const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
-        // 值类型直接返回
-        if (!isArr) {
-            return String(data);
+    private objToString(data: any, p: AttrPanelPropertyType): any {
+        const isCompositeType = p.Type === AttrCfgTypeEnum.array || p.Type === AttrCfgTypeEnum.object;
+        if (!isCompositeType) {
+            if (p.Type === AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(data);
+            if (p.Type === AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return data;
+            if (p.Type === AttrCfgTypeEnum.boolean) return data === "true";
         }
-        if (p.Type == AttrCfgTypeEnum.array) {
+        if (p.Type === AttrCfgTypeEnum.array) {
             const subP = p.Properties[0];
-            const parts = (data as any[]).map(item => this.objToString(item, subP, originalStr));
-            const separator = this.getSeparatorFromOriginal(originalStr, p.Regex);
-            return parts.join(separator);
+            const res = (data as any[]).map(item => this.objToString(item, subP)).join(p.Split);
+            return res;
         }
-        if (p.Type == AttrCfgTypeEnum.object) {
-            const parts: string[] = [];
-            p.Properties.forEach((prop: AttrPanelPropertyType) => {
-                parts.push(this.objToString(data[prop.ClassPropertyName], prop, originalStr));
-            });
-            return parts.join("");
+        if (p.Type === AttrCfgTypeEnum.object) {
+            const res = p.Properties
+                .map((prop: AttrPanelPropertyType) => this.objToString(data[prop.ClassPropertyName], prop))
+                .join(p.Split);
+            return res;
         }
     }
 

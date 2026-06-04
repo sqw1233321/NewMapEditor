@@ -5,6 +5,7 @@ declare global {
             openFileDialog: () => Promise<any>;
             createFile: (fileName: string, jsonContent: string) => Promise<any>;
             readFile: (filePath: string) => Promise<any>;
+            readFolder: (folderPath: string) => Promise<any>;
             selectAtlasFolder: () => Promise<{ success: boolean; path?: string }>;
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;

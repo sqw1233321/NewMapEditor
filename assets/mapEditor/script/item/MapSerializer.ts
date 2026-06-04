@@ -57,9 +57,25 @@ export default class MapSerializer {
     this.collectOutRoomUnits(outDat);
     //设置areaInfo
     outDat["areaInfo"] = this.collectAreaInfo();
-
     mapDat.setDat(outDat);
     return mapDat.createJson();
+  }
+
+  //导出excel配置
+  public exportExcel(): {
+    excelName: string;
+    id: number;
+    itemName: string;
+    itemValue: any;
+  }[][] {
+    const excelSetingInfo = [];
+    const roomNodeMap = this._getRoomNodes();
+    roomNodeMap.forEach((room) => {
+      const handler = room.addComponentSafe(MapDrawRoom);
+      excelSetingInfo.push(handler.getExportExcelDat());
+    });
+    return excelSetingInfo;
+
   }
 
   // ==================== 收集方法 ====================
@@ -95,16 +111,15 @@ export default class MapSerializer {
   private collectRooms(): MapDrawDatRoom[] {
     const rooms = [];
     const roomNodeMap = this._getRoomNodes();
-
     roomNodeMap.forEach((room) => {
-      rooms.push(room.addComponentSafe(MapDrawRoom).getExportDat());
+      const handler = room.addComponentSafe(MapDrawRoom);
+      rooms.push(handler.getExportDat());
     });
-
     rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));
     return rooms;
   }
 
-  private collectOutRoomUnits(outDat: any): {} {
+  private collectOutRoomUnits(outDat: any) {
     const outRoomUnits = this._getOutRoomUnits();
     outRoomUnits.children.forEach((unit) => {
       const controller = unit.getComponent(MapDrawItem);

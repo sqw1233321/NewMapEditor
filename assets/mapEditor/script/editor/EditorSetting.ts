@@ -7,6 +7,16 @@ export default class EditorSetting {
     private _autoRename = false;
     private _stageId: number = 0;
 
+    //内部json相对路径
+    static get EditorJsonPath() {
+        return "jsonAsstes/editorJsonAssets/";
+    }
+
+    //外部json相对路径
+    static get OuterJsonPath() {
+        return "jsonAsstes/outerJsonAssets/";
+    }
+
     // ===================当前地图数据========================
     private _fileInfo: {
         fileName: string,

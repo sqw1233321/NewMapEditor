@@ -89,7 +89,7 @@
                     "Name": "怪物信息",
                     "ClassPropertyName": "startMonster",
                     "ExcelName": "AreaMonster",
-                    "Regex": "\\d+_\\d+_\\d+",
+                    "Split": "|",
                     "Type": "array",
                     "DefaultValue": [],
                     "Properties": [
@@ -97,7 +97,7 @@
                             "ID": "8-1",
                             "Type": "object",
                             "DefaultValue": {},
-                            "Regex": "\\d+",
+                            "Split": "_",
                             "Properties": [
                                 {
                                     "ID": "8-1-1",
@@ -155,7 +155,7 @@
             "Properties": [
                 {
                     "ID": "1",
-                    "Name": "房间id",
+                    "Name": "房间id(不可手动修改)",
                     "ClassPropertyName": "roomId",
                     "Type": "number",
                     "PERMISSIONS": "readonly",
@@ -232,6 +232,30 @@
                     "ClassPropertyName": "isExitLadder",
                     "Type": "boolean",
                     "DefaultValue": false
+                },
+                {
+                    "ID": "4",
+                    "Name": "解锁方法（禁用）",
+                    "PERMISSIONS": "readonly",
+                    "ClassPropertyName": "unlockMethod",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "5",
+                    "Name": "解锁消耗（禁用）",
+                    "PERMISSIONS": "readonly",
+                    "ClassPropertyName": "unlockCost",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "6",
+                    "Name": "显示类型（禁用）",
+                    "PERMISSIONS": "readonly",
+                    "ClassPropertyName": "showType",
+                    "Type": "number",
+                    "DefaultValue": 0
                 }
             ]
         },
@@ -308,6 +332,13 @@
                     "ClassPropertyName": "weight",
                     "Type": "number",
                     "DefaultValue": 0
+                },
+                {
+                    "ID": "3",
+                    "Name": "教程战魂",
+                    "ClassPropertyName": "isGuide",
+                    "Type": "boolean",
+                    "DefaultValue": false
                 }
             ]
         },

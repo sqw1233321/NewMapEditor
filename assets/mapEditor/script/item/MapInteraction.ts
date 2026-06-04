@@ -7,6 +7,7 @@ import { DragType, HoverType } from "../type/types";
 import { UnitType } from "../type/mapTypes";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import HoverDrawer from "../editor/HoverDrawer";
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 
 /**
  * 地图交互辅助类
@@ -344,6 +345,6 @@ export default class MapInteraction {
 
   /** 判断目标类型是否是房间外物品 */
   public isOutRoomUnitType(type: UnitType): boolean {
-    return [UnitType.Portal, UnitType.Cable, UnitType.Stone].includes(type);
+    return !(DynamicGetter.Ins.getItemSettingByUnitType(type)?.InRoom ?? false);
   }
 }

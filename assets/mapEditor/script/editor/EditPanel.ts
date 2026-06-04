@@ -6,9 +6,6 @@ import AttrPanelBase from "./attrPrefab/BaseAttrPanel";
 import BaseAttrPanel from "./attrPrefab/BaseAttrPanel";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
 
-
-
-
 const { ccclass, property } = cc._decorator;
 
 //属性面板自用事件
@@ -135,6 +132,10 @@ export default class EditPanel extends cc.Component {
       };
       EventManager.instance.emit(MapEditorEvent.UpdateFromAttrPanel, uniqueAttrDat);
     }
+  }
+
+  public onChangeBase() {
+    this.onChangeAttr(UnitType.Default);
   }
 
   //将下拉框设置到这个层级上

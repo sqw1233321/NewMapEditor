@@ -11545,11 +11545,11 @@
   {
     "__type__": "cc.ClickEvent",
     "target": {
-      "__id__": 221
+      "__id__": 218
     },
     "component": "",
-    "_componentId": "fefecrl5bNFVLn7godW+kkO",
-    "handler": "onAfterEdit",
+    "_componentId": "02b1ejPvg9JUbGz3ibRihtm",
+    "handler": "onChangeBase",
     "customEventData": "0"
   },
   {
@@ -12035,11 +12035,11 @@
   {
     "__type__": "cc.ClickEvent",
     "target": {
-      "__id__": 221
+      "__id__": 218
     },
     "component": "",
-    "_componentId": "fefecrl5bNFVLn7godW+kkO",
-    "handler": "onAfterEdit",
+    "_componentId": "02b1ejPvg9JUbGz3ibRihtm",
+    "handler": "onChangeBase",
     "customEventData": "0"
   },
   {

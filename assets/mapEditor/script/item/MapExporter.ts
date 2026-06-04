@@ -1,3 +1,4 @@
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import EditorSetting from "../editor/EditorSetting";
 import MapLoader from "./MapLoader";
 
@@ -34,6 +35,12 @@ export default class MapExporter {
 
   /** 保存（仅编辑器环境写盘） */
   public save() {
+    //外部json
+    const excelJson = this._mapLoaderComp?.saveExcelDat();
+    if (!excelJson) return;
+    this.updateExcelJson(excelJson);
+    this.persistToDiskExcel(excelJson);
+    //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
     this.updateLevelJson(json);
@@ -42,6 +49,12 @@ export default class MapExporter {
 
   /** 导出（保存 + 下载） */
   public export() {
+    //外部json
+    const excelJson = this._mapLoaderComp?.saveExcelDat();
+    if (!excelJson) return;
+    this.updateExcelJson(excelJson);
+    this.persistToDiskExcel(excelJson);
+    //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
     this.updateLevelJson(json);
@@ -49,7 +62,12 @@ export default class MapExporter {
     this.downloadJson();
   }
 
-  // ==================== 私有方法 ====================
+  private updateExcelJson(excelSetingInfo: any[]) {
+    if (!excelSetingInfo || excelSetingInfo.length === 0) return;
+    excelSetingInfo.forEach((item) => {
+      DynamicGetter.Ins.writeExcelJson(item);
+    });
+  }
 
   /** 更新内存中的 levelJson 对象 */
   private updateLevelJson(json: string) {
@@ -66,18 +84,54 @@ export default class MapExporter {
     if (!fileInfo) return;
     const levelJson = fileInfo.fileJson;
     if (!levelJson) return;
-    // Electron IPC 方式（web-desktop + Electron）
-    if (typeof window.electronAPI !== "undefined") {
+    if (CC_BUILD) {
       console.log("开始保存");
       const fileName = this._mapLoaderComp.getFileName();
       console.log("准备写入文件:", fileName);
-      console.log("window.electronAPI:", window.electronAPI)
       if (fileName) {
-        window.electronAPI.writeFile(fileName, json)
+        window.electronAPI.writeFile(`/mapDat/${fileName}`, json)
           .then(() => console.log("Level JSON 已保存：", fileName))
           .catch((err: any) => console.error("保存失败:", err));
       }
     }
+  }
+
+  private persistToDiskExcel(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
+    if (!excelChanges || excelChanges.length === 0) return;
+    //内存写入
+    excelChanges.forEach(changes => {
+      DynamicGetter.Ins.writeExcelJson(changes);
+    })
+    //开始存盘
+    if (CC_BUILD) {
+      console.log("开始保存excel");
+      DynamicGetter.Ins.getAllExcelJsons().forEach(jsonObj => {
+        const jsonName = jsonObj.jsonName;
+        this.saveJsonToDisk(jsonName);
+      })
+    }
+  }
+
+  //保存json到磁盘
+  public saveJsonToDisk(jsonName: string) {
+    if (!CC_BUILD) return;
+    let jsonObj = null;
+    //外部json
+    let path = EditorSetting.OuterJsonPath;
+    jsonObj = DynamicGetter.Ins.getExcelJson(jsonName);
+    //内部json
+    if (!jsonObj) {
+      jsonObj = DynamicGetter.Ins[jsonName];
+      path = EditorSetting.EditorJsonPath;
+    }
+    //都不是，有问题
+    if (!jsonObj) {
+      console.log("保存json到磁盘错误，无jsonObj");
+      return;
+    }
+    window.electronAPI.writeFile(`${path}${jsonName}`, JSON.stringify(jsonObj))
+      .then(() => console.log("Excel JSON 已保存：", jsonName))
+      .catch((err: any) => console.error("保存失败:", err));
   }
 
   /** 下载 JSON 文件（浏览器环境） */

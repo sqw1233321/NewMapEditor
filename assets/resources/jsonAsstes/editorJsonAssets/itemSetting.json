@@ -24,6 +24,7 @@
         "ClassName": "PathPoint",
         "ExportName": "pathPoints",
         "Texture": "",
+        "InRoom": true,
         "Color": "#FF0000",
         "Name": "路径点",
         "iconSize": [
@@ -45,6 +46,7 @@
         "ClassName": "Door",
         "ExportName": "doors",
         "Texture": "door",
+        "InRoom": true,
         "Name": "门",
         "iconScale": 0.4,
         "itemAnchor": [
@@ -57,6 +59,7 @@
         "ClassName": "Ladder",
         "ExportName": "ladders",
         "Texture": "ladder",
+        "InRoom": true,
         "Name": "梯子",
         "iconScale": 0.5,
         "script": "MapDrawLadder",
@@ -70,6 +73,7 @@
         "ClassName": "EnemyRefresh",
         "ExportName": "enemyRefreshDatas",
         "Texture": "",
+        "InRoom": true,
         "Color": "#000000",
         "Name": "敌人刷新点",
         "iconSize": [
@@ -91,6 +95,7 @@
         "ExportName": "searchItemDatas",
         "Texture": "searchItem",
         "Name": "搜索点",
+        "InRoom": true,
         "iconScale": 0.7,
         "itemScale": 0.7,
         "itemAnchor": [
@@ -104,6 +109,7 @@
         "ExportName": "survivorDatas",
         "Texture": "survive",
         "Name": "游魂",
+        "InRoom": true,
         "iconScale": 0.15,
         "itemScale": 0.25,
         "itemAnchor": [
@@ -117,6 +123,7 @@
         "ExportName": "fightSoulDatas",
         "Texture": "fightSoul",
         "Name": "战魂",
+        "InRoom": true,
         "iconScale": 0.12,
         "itemScale": 0.2,
         "itemAnchor": [
@@ -205,5 +212,39 @@
         ],
         "cameraGroupIndex": 0,
         "script": "MapDrawPortal"
+    },
+    {
+        "ClassName": "SluiceGate",
+        "ExportName": "sluiceGateDatas",
+        "Color": "#FF0000",
+        "Name": "岩浆开关",
+        "Texture": "switch",
+        "iconScale": 0.5,
+        "itemScale": 0.8,
+        "itemAnchor": [
+            0.5,
+            0
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Lava",
+        "ExportName": "lavaDatas",
+        "Texture": "",
+        "Color": "#FF0000",
+        "Name": "岩浆",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            100,
+            200
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
     }
 ]

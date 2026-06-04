@@ -1,3 +1,4 @@
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapEditorEvent } from "../event/eventTypes";
 import MapDrawP from "../item/MapDrawP";
@@ -93,8 +94,14 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 this._trackNd.setPosition(localPos);
                 break;
             case UnitType.Room:
-                const newCfgId = Number(dat.cfgId);
-                const hasNd = this._mapLoader.getRoomNode(newCfgId);
+                let newCfgId = Number(dat.cfgId);
+                const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
+                const hasNd = this._mapLoader.getRoomNode(newCfgId) || DynamicGetter.Ins.checkRoomDuplicate(newCfgId);
+                if (newCfgId != oldCfgId && hasNd) {
+                    console.log("有重名的房间！！！");
+                    newCfgId = oldCfgId;
+                    dat.cfgId = oldCfgId;
+                }
                 if (!hasNd) {
                     const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
                     this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);
@@ -102,7 +109,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
                     this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
                 }
                 this._trackNd.getComponent(MapDrawRoom).setAttrDat(dat);
-                this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
+                this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent)
                 break;
             case UnitType.PathPoint:
                 this._trackNd.getComponent(MapDrawP).setAttrDat(dat);

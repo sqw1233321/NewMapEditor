@@ -1,4 +1,5 @@
 import { AttrCfgDropDownType } from "../../type/mapTypes";
+import EditorSetting from "../EditorSetting";
 
 const { ccclass, property } = cc._decorator;
 
@@ -10,79 +11,20 @@ export default class DynamicGetter extends cc.Component {
 
     static Ins: DynamicGetter
 
+    //所有的外部json
+    allExcelJson: {
+        jsonName: string;
+        jsonAsset: cc.JsonAsset;
+    }[] = [];
+
     protected onLoad(): void {
         DynamicGetter.Ins = this;
     }
 
-    public async loadDynamicJson() {
-        //debug模式使用resource加载
-        if (!CC_BUILD) {
-            const loadDir = (dir: string): Promise<cc.JsonAsset[]> => {
-                return new Promise((resolve, reject) => {
-                    cc.resources.loadDir(dir, cc.JsonAsset, (err, assets) => {
-                        if (err) {
-                            console.error(`[DynamicGetter] 加载 ${dir} 失败:`, err);
-                            reject(err);
-                            return;
-                        }
-                        resolve(assets);
-                    });
-                });
-            };
-            try {
-                const [editorAssets, outerAssets] = await Promise.all([
-                    loadDir('editorJsonAssets'),
-                    loadDir('outerJsonAssets'),
-                ]);
-                // 如果需要统一处理
-                const allJsonAssets = [...editorAssets, ...outerAssets];
-                console.log('加载完成:', allJsonAssets.map(a => a.name));
-                allJsonAssets.forEach((asset) => {
-                    this[asset.name] = asset;
-                });
-                console.log(this);
-            } catch (err) {
-                console.error('[DynamicGetter] 加载失败:', err);
-            }
-        }
-        //node运行使用node加载
-        else {
-            const loaders = [
-                ['jsonAssets/attrSetting.json', 'attrSetting'],
-                ['jsonAssets/itemSetting.json', 'itemSetting'],
-                ['jsonAssets/dropDownSetting.json', 'dropDownSetting'],
-            ];
-            await Promise.all(
-                loaders.map(([fileName, propName]) =>
-                    window.electronAPI.readFile(fileName).then((result: any) => {
-                        if (!result.success) {
-                            console.warn(`[DynamicGetter] ${fileName} 加载失败:`, result.error);
-                            return false;
-                        }
-                        this[propName] = {};
-                        this[propName].json = JSON.parse(result.content);
-                        return true;
-                    })
-                )
-            );
-        }
-    }
-
-
-    public getAttrSetting(): any {
-        return this["attrSetting"].json;
-    }
-
-    public getItemSetting(): any {
-        return this["itemSetting"].json;
-    }
-
-    public getDropDownSetting(): any {
-        return this["dropDownSetting"].json;
-    }
-
-    public getExcelJson(jsonName: string) {
-        return this[jsonName]?.json;
+    //==========图片相关=================
+    //获取默认图片
+    public getDefaultSp(): cc.SpriteFrame {
+        return this.defaultSp;
     }
 
     public getSprite(iconPath: string): Promise<cc.SpriteFrame> {
@@ -95,6 +37,71 @@ export default class DynamicGetter extends cc.Component {
                 }
             });
         });
+    }
+
+    //加载动态json
+    public async loadDynamicJson() {
+        let loadDir;
+        this.allExcelJson = [];
+        //debug模式使用resource加载
+        if (!CC_BUILD) {
+            loadDir = (dir: string): Promise<cc.JsonAsset[]> => {
+                return new Promise((resolve, reject) => {
+                    cc.resources.loadDir(dir, cc.JsonAsset, (err, assets) => {
+                        if (err) {
+                            console.error(`[DynamicGetter] 加载 ${dir} 失败:`, err);
+                            reject(err);
+                            return;
+                        }
+                        resolve(assets);
+                    });
+                });
+            };
+        }
+        //node运行使用node加载
+        else {
+            loadDir = (dir: string): Promise<cc.JsonAsset[]> => {
+                return new Promise((resolve, reject) => {
+                    window.electronAPI.readFolder(dir).then((result) => {
+                        if (!result.success) {
+                            console.warn(`[DynamicGetter] ${dir} 加载失败:`, result.error);
+                            return false;
+                        }
+                        resolve(result.data);
+                    });
+                });
+            };
+        }
+        try {
+            const [editorAssets, outerAssets] = await Promise.all([
+                loadDir(EditorSetting.EditorJsonPath),
+                loadDir(EditorSetting.OuterJsonPath),
+            ]);
+            editorAssets.forEach((asset => {
+                this[asset.name] = asset.json;
+            }))
+            outerAssets.forEach((asset) => {
+                this.allExcelJson.push({
+                    jsonName: asset.name,
+                    jsonAsset: asset.json,
+                });
+            });
+        } catch (err) {
+            console.error('[DynamicGetter] 加载失败:', err);
+        }
+    }
+
+    //========加载引擎内部json的读写方法=========
+    public getAttrSetting(): any {
+        return this["attrSetting"];
+    }
+
+    public getItemSetting(): any {
+        return this["itemSetting"];
+    }
+
+    public getDropDownSetting(): any {
+        return this["dropDownSetting"];
     }
 
     public getItemSettingByUnitType(unitType: string, uniqueType: number = -1) {
@@ -167,10 +174,7 @@ export default class DynamicGetter extends cc.Component {
         return "";
     }
 
-    public getDefaultSp(): cc.SpriteFrame {
-        return this.defaultSp;
-    }
-
+    //获取下拉框配置
     public getDropSettingByName(propertiesName: string): AttrCfgDropDownType[] {
         const settings = DynamicGetter.Ins.getDropDownSetting();
         const setting = settings[`${propertiesName}`];
@@ -180,6 +184,7 @@ export default class DynamicGetter extends cc.Component {
         return null;
     }
 
+    //根据值取下拉框类型
     public getDropSettingIntemByValue(settings: AttrCfgDropDownType[], value): AttrCfgDropDownType {
         //注意string和number
         const item = settings.find((t: AttrCfgDropDownType) => t.exportValue === value);
@@ -187,6 +192,37 @@ export default class DynamicGetter extends cc.Component {
             return item;
         }
         return null;
+    }
+
+    //==============外部json的读写====================
+
+    public getExcelJson(jsonName: string) {
+        return this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName)?.jsonAsset ?? "";
+    }
+
+    public getAllExcelJsons() {
+        return this.allExcelJson;
+    }
+
+    //写入配置表
+    public writeExcelJson(writeInfo: { excelName: string, id: number, itemName: string, itemValue: any }[]) {
+        if (!writeInfo || writeInfo.length === 0) {
+            return;
+        }
+        writeInfo.forEach((item) => {
+            const excelJson = this.getExcelJson(item.excelName);
+            if (!excelJson) {
+                return;
+            }
+            excelJson[item.id][item.itemName] = item.itemValue;
+        });
+    }
+
+    //检测房间是否重名
+    public checkRoomDuplicate(newCfgId: number) {
+        const roomJson = this.getExcelJson("AreaBase");
+        const hasRoom = !!roomJson[newCfgId];
+        return hasRoom;
     }
 
 }

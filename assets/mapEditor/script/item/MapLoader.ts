@@ -782,6 +782,10 @@ export default class MapLoader extends cc.Component {
     return this._mapSerializer.export();
   }
 
+  public saveExcelDat() {
+    return this._mapSerializer.exportExcel();
+  }
+
   private refreshDat() {
     this._layerCont?.children.forEach((layer) => {
       layer.children.forEach((roomNd) => {
