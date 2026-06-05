@@ -20,5 +20,65 @@
             "showName": "广告锁定房",
             "exportValue": 12
         }
+    ],
+    "type": [
+        {
+            "showName": "普通关卡",
+            "exportValue": 1
+        },
+        {
+            "showName": "列车关卡",
+            "exportValue": 2
+        }
+    ],
+    "level": [
+        {
+            "showName": "教程",
+            "exportValue": 0
+        },
+        {
+            "showName": "雨林虫谷",
+            "exportValue": 1
+        },
+        {
+            "showName": "阴山古楼",
+            "exportValue": 2
+        },
+        {
+            "showName": "雪山天宫",
+            "exportValue": 3
+        },
+        {
+            "showName": "蛇沼鬼城",
+            "exportValue": 4
+        },
+        {
+            "showName": "青铜神树",
+            "exportValue": 5
+        },
+        {
+            "showName": "机关洞窟",
+            "exportValue": 6
+        },
+        {
+            "showName": "南礁海底墓",
+            "exportValue": 7
+        },
+        {
+            "showName": "丛林遗迹",
+            "exportValue": 8
+        },
+        {
+            "showName": "沙漠奇迹",
+            "exportValue": 9
+        },
+        {
+            "showName": "轮回城",
+            "exportValue": 10
+        },
+        {
+            "showName": "恶魔城",
+            "exportValue": 20
+        }
     ]
 }

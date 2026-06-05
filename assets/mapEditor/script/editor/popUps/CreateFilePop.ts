@@ -21,8 +21,8 @@ export default class CreateFilePop extends PopBase {
 
     private _dat;
 
-    public showPop(dat: { exporter: MapExporter, cb }): void {
-        super.showPop();
+    public initPop(dat: { exporter: MapExporter, cb }): void {
+        super.initPop();
         this._dat = dat;
         this.fileNameEdit.string = 'newMap';
         this.sizeX.string = `2906`;

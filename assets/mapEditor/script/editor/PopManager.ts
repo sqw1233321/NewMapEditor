@@ -151,7 +151,7 @@ export default class PopManager extends cc.Component {
             // }
             currentPop.active = true;
             const handler = currentPop.getComponent(PopBase);
-            if (handler && !handler.getIsInit()) {
+            if (handler) {
                 handler.showPop(...params);
             }
         }

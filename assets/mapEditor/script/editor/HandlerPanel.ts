@@ -7,8 +7,11 @@
 
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import { AttrCfgType, UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
+import DynamicGetter from "./DynamicGetter/DynamicGetter";
 import EditorSetting from "./EditorSetting";
+import { PopUid } from "./PopConfigs";
 
 const { ccclass, property } = cc._decorator;
 
@@ -66,5 +69,18 @@ export default class HandlerPanel extends cc.Component {
 
     private updateFile(fileName: string) {
         this.mapNameLb.string = fileName;
+    }
+
+    public onClickEditStageCfg() {
+        const attrJson = DynamicGetter.Ins.getAttrSetting();
+        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => (t.ClassName as string) == "Stage") as AttrCfgType;
+        const stageId = EditorSetting.Instance.getStageId();
+        const defalutValue = [{
+            className: "id",
+            value: stageId
+        }]
+        const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
+        const itemDat = excelDat[stageId];
+        EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.AttrPop, itemDat, typeJson, defalutValue, "关卡属性");
     }
 }

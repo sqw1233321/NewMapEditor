@@ -22,6 +22,9 @@ export default class AttrItem extends AttrPanelItemBase {
     singleLable: cc.EditBox;
 
     @property(cc.Node)
+    canNotEditBtn: cc.Node;
+
+    @property(cc.Node)
     dropDownBtn: cc.Node;
 
     @property(cc.Toggle)
@@ -151,6 +154,7 @@ export default class AttrItem extends AttrPanelItemBase {
         cc.isValid(this.deleteBtn) && (this.deleteBtn.active = false);
         cc.isValid(this.hideBtn) && (this.hideBtn.active = false);
         cc.isValid(this.dropDownBtn) && (this.dropDownBtn.active = false);
+        this.canNotEditBtn.active = false;
     }
 
     private setUI() {
@@ -177,6 +181,7 @@ export default class AttrItem extends AttrPanelItemBase {
                 case AttrCfgTypeEnum.string:
                     this.singleLable.node.active = true;
                     this.singleLable.enabled = this._canWrite;
+                    this.canNotEditBtn.active = !this._canWrite;
                     //不理解这里为啥enabled为false之后有些它的子节点被隐藏了
                     if (!this._canWrite) this.singleLable.node.children[1].active = true;
                     this.singleLable.string = this._dat;

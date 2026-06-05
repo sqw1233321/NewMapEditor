@@ -1,6 +1,93 @@
 {
     "typeArr": [
         {
+            "ClassName": "Stage",
+            "Properties": [
+                {
+                    "ID": "0",
+                    "Name": "关卡id",
+                    "PERMISSIONS": "readonly",
+                    "ClassPropertyName": "id",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": "-1"
+                },
+                {
+                    "ID": "1",
+                    "Name": "名称",
+                    "ClassPropertyName": "name",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "2",
+                    "Name": "类型",
+                    "ClassPropertyName": "type",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "dropDownNumber",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "3",
+                    "Name": "轮次",
+                    "ClassPropertyName": "cycle",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "4",
+                    "Name": "关卡编号",
+                    "ClassPropertyName": "level",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "dropDownNumber",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "5",
+                    "Name": "解锁本关需求游魂数量",
+                    "ClassPropertyName": "unlockneed",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "6",
+                    "Name": "战魂信息",
+                    "ClassPropertyName": "fightSoulId",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "6-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "6-1-1",
+                                    "Name": "战魂Id",
+                                    "ClassPropertyName": "fightSoulId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "6-1-2",
+                                    "Name": "刷出概率",
+                                    "ClassPropertyName": "fightSoulRate",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "ClassName": "Room",
             "Properties": [
                 {
