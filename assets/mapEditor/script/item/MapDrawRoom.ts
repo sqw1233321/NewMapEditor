@@ -221,11 +221,11 @@ export default class MapDrawRoom extends MapDrawItem {
         });
         if (!this._pointCont) return;
         const points = this._pointCont.children.map((child: cc.Node) =>
-            child.getComponent(MapDrawItem),
+            child.getComponent(MapDrawP),
         );
-        points.forEach((point: MapDrawItem) => {
+        points.forEach((point: MapDrawP) => {
             point.updateRoomId(roomId);
-            MapLoader.ins.updatePointMap(point.getAttrDat()["id"], point.node);
+            MapLoader.ins.updatePointMap(point.getId(), point.node);
         });
     }
 

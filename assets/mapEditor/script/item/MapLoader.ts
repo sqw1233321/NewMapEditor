@@ -494,18 +494,18 @@ export default class MapLoader extends cc.Component {
   }
   // ==================== 路径点管理 ====================
 
-  public addPathPointToRoom(pData: any, pointNd: cc.Node) {
-    this._pointMap.set(pData.id, pointNd);
-    const roomNd = this._roomNodeMap.get(pData.roomId);
-    if (!roomNd) {
-      console.log(`roomId ${pData.roomId} not found`);
-      return;
-    }
-    pointNd.parent = roomNd.getChildByName("pointCont");
-    const worldPos = cc.v2(pData.pos.x, pData.pos.y);
-    const localPos = pointNd.parent.convertToNodeSpaceAR(worldPos);
-    pointNd.setPosition(localPos);
-  }
+  // public addPathPointToRoom(pData: any, pointNd: cc.Node) {
+  //   this._pointMap.set(pData.id, pointNd);
+  //   const roomNd = this._roomNodeMap.get(pData.roomId);
+  //   if (!roomNd) {
+  //     console.log(`roomId ${pData.roomId} not found`);
+  //     return;
+  //   }
+  //   pointNd.parent = roomNd.getChildByName("pointCont");
+  //   const worldPos = cc.v2(pData.pos.x, pData.pos.y);
+  //   const localPos = pointNd.parent.convertToNodeSpaceAR(worldPos);
+  //   pointNd.setPosition(localPos);
+  // }
 
   /**
    * 按层号重排路径点ID
@@ -821,7 +821,7 @@ export default class MapLoader extends cc.Component {
       EventManager.instance.emit(MapEditorEvent.ShowTip, "有未命名的房间！！！")
     }
 
-    res = res && hasNotManualSet;
+    res = res && !hasNotManualSet;
     return res;
   }
 

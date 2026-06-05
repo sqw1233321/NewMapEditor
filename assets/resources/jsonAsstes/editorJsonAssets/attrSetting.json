@@ -163,10 +163,9 @@
             "Properties": [
                 {
                     "ID": "1",
-                    "Name": "房间id(不可手动修改)",
+                    "Name": "房间id",
                     "ClassPropertyName": "roomId",
                     "Type": "number",
-                    "PERMISSIONS": "readonly",
                     "DefaultValue": -1
                 },
                 {

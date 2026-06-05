@@ -35,6 +35,8 @@ export default class MapDrawItem extends MapDrawItemBase {
     }
     this.setSprite(type);
     this._jsonDat = dat;
+    //旧的数据中可能有条件不满足的属性有值，需要筛选一下
+    this._jsonDat = this.checkCondition(this._jsonDat);
     this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
     this.onAfterInit();
   }
@@ -290,6 +292,63 @@ export default class MapDrawItem extends MapDrawItemBase {
     return { isPoint: propertyConfig.Type === "point" || propertyConfig.Type === "pointArray", type: propertyConfig.Type };
   }
 
+  //数据条件检测（为了兼容旧数据有目前条件不满足的属性的数据，需要置为defaultValue ex: unlockPoints）
+  //条件只用检测第一层的（现在）
+  private checkCondition(dat) {
+    const json = DynamicGetter.Ins.getAttrSetting();
+    const typeConfig = json?.typeArr?.find((t: any) => t.ClassName === this._unitType) as AttrCfgType;
+    if (!typeConfig) return;
+
+    const resDat = {};
+    const grouped: { [key: string]: AttrPanelPropertyType[] } = {};
+
+    typeConfig.Properties?.forEach(property => {
+      const key = property.ClassPropertyName;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(property);
+    });
+
+    Object.keys(grouped).forEach(key => {
+      const properties = grouped[key];
+      const matchedProperty = properties.find(property => this.checkConditionById(typeConfig, property, dat));
+
+      if (matchedProperty) {
+        resDat[key] = dat[key] ?? matchedProperty.DefaultValue;
+      } else {
+        resDat[key] = properties[0]?.DefaultValue;
+      }
+    });
+
+    return resDat;
+  }
+
+  private collcetAllCondition(typeConfig: AttrCfgType) {
+    let allTargetId = new Set<string>();
+    typeConfig.Properties?.forEach(property => {
+      const condition = property.Condition;
+      const isNotEqual = condition.includes("!=");
+      const splitStr = isNotEqual ? "!=" : "=";
+      const conditionProperties = condition.split(splitStr);
+      const targetId = conditionProperties[0];
+      allTargetId.add(targetId);
+    })
+    return allTargetId;
+  }
+
+  private checkConditionById(typeConfig: AttrCfgType, property: AttrPanelPropertyType, curDat?) {
+    if (!property.Condition) return true;
+    const condition = property.Condition;
+    const isNotEqual = condition.includes("!=");
+    const splitStr = isNotEqual ? "!=" : "=";
+    const conditionProperties = condition.split(splitStr);
+    const targetId = conditionProperties[0];
+    const needValue = conditionProperties[1];
+    const targetProperty = typeConfig.Properties?.find(p => p.ID === targetId);
+    if (!targetProperty) return false;
+    const targetValue = `${curDat[targetProperty.ClassPropertyName] ?? targetProperty.DefaultValue}`;
+    //不管什么类型都转化为string，就能直接比较了（感觉会有问题呢）
+    return isNotEqual ? needValue !== targetValue : needValue === targetValue;
+  }
 
 }
 
