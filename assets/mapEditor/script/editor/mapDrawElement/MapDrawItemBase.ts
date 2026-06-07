@@ -36,7 +36,7 @@ export default class MapDrawItemBase extends cc.Component {
 
     /**
      * 左键按下时优先处理（如路径点连线模式）。
-     * @returns true 表示已消费，不再发起拖拽
+     * @returns true
      */
     protected onUnitLeftMouseDownForLink(_event: cc.Event.EventMouse): boolean {
         return false;
@@ -50,7 +50,7 @@ export default class MapDrawItemBase extends cc.Component {
             if (this.onUnitLeftMouseDownForLink(event)) {
                 return;
             }
-            if (ModeMgr.instance.curModeType == ModeType.PathPointLink) {
+            if (ModeMgr.instance.curModeType == ModeType.PathPointLink || ModeMgr.instance.curModeType == ModeType.SelectPoint) {
                 return;
             }
             // console.log("onMouseDown", this.node.name, event);

@@ -493,18 +493,6 @@ export default class MapLoader extends cc.Component {
   }
   // ==================== 路径点管理 ====================
 
-  // public addPathPointToRoom(pData: any, pointNd: cc.Node) {
-  //   this._pointMap.set(pData.id, pointNd);
-  //   const roomNd = this._roomNodeMap.get(pData.roomId);
-  //   if (!roomNd) {
-  //     console.log(`roomId ${pData.roomId} not found`);
-  //     return;
-  //   }
-  //   pointNd.parent = roomNd.getChildByName("pointCont");
-  //   const worldPos = cc.v2(pData.pos.x, pData.pos.y);
-  //   const localPos = pointNd.parent.convertToNodeSpaceAR(worldPos);
-  //   pointNd.setPosition(localPos);
-  // }
 
   /**
    * 按层号重排路径点ID
@@ -533,7 +521,12 @@ export default class MapLoader extends cc.Component {
         .sort((a, b) => {
           const ax = a.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
           const bx = b.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
-          return ax - bx;
+          if (Math.abs(ax - bx) > 0.001) {
+              return ax - bx;
+          }
+          const ay = a.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
+          const by = b.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
+          return ay - by;
         });
 
       sortedRooms.forEach((roomNd) => {

@@ -30,3 +30,8 @@ export enum ModeType {
   PathPointLink = "PathPointLink",
   SelectPoint = "SelectPoint",
 }
+
+export enum ModeTypeDisplay {
+  PathPointLink = "连线模式",
+  SelectPoint = "选点模式",
+}

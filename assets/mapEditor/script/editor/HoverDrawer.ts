@@ -12,9 +12,18 @@ export default class HoverDrawer extends cc.Component {
     @property(cc.Graphics)
     drawer: cc.Graphics;
 
-    private _hoverDat: HoverType;
+    private static readonly LINK_LINE_WIDTH = 5;
+    private _enable:boolean = true;
+
+    public setEnable(enable:boolean){
+        this._enable = enable;
+    }
 
     draw(hoverDat: HoverType) {
+        if(!this._enable) {
+            this.clear();
+            return;
+        }
         if (!hoverDat) {
             this.clear();
             return;
@@ -22,14 +31,16 @@ export default class HoverDrawer extends cc.Component {
         this.drawMulti(hoverDat.name, [hoverDat]);
     }
 
-    private static readonly LINK_LINE_WIDTH = 5;
-
     /** 绘制多个框（例如房间 + 其下所有可编辑子节点）；可选绘制路径连线（世界坐标） */
     drawMulti(
         title: string,
         boxes: HoverType[],
         linkWorldSegments?: Array<{ p0: cc.Vec2; p1: cc.Vec2 }>
     ) {
+        if(!this._enable) {
+            this.clear();
+            return;
+        }
         if (!boxes || boxes.length === 0) {
             this.clear();
             return;

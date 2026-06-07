@@ -27,22 +27,17 @@ export default class HandlerPanel extends cc.Component {
     @property(cc.Label)
     mapNameLb: cc.Label;
 
-    @property(cc.Label)
-    curModeLb: cc.Label;
-
     @property(cc.Toggle)
     autoRenameTog: cc.Toggle;
 
     protected onLoad(): void {
         EventManager.instance.on(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
-        EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
         EventManager.instance.on(MapEditorEvent.UpdateFile, this.updateFile, this);
         EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
     }
 
     protected onDestroy(): void {
         EventManager.instance.off(MapEditorEvent.UpdateAutoRename, this.setAutoRenameUI, this);
-        EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
         EventManager.instance.off(MapEditorEvent.UpdateFile, this.updateFile, this);
         EventManager.instance.off(MapEditorEvent.ChangeStage, this.updateStageId, this);
     }
@@ -53,14 +48,6 @@ export default class HandlerPanel extends cc.Component {
 
     private setAutoRenameUI() {
         this.autoRenameTog.isChecked = EditorSetting.Instance.getAutoRename();
-    }
-
-    private updateCurModeDisplay(modeType: ModeType) {
-        if (!modeType) {
-            this.curModeLb.string = "无模式";
-            return;
-        }
-        this.curModeLb.string = modeType;
     }
 
     private updateStageId(stageId: number) {

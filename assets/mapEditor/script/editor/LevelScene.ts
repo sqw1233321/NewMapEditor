@@ -9,6 +9,7 @@ import {
   DragType,
   HoverType,
   ModeType,
+  ModeTypeDisplay,
 } from "../type/types";
 import EditorSetting from "./EditorSetting";
 import HoverDrawer from "./HoverDrawer";
@@ -58,9 +59,11 @@ export default class LevelScene extends cc.Component {
   @property(HoverDrawer)
   hoverDrawer: HoverDrawer;
 
-
   @property(cc.Prefab)
   magBgPrefab: cc.Prefab;
+
+  @property(cc.Node)
+  curModeNd: cc.Node;
 
   //============测试用=============
   @property(cc.JsonAsset)
@@ -103,6 +106,7 @@ export default class LevelScene extends cc.Component {
     this.node.on(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.on(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
+    EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
 
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
@@ -123,6 +127,8 @@ export default class LevelScene extends cc.Component {
 
     // 适配地图
     this.adapterMap();
+
+    this.curModeNd.active = false;
   }
 
   protected async start() {
@@ -149,6 +155,7 @@ export default class LevelScene extends cc.Component {
     this.node.off(cc.Node.EventType.MOUSE_UP, this.onMouseUp, this);
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
+    EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
 
     this._keyInputHandler?.stopListen();
 
@@ -700,10 +707,22 @@ export default class LevelScene extends cc.Component {
   // ==================== 路径线模式 ====================
 
   public onClickPathLineMode() {
-    this.lineHightCamera.cullingMask = -4;
-    ModeMgr.instance.enterMode(ModeType.PathPointLink, () => {
+    ModeMgr.instance.enterMode(ModeType.PathPointLink);
+  }
+
+  public updateCurModeDisplay(modeType: ModeType) {
+    if (!modeType) {
       this.lineHightCamera.cullingMask = -3;
-    });
+      this.curModeNd.active = false;
+      this.hoverDrawer.setEnable(true);
+      return;
+    }
+    this.curModeNd.active = true;
+    this.curModeNd.children[0].addComponentSafe(cc.Label).string = `${ModeTypeDisplay[modeType]}...`;
+    if (modeType == ModeType.PathPointLink || ModeType.SelectPoint) {
+      this.lineHightCamera.cullingMask = -4;
+      this.hoverDrawer.setEnable(false);
+    }
   }
 
   onTogAutoReanme(event) {
