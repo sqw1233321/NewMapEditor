@@ -83,6 +83,8 @@ export default class PrefabPanelItem extends cc.Component {
         // 生成一个实例，放在面板同一父节点下，交给 LevelScene.startDrag 统一接管
         const itemNd = cc.instantiate(this.mapDrawPrefab);
         itemNd.parent = this.node.parent;
+        const anchorInfo = DynamicGetter.Ins.getItemAnchor(this._type);
+        itemNd.setAnchorPoint(anchorInfo[0], anchorInfo[1]);
         itemNd.setPosition(this.node.getPosition());
         itemNd.groupIndex = this._dat.cameraGroupIndex;
         const classCtor = ReflectionMgr.getMapDrawClass(this._type);

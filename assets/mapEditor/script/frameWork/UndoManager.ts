@@ -36,7 +36,8 @@ export class UndoManager {
     if (!this.canUndo()) {
       return null;
     }
-    return this._snapshots[--this._position];
+    this._position--;
+    return this._snapshots.pop();
   }
 
   /**
@@ -62,7 +63,7 @@ export class UndoManager {
    * 是否可以撤销
    */
   public canUndo(): boolean {
-    return this._position > 0;
+    return this._position >= 0;
   }
 
   /**

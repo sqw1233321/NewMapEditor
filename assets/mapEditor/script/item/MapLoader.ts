@@ -8,7 +8,6 @@ import { UnitType } from "../type/mapTypes";
 import MapSerializer from "./MapSerializer";
 import MapLineDrawer from "./MapLineDrawer";
 import MapBuilder from "./MapBuilder";
-import { MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import { MapDrawTool } from "./MapDrawTool";
 import { ScriptSystemEvent } from "../event/scriptSystemEvent";
@@ -173,7 +172,6 @@ export default class MapLoader extends cc.Component {
 
   public registerRoomNode(cfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
-    console.log("registerRoomNode", cfgId, roomNd);
     this._roomNodeMap.set(cfgId, roomNd);
   }
 
@@ -187,7 +185,6 @@ export default class MapLoader extends cc.Component {
       this._roomNodeMap.delete(oldCfgId);
     }
     this._roomNodeMap.set(newCfgId, roomNd);
-    console.log("renameRoomNode", oldCfgId, newCfgId, roomNd);
   }
 
   public updatePointMap(pointId: string, pointNd: cc.Node) {

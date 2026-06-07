@@ -72,6 +72,7 @@ export default class LevelScene extends cc.Component {
   private _isLeftDown: boolean = false;
   private _isShiftDown: boolean = false;
   private _isDrag: boolean = false;
+  private _dragSaveSnap: boolean = true;
   private _dragDat: DragType = null;
   private _hoverDat: HoverType = {
     name: "",
@@ -119,7 +120,7 @@ export default class LevelScene extends cc.Component {
     // 初始化管理器
     ModeMgr.instance.init();
     AttrMgr.instance.init(this.mapLoader.getComponent(MapLoader));
-    AttrMgr.instance.onAttrChanged = () => this.saveUndoSnapshot();
+    AttrMgr.instance.saveSnap = () => this.saveUndoSnapshot();
 
     // 适配地图
     this.adapterMap();
@@ -195,6 +196,8 @@ export default class LevelScene extends cc.Component {
       console.log("not has dargDat");
       return;
     }
+    this.saveUndoSnapshot();
+    this._dragSaveSnap = true;
     this._dragDat = dragDat;
     this.dragLayer.removeAllChildren();
     const itemDat = this._dragDat.itemNode;
@@ -408,8 +411,12 @@ export default class LevelScene extends cc.Component {
 
     // 计算目标父节点
 
+    //特殊点如起始点，撤离点
+    if (itemDat.name === "playerExit" || itemDat.name === "playerCreate") {
+      targetParent = itemParent;
+    }
     //房间
-    if (type === UnitType.Room) {
+    else if (type === UnitType.Room) {
       if (this._dragDat.hoverLayerNode && cc.isValid(this._dragDat.hoverLayerNode)) {
         targetParent = this._dragDat.hoverLayerNode;
       } else {
@@ -421,10 +428,6 @@ export default class LevelScene extends cc.Component {
     //房间外item 
     else if (this._mapInteraction.isOutRoomUnitType(type)) {
       targetParent = this._mapInteraction.getMapLoaderComp()?.getOutRoomUnitParent() ?? null;
-    }
-    //特殊点如起始点，撤离点
-    else if (itemDat.name === "playerExit" || itemDat.name === "playerCreate") {
-      targetParent = itemParent;
     }
     //房间内item
     else {
@@ -470,6 +473,11 @@ export default class LevelScene extends cc.Component {
     // 没有实际拖拽，不更新数据，直接return
     if (!this._isDrag) {
       this._dragDat = null;
+      if (this._dragSaveSnap) {
+        //没有实际拖拽的话，就撤回到拖拽开始的时候
+        this._dragSaveSnap = false;
+        this._undoManager.undo();
+      }
       return;
     }
 
@@ -487,9 +495,6 @@ export default class LevelScene extends cc.Component {
     }
 
     AttrMgr.instance.refreshAttrPanel();
-
-    // 保存撤销快照（拖拽完成）
-    this.saveUndoSnapshot();
 
     this._dragDat = null;
   }
@@ -541,7 +546,6 @@ export default class LevelScene extends cc.Component {
   public deleteNd() {
     const trackNd = AttrMgr.instance.getTrachNd();
     if (!trackNd || !cc.isValid(trackNd)) return;
-
     // 保存删除前的快照
     this.saveUndoSnapshot();
 
@@ -621,8 +625,8 @@ export default class LevelScene extends cc.Component {
 
   //清空
   public onClickClear() {
-    this._mapInteraction.getMapLoaderComp()?.clear();
     this.saveUndoSnapshot();
+    this._mapInteraction.getMapLoaderComp()?.clear();
   }
 
 
@@ -737,8 +741,6 @@ export default class LevelScene extends cc.Component {
     mapLoaderComp.createMapFromJson(jsonContent, fileName);
     //清除快照
     this._undoManager.clear();
-    //一开始先存一次快照
-    this.saveUndoSnapshot();
     //更换背景
     if (CC_BUILD) await this.changeMapBg();
   }

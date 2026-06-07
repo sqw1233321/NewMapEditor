@@ -16,7 +16,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
     private _mapLoader: MapLoader;
 
     /** 属性变更回调（用于撤销功能） */
-    public onAttrChanged?: () => void;
+    public saveSnap?: () => void;
 
     public static get instance(): AttrMgr {
         return super.instance as AttrMgr;
@@ -86,6 +86,8 @@ export class AttrMgr extends Singleton<AttrMgr> {
     public refreshNdAttr(attrDat) {
         if (!this._trackNd) return;
         if (!this._mapLoader) return;
+        // 保存撤销回调
+        this.saveSnap?.();
         const type = attrDat.type;
         let dat = attrDat.dat;
         if (type == UnitType.Default) {
@@ -111,7 +113,7 @@ export class AttrMgr extends Singleton<AttrMgr> {
             this._trackNd.getComponent(MapDrawRoom).setAttrDat(dat);
             this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
         }
-        else{
+        else {
             this._trackNd.getComponent(MapDrawItem).setAttrDat(dat);
         }
 
@@ -122,9 +124,6 @@ export class AttrMgr extends Singleton<AttrMgr> {
                 this._mapLoader.moveUnitToRoom(this._trackNd, nextRoomId);
             }
         }
-
-        // 属性变更回调
-        this.onAttrChanged?.();
         //使用现在的属性回写一次属性面板
         this.refreshAttrPanel();
     }
