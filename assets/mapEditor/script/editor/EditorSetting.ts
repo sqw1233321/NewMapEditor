@@ -10,6 +10,8 @@ export default class EditorSetting {
     private _autoRename = false;
     private _stageId: number = 0;
 
+    private _isSnapY:boolean = false;
+
     //内部json相对路径
     static get EditorJsonPath() {
         return "jsonAsstes/editorJsonAssets/";
@@ -80,5 +82,14 @@ export default class EditorSetting {
     public getStageId() {
         return this._stageId;
     }
+
+    //======================是否开启Y轴吸附=================
+    public setIsSnapY(isSnapY: boolean) {
+        this._isSnapY = isSnapY;
+    }
+
+    public getIsSnapY() {
+        return this._isSnapY;
+    }   
 
 }

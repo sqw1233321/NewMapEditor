@@ -16,10 +16,10 @@ import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 export default class MapInteraction {
   private _mapLoader: cc.Node = null;
   private _mapLoaderComp: MapLoader = null;
-  static ins: MapInteraction = null;
+  static Instance: MapInteraction = null;
 
   constructor() {
-    MapInteraction.ins = this;
+    MapInteraction.Instance = this;
   }
 
   public init(mapLoader: cc.Node) {
@@ -294,7 +294,9 @@ export default class MapInteraction {
     const roomPosY = room.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
 
     pointNodes.forEach((nd) => {
+      //如果这个点位于房间下面，不参与吸附（常用于梯子下方的解锁点）
       if (nd.convertToWorldSpaceAR(cc.Vec2.ZERO).y < roomPosY) return;
+      if (Math.abs(nd.convertToWorldSpaceAR(cc.Vec2.ZERO).y - draggedNode.convertToWorldSpaceAR(cc.Vec2.ZERO).y) >= 100) return;
       const name = nd?.name || "";
       const mm = /^P(\d+)_(\d+)$/.exec(name);
       if (!mm) return;

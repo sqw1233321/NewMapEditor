@@ -5,6 +5,7 @@ import { ScriptSystemEvent } from "../event/scriptSystemEvent";
 import { EventManager } from "../frameWork/EventManager";
 import MapDrawP from "./MapDrawP";
 import { MapDrawTool } from "./MapDrawTool";
+import MapInteraction from "./MapInteraction";
 
 const { ccclass, property } = cc._decorator;
 
@@ -57,6 +58,13 @@ export default class MapDrawLadder extends MapDrawItem {
     //正在被拖拽
     protected onDragMove() {
         this.syncBindPointsByLadder();
+        this.syncCenterPoint();
+        const isSnapY = EditorSetting.Instance.getIsSnapY();
+        if (isSnapY) {
+            MapInteraction.Instance.trySnapDraggedPointY(this.startNd);
+            MapInteraction.Instance.trySnapDraggedPointY(this.endNd);
+            this.syncLadderToBindPoints();
+        }
     }
 
     //拖拽结束后
@@ -101,6 +109,21 @@ export default class MapDrawLadder extends MapDrawItem {
 
         this.node.setPosition(this.node.parent.convertToNodeSpaceAR(anchorWorld));
         this.node.setContentSize(this.node.width, heightLocal);
+    }
+
+    private syncCenterPoint() {
+        if (!this.startNd || !this.endNd || !cc.isValid(this.startNd) || !cc.isValid(this.endNd)) return;
+        const startLinks = this.startNd.getComponent(MapDrawP).links;
+        const endLinks = this.endNd.getComponent(MapDrawP).links;
+        const commonLinks = startLinks.filter(link => endLinks.includes(link) && link !== this.startNd && link !== this.endNd);
+        if (commonLinks.length > 0) {
+            commonLinks.forEach(nd => {
+                const posY = nd.y;
+                const worldPos = this.startNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                const localPos = nd.parent.convertToNodeSpaceAR(worldPos);
+                nd.setPosition(localPos.x, posY);
+            })
+        }
     }
 
 }

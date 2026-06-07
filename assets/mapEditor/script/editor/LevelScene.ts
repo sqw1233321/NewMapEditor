@@ -70,7 +70,6 @@ export default class LevelScene extends cc.Component {
   // ==================== 私有变量 ====================
   private _isRightDown: boolean = false;
   private _isLeftDown: boolean = false;
-  private _isShiftDown: boolean = false;
   private _isDrag: boolean = false;
   private _dragSaveSnap: boolean = true;
   private _dragDat: DragType = null;
@@ -107,8 +106,8 @@ export default class LevelScene extends cc.Component {
 
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
-    this._keyInputHandler.onShiftDown = () => this._isShiftDown = true;
-    this._keyInputHandler.onShiftUp = () => this._isShiftDown = false;
+    this._keyInputHandler.onShiftDown = () => EditorSetting.Instance.setIsSnapY(true);
+    this._keyInputHandler.onShiftUp = () => EditorSetting.Instance.setIsSnapY(false);
     this._keyInputHandler.onCtrlS = () => this.onClickSave();
     this._keyInputHandler.onCtrlZ = () => this.onUndo();
     this._keyInputHandler.onCtrlY = () => this.onRedo();
@@ -268,7 +267,7 @@ export default class LevelScene extends cc.Component {
           itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
 
           // Shift 吸附
-          if (this._isShiftDown) {
+          if (EditorSetting.Instance.getIsSnapY()) {
             this._mapInteraction.trySnapDraggedPointY(itemDat);
           }
 
@@ -464,7 +463,7 @@ export default class LevelScene extends cc.Component {
     }
 
     // Shift 吸附
-    if (this._isShiftDown) {
+    if (EditorSetting.Instance.getIsSnapY()) {
       this._mapInteraction.trySnapDraggedPointY(itemDat);
     }
 
