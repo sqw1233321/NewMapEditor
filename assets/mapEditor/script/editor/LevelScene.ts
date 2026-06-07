@@ -558,7 +558,7 @@ export default class LevelScene extends cc.Component {
     }
     //删除房间外物体
     else if (this._mapInteraction.isOutRoomUnitType(type)) {
-      mapLoaderComp?.deletePortal(trackNd);
+      mapLoaderComp?.deleteOurRoomUnits(trackNd);
     }
     //删除房间内物体
     else {
@@ -645,7 +645,7 @@ export default class LevelScene extends cc.Component {
   private onUndo() {
     const snapshot = this._undoManager?.undo();
     if (!snapshot) {
-      console.log("[Undo] No snapshot to undo");
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "没有可撤销的操作");
       return;
     }
 
@@ -656,7 +656,7 @@ export default class LevelScene extends cc.Component {
       EventManager.instance.emit(MapEditorEvent.ClearEditPanel);
 
       mapLoaderComp.createMapFromJson(snapshot);
-      console.log("[Undo] Undo success");
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "撤销成功");
     }
   }
 
@@ -735,12 +735,12 @@ export default class LevelScene extends cc.Component {
     //创建地图
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
     mapLoaderComp.createMapFromJson(jsonContent, fileName);
+    //清除快照
+    this._undoManager.clear();
     //一开始先存一次快照
     this.saveUndoSnapshot();
     //更换背景
     if (CC_BUILD) await this.changeMapBg();
-    //清除快照
-    this._undoManager.clear();
   }
 
 

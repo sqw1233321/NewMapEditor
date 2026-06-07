@@ -33,7 +33,9 @@ export class UndoManager {
    * @returns 上一个状态的快照，未找到则返回 null
    */
   public undo(): string | null {
-    if (!this.canUndo()) return null;
+    if (!this.canUndo()) {
+      return null;
+    }
     return this._snapshots[--this._position];
   }
 

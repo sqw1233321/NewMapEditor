@@ -6,9 +6,10 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 import { NodeUtil } from "../../tool/NodeUtil";
-import { AttrCfgType, AttrPanelPropertyType } from "../../type/mapTypes";
+import { AttrCfgType, AttrCfgTypeEnum, AttrPanelPropertyType, AttrPopDataType, UnitType } from "../../type/mapTypes";
 import AttrItem from "../attrPrefab/AttrItem";
 import AttrPanelItemBase from "../attrPrefab/AttrPanelItemBase";
+import ExcelConvert from "../ExcelConvert";
 import PopBase from "../PopBase";
 
 const { ccclass, property } = cc._decorator;
@@ -26,19 +27,21 @@ export default class AttrPop extends PopBase {
 
     private _dat: any;
     private _typeJson: AttrCfgType;
-    private _defaultValues: [{ className: string, value: any }];
+    private _defaultValues: { className: string, value: any }[];
     private _properties: AttrPanelPropertyType[];
 
     private _attrNodeMap: Map<string, AttrItem> = new Map();
     private curPropertyId = "";
 
-    public showPop(...params): void {
+    private _unitType: UnitType;
+
+    public showPop(dat: AttrPopDataType): void {
         super.showPop();
-        this._dat = params[0];
-        this._typeJson = params[1];
-        this._defaultValues = params[2];
-        const titleName = params[3];
-        this.popName.string = titleName;
+        this._dat = dat.dat;
+        this._typeJson = dat.typeJson;
+        this._defaultValues = dat.defaultValues;
+        this.popName.string = dat.titleName;
+        this._unitType = dat.unitType as UnitType;
         this.setDefault();
         this.setDefaultValue();
         this.setProperties();
@@ -60,6 +63,7 @@ export default class AttrPop extends PopBase {
     }
 
     private setProperties() {
+        this._dat = ExcelConvert.convertExcelToEdit(this._dat, this._dat.id, this._unitType);
         //筛选条件属性
         this._properties = this._typeJson.Properties;
         this._properties = this.checkCondition(this._properties);
@@ -86,22 +90,23 @@ export default class AttrPop extends PopBase {
         //所有属性重新赋值
         this._properties.forEach((property, index) => {
             const curController = this._attrNodeMap.get(property.ID);
+            const dat = this._dat[`${property.ClassPropertyName}`] ?? property.DefaultValue;
             if (curController) {
                 curController.node.setSiblingIndex(index);
-                curController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, this._dat[`${property.ClassPropertyName}`]);
+                curController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, dat);
                 return;
             }
             const attrItem = cc.instantiate(this.attrItem);
             this.attrCont.addChild(attrItem);
             const itemController = attrItem.getComponent(AttrItem);
             itemController.node.setSiblingIndex(index);
-            itemController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, this._dat[`${property.ClassPropertyName}`]);
+            itemController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, dat);
             this._attrNodeMap.set(property.ID, itemController);
         })
     }
 
     //获取数据  
-    getDat() {
+    handleDat() {
         let dat = {};
         //先都赋值一遍
         this._attrNodeMap.forEach((value, id) => {
@@ -110,7 +115,6 @@ export default class AttrPop extends PopBase {
             const key = curProperty?.ClassPropertyName;
             dat[key] = value.getComponent(AttrPanelItemBase).getDat();
         })
-
         //然后筛选掉不符合条件的东西
         this._attrNodeMap.forEach((value, id) => {
             //写回数据的时候也要用condition筛选一遍
@@ -121,12 +125,15 @@ export default class AttrPop extends PopBase {
                 dat[key] = curProperty.DefaultValue;
             }
         })
-
         return dat;
     }
 
     //被修改的属性id
     private afterEditorCb() {
+        //处理一遍数据
+        this._dat = this.handleDat();
+        //将编辑数据中的excel字段值变为excel形式
+        this._dat = ExcelConvert.convertEditToExcel(this._dat, this._dat.id, this._unitType);
         this.setProperties();
     }
 

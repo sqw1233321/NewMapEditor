@@ -5,6 +5,7 @@ import MapDrawP from "./MapDrawP";
 import { ReflectionMgr } from "../editor/ReflectionMgr";
 import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import EditorSetting from "../editor/EditorSetting";
+import ExcelConvert from "../editor/ExcelConvert";
 
 
 const { ccclass, property } = cc._decorator;
@@ -77,16 +78,16 @@ export default class MapDrawRoom extends MapDrawItem {
     //==============初始化相关===============
     public init(type: UnitType, uniqueType: number = -1, dat?) {
         let canEditDat = dat;
-        if (dat){
+        if (canEditDat) {
             //填充excel数据
-            this.handleExcelDat(dat);
-               //筛选可编辑属性
-            canEditDat = this.filterAttrDats(dat);
+            canEditDat = ExcelConvert.handlerExcelDat(canEditDat,canEditDat["cfgId"],UnitType.Room);
+            //筛选可编辑属性
+            canEditDat = this.filterAttrDats(canEditDat);
         }
         super.init(type, uniqueType, canEditDat);
         this._pointCont = this.node.getChildByName("pointCont");
         this._unitCont = this.node.getChildByName("unitCont");
-        this._layer = dat ? dat["layer"] : -1;
+        this._layer = canEditDat ? canEditDat["layer"] : -1;
         this.initUI();
         this.setSubDats();
     }
@@ -247,7 +248,7 @@ export default class MapDrawRoom extends MapDrawItem {
         let dat = {};
         //筛选出在地图josn中的数据
         Object.keys(exportDat).forEach((key) => {
-            if (this.isPorperTyExcel(key)) return;
+            if (ExcelConvert.isPorperTyExcel(key,UnitType.Room)) return;
             dat[key] = exportDat[key];
         });
         this._subDats.forEach((subDat: MapDrawItem) => {
@@ -282,130 +283,10 @@ export default class MapDrawRoom extends MapDrawItem {
         return { ...otherFields, ...orderedFields };
     }
 
-
-    //=============处理外部配置表相关===================
-    //读取相关
-    private handleExcelDat(editDat) {
-        const attrJson = DynamicGetter.Ins.getAttrSetting();
-        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName == UnitType.Room);
-        if (typeJson) {
-            typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
-                if (!p.ExcelName) return;
-                const excelName = p.ExcelName;
-                const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
-                if (!excelDat) return;
-                const mainKey = this.getMainKey(excelName, editDat);
-                this.setExcelDat(editDat, excelDat, mainKey, p);
-            });
-        }
-    }
-
-    private setExcelDat(editDat, excelDat, key, p: AttrPanelPropertyType) {
-        const dat = excelDat[`${key}`];
-        if (!dat) return;
-        const propertyDat = dat[`${p.ClassPropertyName}`];
-        if (propertyDat == null || propertyDat == "") return;
-        //解析字段内容
-        editDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
-    }
-
-    private parseObj(excelStr: string, p: AttrPanelPropertyType): any {
-        const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
-        if (!isArr) {
-            if (p.Type == AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(excelStr);
-            if (p.Type == AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return excelStr;
-            if (p.Type == AttrCfgTypeEnum.boolean) return Number(excelStr) == 1;
-        }
-        const splitSymbol = p.Split;
-        if (!splitSymbol) return;
-        let res;
-        const datArr = excelStr.split(splitSymbol);
-        if (p.Type == AttrCfgTypeEnum.array) {
-            res = []
-            datArr.forEach((dat) => {
-                res.push(this.parseObj(dat, p.Properties[0]));
-            })
-        }
-        if (p.Type == AttrCfgTypeEnum.object) {
-            res = {}
-            datArr.forEach((dat, index) => {
-                res[p.Properties[index].ClassPropertyName] = this.parseObj(dat, p.Properties[index]);
-            })
-        }
-        return res;
-    }
-
     //写入相关
     public getExportExcelDat(): { excelName: string, id: number, itemName: string, itemValue: any }[] {
         const exportDat = super.getExportDat();
-        let dat = {}
-        //筛选出在excel中的数据
-        Object.keys(exportDat).forEach((key) => {
-            if (!this.isPorperTyExcel(key)) return;
-            dat[key] = exportDat[key];
-        });
-        const resDat: { excelName: string, id: number, itemName: string, itemValue: any }[] = [];
-        Object.keys(dat).forEach((key) => {
-            const properTy = DynamicGetter.Ins.getAttrSetting().typeArr.find((t: AttrCfgType) => t.ClassName == UnitType.Room).Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName == key);
-            if (!properTy) return;
-            const itemValue = this.objToString(dat[key], properTy);
-            resDat.push({
-                excelName: properTy.ExcelName,
-                id: this.getMainKey(properTy.ExcelName, this._canEditdat),
-                itemName: key,
-                itemValue: itemValue
-            });
-        });
-        return resDat;
-    }
-
-    private objToString(data: any, p: AttrPanelPropertyType): any {
-        const isCompositeType = p.Type === AttrCfgTypeEnum.array || p.Type === AttrCfgTypeEnum.object;
-        if (!isCompositeType) {
-            if (p.Type === AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(data);
-            if (p.Type === AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return data;
-            if (p.Type === AttrCfgTypeEnum.boolean) return data === "true";
-        }
-        if (p.Type === AttrCfgTypeEnum.array) {
-            const subP = p.Properties[0];
-            const res = (data as any[]).map(item => this.objToString(item, subP)).join(p.Split);
-            return res;
-        }
-        if (p.Type === AttrCfgTypeEnum.object) {
-            const res = p.Properties
-                .map((prop: AttrPanelPropertyType) => this.objToString(data[prop.ClassPropertyName], prop))
-                .join(p.Split);
-            return res;
-        }
-    }
-
-    //当前属性名是否是excel数据
-    private isPorperTyExcel(propertyClassName: string) {
-        const attrJson = DynamicGetter.Ins.getAttrSetting();
-        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName == UnitType.Room);
-        if (!typeJson) return false;
-        const propertise = typeJson.Properties as AttrPanelPropertyType[];
-        return propertise.some((p: AttrPanelPropertyType) => p.ClassPropertyName == propertyClassName && p.ExcelName);
-    }
-
-    //以房间还是地图id为主键
-    private getMainKey(excelName: string, editDat) {
-        const stageId = EditorSetting.Instance.getStageId();
-        const roomId = editDat["cfgId"];
-        //以地图id为key的表
-        const stageKey = ["LevelBaseConfig"];
-        //以房间id为key的表
-        const roomKey = ["AreaBase", "AreaMonster"];
-        //地图的表
-        let mainKey = -1;
-        if (stageKey.includes(excelName)) {
-            mainKey = stageId;
-        }
-        //房间的表
-        if (roomKey.includes(excelName)) {
-            mainKey = roomId;
-        }
-        return mainKey;
+        return ExcelConvert.getExportExcelDat(exportDat, this._canEditdat["cfgId"],UnitType.Room);
     }
 
 }

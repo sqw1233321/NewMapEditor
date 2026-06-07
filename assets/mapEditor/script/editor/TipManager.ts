@@ -39,6 +39,8 @@ export default class TipManager extends cc.Component {
 
     private returnTipNode(tip: cc.Node): void {
         tip.active = false;
+        tip.stopAllActions();
+        tip.setPosition(0, 0);
         this._pool.push(tip);
     }
 
@@ -47,10 +49,18 @@ export default class TipManager extends cc.Component {
         const label = tip.children[1].getComponent(cc.Label);
         label.string = str;
         tip.active = true;
-        tip.opacity = 255;
-        // 渐隐动画
+        tip.opacity = 0;
+        tip.y = -50; // 从下方起始位置
+
         tip.stopAllActions();
+
+        const slideIn = cc.spawn(
+            cc.moveTo(0.25, tip.x, 0),
+            cc.fadeIn(0.25)
+        );
+
         tip.runAction(cc.sequence(
+            slideIn,
             cc.delayTime(duration),
             cc.fadeOut(0.3),
             cc.callFunc(() => this.returnTipNode(tip))

@@ -17,9 +17,9 @@ export default class MapDrawLadder extends MapDrawItem {
     protected onAfterInit() {
         // 设置高度
         const dat = this._canEditdat;
-        this.startNd = MapDrawTool.instance.getPathPointById(dat.bindPointIds?.[0] ?? "");
-        this.endNd = MapDrawTool.instance.getPathPointById(dat.bindPointIds?.[1] ?? "");
-        if (this.endNd && this.startNd) {
+        this.startNd = dat.bindPointIds?.[0];
+        this.endNd = dat.bindPointIds?.[1];
+        if (this.endNd && this.startNd && cc.isValid(this.startNd) && cc.isValid(this.endNd)) {
             const startCom = this.startNd?.getComponent(MapDrawP);
             const endCom = this.endNd?.getComponent(MapDrawP);
             if (startCom && endCom) {
@@ -33,9 +33,9 @@ export default class MapDrawLadder extends MapDrawItem {
     protected onAttrChange() {
         // 设置高度
         const dat = this._canEditdat;
-        this.startNd = MapDrawTool.instance.getPathPointById(dat.bindPointIds?.[0] ?? "");
-        this.endNd = MapDrawTool.instance.getPathPointById(dat.bindPointIds?.[1] ?? "");
-        if (this.endNd && this.startNd) {
+        this.startNd = dat.bindPointIds?.[0];
+        this.endNd = dat.bindPointIds?.[1];
+        if (this.endNd && this.startNd && cc.isValid(this.startNd) && cc.isValid(this.endNd)) {
             const startCom = this.startNd?.getComponent(MapDrawP);
             const endCom = this.endNd?.getComponent(MapDrawP);
             if (startCom && endCom) {
@@ -45,6 +45,14 @@ export default class MapDrawLadder extends MapDrawItem {
         }
     }
 
+    public getAttrDat() {
+        //保证显示两个
+        const dat = super.getAttrDat();
+        let bindArr = dat["bindPointIds"];
+        bindArr = [bindArr[0] ?? "", bindArr[1] ?? ""];
+        dat["bindPointIds"] = bindArr;
+        return dat;
+    }
 
     //正在被拖拽
     protected onDragMove() {
@@ -73,7 +81,6 @@ export default class MapDrawLadder extends MapDrawItem {
                 const worldPos = this.node.convertToWorldSpaceAR(cc.v2(0, yPos[index]));
                 nd.setPosition(nd.parent.convertToNodeSpaceAR(worldPos));
                 EventManager.instance.emit(ScriptSystemEvent.moveUnitToRoomByWorldPos, nd, worldPos);
-                this._canEditdat[`bindPointIds`][index] = nd.getComponent(MapDrawP).getId();
             }
         });
     }
@@ -95,7 +102,6 @@ export default class MapDrawLadder extends MapDrawItem {
         this.node.setPosition(this.node.parent.convertToNodeSpaceAR(anchorWorld));
         this.node.setContentSize(this.node.width, heightLocal);
     }
-
 
 }
 

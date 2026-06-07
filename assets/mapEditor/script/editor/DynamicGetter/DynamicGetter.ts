@@ -214,6 +214,9 @@ export default class DynamicGetter extends cc.Component {
             if (!excelJson) {
                 return;
             }
+            if (!excelJson[item.id]) {
+                excelJson[item.id] = {};
+            }
             excelJson[item.id][item.itemName] = item.itemValue;
         });
     }

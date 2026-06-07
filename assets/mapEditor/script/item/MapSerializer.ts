@@ -75,7 +75,6 @@ export default class MapSerializer {
       excelSetingInfo.push(handler.getExportExcelDat());
     });
     return excelSetingInfo;
-
   }
 
   // ==================== 收集方法 ====================

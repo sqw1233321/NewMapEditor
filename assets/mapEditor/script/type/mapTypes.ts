@@ -81,3 +81,12 @@ export interface AttrCfgDropDownType {
     showName: string,
     exportValue: string | number
 }
+
+//属性弹窗类型
+export interface AttrPopDataType {
+    dat: any;
+    typeJson: AttrCfgType;
+    defaultValues: { className: string, value: any }[];
+    titleName: string;
+    unitType: string;
+}

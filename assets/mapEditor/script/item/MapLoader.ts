@@ -173,6 +173,7 @@ export default class MapLoader extends cc.Component {
 
   public registerRoomNode(cfgId: number, roomNd: cc.Node) {
     if (!roomNd) return;
+    console.log("registerRoomNode", cfgId, roomNd);
     this._roomNodeMap.set(cfgId, roomNd);
   }
 
@@ -186,6 +187,7 @@ export default class MapLoader extends cc.Component {
       this._roomNodeMap.delete(oldCfgId);
     }
     this._roomNodeMap.set(newCfgId, roomNd);
+    console.log("renameRoomNode", oldCfgId, newCfgId, roomNd);
   }
 
   public updatePointMap(pointId: string, pointNd: cc.Node) {
@@ -247,7 +249,7 @@ export default class MapLoader extends cc.Component {
       //刷新layer
       controller.changeLayer(layerNo);
       //维护roomNode表
-      this.renameRoomNode(oldCfgId, controller.getRoomId(), r.node);
+      this.renameRoomNode(oldCfgId, controller.getRoomCfgId(), r.node);
     });
     return rooms;
   };
@@ -673,6 +675,7 @@ export default class MapLoader extends cc.Component {
 
   // ==================== 删除操作 ====================
 
+  //删除房间
   public deleteRoom(roomNode: cc.Node) {
     if (!roomNode) return;
     const roomComp = roomNode.getComponent(MapDrawRoom);
@@ -708,6 +711,7 @@ export default class MapLoader extends cc.Component {
     this.scheduleOnce(() => this.rebuildPointIdsByLayer(), 0);
   }
 
+  //删除点
   public deletePathPoint(pointNd: cc.Node, rebuildIds: boolean = true) {
     if (!pointNd || !cc.isValid(pointNd)) return;
     const pointCom = pointNd.getComponent(MapDrawP);
@@ -715,7 +719,7 @@ export default class MapLoader extends cc.Component {
 
     const oldId = pointCom.getId();
 
-    // 1) 清理链接
+    //清理链接
     const linked = (pointCom.links || []).slice();
     linked.forEach((toNd) => {
       if (!toNd || !cc.isValid(toNd)) return;
@@ -728,54 +732,22 @@ export default class MapLoader extends cc.Component {
       otherNd.getComponent(MapDrawP)?.removeLink(pointNd);
     });
 
-
-    //TODO：这些怎么搞
-    // 2) 清理梯子绑定
-    this._roomNodeMap.forEach((roomNd) => {
-      if (!roomNd || !cc.isValid(roomNd)) return;
-      const unitCont = roomNd.getChildByName("unitCont");
-      if (!unitCont) return;
-
-      // const ladders = unitCont.getComponentsInChildren(MapDrawLadder);
-      // ladders.forEach((ladder) => {
-      //   const binds = (ladder.bindPoints || []).filter(
-      //     (n) => n && cc.isValid(n) && n !== pointNd
-      //   );
-      //   if (binds.length !== (ladder.bindPoints || []).length) {
-      //     ladder.setBinds(binds);
-      //   }
-      // });
-    });
-
-    // 3) 清理房间 unlockPoints
-    this._roomNodeMap.forEach((roomNd) => {
-      if (!roomNd || !cc.isValid(roomNd)) return;
-      const roomCom = roomNd.getComponent(MapDrawRoom);
-      if (!roomCom) return;
-
-      // const prev = roomCom.unLockPoints || [];
-      // const next = prev.filter((p) => p && cc.isValid(p) && p !== pointNd);
-      // if (next.length !== prev.length) {
-      //   roomCom.unLockPoints = next;
-      //   roomCom.refreshDat();
-      // }
-    });
-
-    // 4) 删除节点
+    //删除节点
     if (oldId) this._pointMap.delete(oldId);
     pointNd.removeFromParent();
     pointNd.destroy();
 
-    // 5) 重排 ID
+    //重排 ID
     if (rebuildIds) {
       this.scheduleOnce(() => this.rebuildPointIdsByLayer(), 0);
     }
   }
 
-  public deletePortal(portalNd: cc.Node) {
-    if (!portalNd || !cc.isValid(portalNd)) return;
-    portalNd.removeFromParent();
-    portalNd.destroy();
+  //删除房间外的节点
+  public deleteOurRoomUnits(outRoomNd: cc.Node) {
+    if (!outRoomNd || !cc.isValid(outRoomNd)) return;
+    outRoomNd.removeFromParent();
+    outRoomNd.destroy();
   }
 
   // ==================== 清空 & 导出 ====================

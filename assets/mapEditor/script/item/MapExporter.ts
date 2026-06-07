@@ -1,5 +1,7 @@
 import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import EditorSetting from "../editor/EditorSetting";
+import { MapEditorEvent } from "../event/eventTypes";
+import { EventManager } from "../frameWork/EventManager";
 import MapLoader from "./MapLoader";
 
 declare var Editor: any;
@@ -97,8 +99,14 @@ export default class MapExporter {
       console.log("准备写入文件:", fileName);
       if (fileName) {
         window.electronAPI.writeFile(`/mapDat/${fileName}`, json)
-          .then(() => console.log("Level JSON 已保存：", fileName))
-          .catch((err: any) => console.error("保存失败:", err));
+          .then(() => {
+            console.log("Level JSON 已保存：", fileName);
+            EventManager.instance.emit(MapEditorEvent.ShowTip, "保存成功：" + fileName)
+          })
+          .catch((err: any) => {
+            console.error("保存失败:", err);
+            EventManager.instance.emit(MapEditorEvent.ShowTip, "保存失败: ");
+          });
       }
     }
   }
@@ -134,11 +142,18 @@ export default class MapExporter {
     //都不是，有问题
     if (!jsonObj) {
       console.log("保存json到磁盘错误，无jsonObj");
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "保存Excel失败：无jsonObj");
       return;
     }
     window.electronAPI.writeFile(`${path}${jsonName}`, JSON.stringify(jsonObj))
-      .then(() => console.log("Excel JSON 已保存：", jsonName))
-      .catch((err: any) => console.error("保存失败:", err));
+      .then(() => {
+        console.log("Excel JSON 已保存：", jsonName);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel保存成功：" + jsonName);
+      })
+      .catch((err: any) => {
+        console.error("保存失败:", err);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel保存失败: " + err);
+      });
   }
 
   /** 下载 JSON 文件（浏览器环境） */

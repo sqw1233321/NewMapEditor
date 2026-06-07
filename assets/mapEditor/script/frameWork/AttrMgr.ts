@@ -1,5 +1,6 @@
 import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
+import { ReflectionMgr } from "../editor/ReflectionMgr";
 import { MapEditorEvent } from "../event/eventTypes";
 import MapDrawP from "../item/MapDrawP";
 import MapDrawRoom from "../item/MapDrawRoom";
@@ -87,47 +88,31 @@ export class AttrMgr extends Singleton<AttrMgr> {
         if (!this._mapLoader) return;
         const type = attrDat.type;
         let dat = attrDat.dat;
-        switch (type) {
-            case UnitType.Default:
-                const worldPos = MapTool.converMapPosToWorldPos(dat.pos);
-                const localPos = this._trackNd.parent.convertToNodeSpaceAR(worldPos);
-                this._trackNd.setPosition(localPos);
-                break;
-            case UnitType.Room:
-                let newCfgId = Number(dat.cfgId);
+        if (type == UnitType.Default) {
+            const worldPos = MapTool.converMapPosToWorldPos(dat.pos);
+            const localPos = this._trackNd.parent.convertToNodeSpaceAR(worldPos);
+            this._trackNd.setPosition(localPos);
+        }
+        else if (type == UnitType.Room) {
+            let newCfgId = Number(dat.cfgId);
+            const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
+            const hasNd = this._mapLoader.getRoomNode(newCfgId) || DynamicGetter.Ins.checkRoomDuplicate(newCfgId);
+            if (newCfgId != oldCfgId && hasNd) {
+                EventManager.instance.emit(MapEditorEvent.ShowTip, "有重名的房间！！！")
+                newCfgId = oldCfgId;
+                dat.cfgId = oldCfgId;
+            }
+            if (!hasNd) {
                 const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
-                const hasNd = this._mapLoader.getRoomNode(newCfgId) || DynamicGetter.Ins.checkRoomDuplicate(newCfgId);
-                if (newCfgId != oldCfgId && hasNd) {
-                    EventManager.instance.emit(MapEditorEvent.ShowTip, "有重名的房间！！！")
-                    newCfgId = oldCfgId;
-                    dat.cfgId = oldCfgId;
-                }
-                if (!hasNd) {
-                    const oldCfgId = this._trackNd.getComponent(MapDrawRoom).getRoomCfgId();
-                    this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);
-                    this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
-                    this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
-                }
-                this._trackNd.getComponent(MapDrawRoom).setAttrDat(dat);
-                this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent)
-                break;
-            case UnitType.PathPoint:
-                this._trackNd.getComponent(MapDrawP).setAttrDat(dat);
-                break;
-            case UnitType.Ladder:
-                const drawItem = this._trackNd.getComponent(MapDrawItem);
-                if (drawItem) {
-                    drawItem.setAttrDat(attrDat.dat);
-                }
-                break;
-            case UnitType.Door:
-            case UnitType.EnemyRefresh:
-            case UnitType.SurviveDat:
-            case UnitType.FightSoul:
-            case UnitType.Portal:
-            case UnitType.Cable:
-                this._trackNd.getComponent(MapDrawItem).setAttrDat(dat);
-                break;
+                this._trackNd.getComponent(MapDrawRoom).updateRoomId(newCfgId);
+                this._trackNd.getComponent(MapDrawRoom).setManulSet(true);
+                this._mapLoader.renameRoomNode(oldCfgId, newCfgId, this._trackNd);
+            }
+            this._trackNd.getComponent(MapDrawRoom).setAttrDat(dat);
+            this._mapLoader.refreshLayerBoundsByNode(this._trackNd.parent);
+        }
+        else{
+            this._trackNd.getComponent(MapDrawItem).setAttrDat(dat);
         }
 
         //如果有房间信息，更新一手

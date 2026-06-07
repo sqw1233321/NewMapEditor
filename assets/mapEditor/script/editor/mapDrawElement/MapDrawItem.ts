@@ -37,7 +37,8 @@ export default class MapDrawItem extends MapDrawItemBase {
     this._jsonDat = dat;
     //旧的数据中可能有条件不满足的属性有值，需要筛选一下
     this._jsonDat = this.checkCondition(this._jsonDat);
-    this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
+    //点的id转化为node
+    this._canEditdat = this.pointStrDatToMapDat(this._jsonDat);
     this.onAfterInit();
   }
 
@@ -63,81 +64,18 @@ export default class MapDrawItem extends MapDrawItemBase {
   //属性面板设置属性
   public setAttrDat(dat: any) {
     this._canEditdat = {};
-    Object.keys(dat).forEach(key => {
-      let resultDat = dat[key];
-      //点id转化为node引用
-      const pointCheck = this.checkPropertyIsPoint(key);
-      if (pointCheck.isPoint) {
-        const type = pointCheck.type;
-        if (type === "point") {
-          const pointId = dat[key] ?? "";
-          resultDat = MapDrawTool.instance.getPathPointById(pointId);
-        } else if (type === "pointArray") {
-          resultDat = [];
-          const points = dat[key];
-          points?.forEach((p: any) => {
-            resultDat.push(MapDrawTool.instance.getPathPointById(p));
-          });
-        }
-      }
-      this._canEditdat[key] = resultDat;
-    });
+    this._canEditdat = this.pointStrDatToMapDat(dat);
     this.onAttrChange();
   }
 
   //获取属性面板数据
   public getAttrDat() {
-    const resDat = {};
-    Object.keys(this._canEditdat).forEach(key => {
-      let resultDat = this._canEditdat[key];
-      //node引用转化为点id
-      const pointCheck = this.checkPropertyIsPoint(key);
-      if (pointCheck.isPoint) {
-        const type = pointCheck.type;
-        if (type === "point") {
-          const pointNd = this._canEditdat[key] as cc.Node;
-          resultDat = pointNd?.getComponent(MapDrawP)?.getId() ?? "";
-        } else if (type === "pointArray") {
-          resultDat = [];
-          const pointNds = this._canEditdat[key] as cc.Node[];
-          pointNds?.forEach((pNd: cc.Node) => {
-            if (!cc.isValid(pNd)) return;
-            resultDat.push(pNd.getComponent(MapDrawP)?.getId() ?? "");
-          });
-        }
-      }
-      resDat[key] = resultDat;
-    });
+    const resDat = this.pointMapDatToStrDat(this._canEditdat);
     return resDat;
   }
 
   public updateMapDat() {
-    this._canEditdat = this.jsonDatToMapDat(this._jsonDat);
-  }
-
-  //json数据与游戏对象数据的转化（主要是点id要变成node引用）
-  private jsonDatToMapDat(dat): any {
-    const resDat = {};
-    Object.keys(dat).forEach(key => {
-      let resultDat = dat[key];
-      //如果是点，要把id转化为node
-      const pointCheck = this.checkPropertyIsPoint(key);
-      if (pointCheck.isPoint) {
-        const type = pointCheck.type;
-        if (type === "point") {
-          const pointId = dat[key] ?? "";
-          resultDat = MapDrawTool.instance.getPathPointById(pointId);
-        } else if (type === "pointArray") {
-          resultDat = [];
-          const points = dat[key];
-          points?.forEach((p: any) => {
-            resultDat.push(MapDrawTool.instance.getPathPointById(p));
-          });
-        }
-      }
-      resDat[key] = resultDat;
-    });
-    return resDat;
+    this._canEditdat = this.pointStrDatToMapDat(this._jsonDat);
   }
 
   //获取导出数据
@@ -150,25 +88,8 @@ export default class MapDrawItem extends MapDrawItemBase {
     const typeJson = json.typeArr.find((t: AttrCfgType) => t.ClassName == this._unitType);
     if (typeJson) {
       typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
-        const key = p.ClassPropertyName;
-        let resultDat = this._canEditdat[key];
-        //如果是点，要把node转化为id
-        const pointCheck = this.checkPropertyIsPoint(key);
-        if (pointCheck.isPoint) {
-          const type = pointCheck.type;
-          if (type === "point") {
-            const pointNd = resultDat as cc.Node;
-            resultDat = pointNd?.getComponent(MapDrawP)?.getId() ?? "";
-          } else if (type === "pointArray") {
-            resultDat = [];
-            const points = this._canEditdat[key] as cc.Node[];
-            points?.forEach((pNd: any) => {
-              if (!cc.isValid(pNd)) return;
-              resultDat.push(pNd.getComponent(MapDrawP).getId() ?? "");
-            });
-          }
-        }
-        resDat[key] = resultDat ?? p.DefaultValue;
+        //将点的node转化为id
+        resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(this._canEditdat[p.ClassPropertyName], p);
       });
     }
     return resDat;
@@ -191,8 +112,10 @@ export default class MapDrawItem extends MapDrawItemBase {
   }
 
 
-  //========工具方法========
+  //==============================工具方法========================================
 
+
+  //===================默认数据生成========================
   /**
   * 根据 ClassName 获取默认值对象
   */
@@ -204,7 +127,6 @@ export default class MapDrawItem extends MapDrawItemBase {
     }
     return this.generateDefaultData(typeConfig);
   }
-
 
   /**
 * 根据配置递归生成默认值对象
@@ -248,50 +170,134 @@ export default class MapDrawItem extends MapDrawItemBase {
     return result;
   }
 
-  /**
-  * 递归查找属性配置
-  * @param properties Properties 数组
-  * @param propertyName 要查找的属性名
-  * @returns 属性配置对象，未找到返回 null
-  */
-  protected findPropertyConfig(properties: any[], propertyName: string): any | null {
-    if (!properties) return null;
 
-    for (const prop of properties) {
-      if (prop.ClassPropertyName === propertyName) {
-        return prop;
-      }
+  //===================点的类型转换（再MapDraw中点需要为引用）========================
 
-      // 如果有嵌套的 Properties，递归查找
-      if (prop.Properties && prop.Properties.length > 0) {
-        const found = this.findPropertyConfig(prop.Properties, propertyName);
-        if (found) return found;
+  //点的str转化为node
+  private pointStrDatToMapDat(dat) {
+    const resDat = {};
+    Object.keys(dat).forEach(key => {
+      let resultDat = dat[key];
+      //点id转化为node引用
+      const property = this.findPropertyJson(key);
+      if (!property) return;
+      resDat[key] = this.pointStrDatToMapDatResucr(resultDat, property);
+    });
+    return resDat;
+  }
+
+  private pointStrDatToMapDatResucr(dat, property: AttrPanelPropertyType) {
+    const type = property.Type;
+    if (type === "point") {
+      const pointId = dat ?? "";
+      const pointNd = MapDrawTool.instance.getPathPointById(pointId);
+      if (!pointNd || !cc.isValid(pointNd)) {
+        return null;
       }
+      else {
+        return pointNd;
+      }
+    } else if (type === "pointArray") {
+      const resultDat = [];
+      const points = dat;
+      points?.forEach((p: any) => {
+        const pointNd = MapDrawTool.instance.getPathPointById(p);
+        if (pointNd && cc.isValid(pointNd)) {
+          resultDat.push(pointNd);
+        }
+      });
+      return resultDat;
     }
 
-    return null;
+    let resDat = dat;
+    if (type === "object") {
+      resDat = {}
+      property?.Properties?.forEach(p => {
+        resDat[p.ClassPropertyName] = this.pointStrDatToMapDatResucr(dat[p.ClassPropertyName], p);
+      })
+    }
+    else if (type === "array") {
+      resDat = []
+      dat?.forEach((datItem) => {
+        const res = this.pointStrDatToMapDatResucr(datItem, property?.Properties?.[0]);
+        if (res) resDat.push(res);
+      })
+    }
+    //其余的不动
+    return resDat;
   }
+
+
+  //点的node转化为str
+  private pointMapDatToStrDat(dat: any) {
+    const resDat = {};
+    Object.keys(dat).forEach(key => {
+      let resultDat = dat[key];
+      //node引用转化为点id
+      const property = this.findPropertyJson(key);
+      if (!property) return;
+      resDat[key] = this.pointMapDatToStrDatResucr(resultDat, property);
+    });
+    return resDat;
+  }
+
+  private pointMapDatToStrDatResucr(dat, property: AttrPanelPropertyType) {
+    const type = property.Type;
+    if (type === "point") {
+      const pointNd = dat as cc.Node;
+      if (pointNd && cc.isValid(pointNd)) {
+        return pointNd.getComponent(MapDrawP)?.getId() ?? "";
+      }
+      else {
+        return "";
+      }
+    } else if (type === "pointArray") {
+      const resultDat = [];
+      const pointNds = dat as cc.Node[];
+      pointNds?.forEach((pNd: cc.Node) => {
+        if (!pNd || !cc.isValid(pNd)) return;
+        resultDat.push(pNd.getComponent(MapDrawP)?.getId() ?? "");
+      });
+      return resultDat;
+    }
+
+    let resDat = dat;
+    if (type === "object") {
+      resDat = {}
+      property?.Properties?.forEach(p => {
+        resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(dat[p.ClassPropertyName], p);
+      })
+    }
+    else if (type === "array") {
+      resDat = []
+      dat?.forEach((datItem) => {
+        const res = this.pointMapDatToStrDatResucr(datItem, property?.Properties?.[0]);
+        if (res) resDat.push(res);
+      })
+    }
+    //其余的不动
+    return resDat;
+  }
+
 
   /**
   * 检查属性是否为 point 或 pointArray 类型
   */
-  private checkPropertyIsPoint(propertyName: string): { isPoint: boolean, type: string } {
+  private findPropertyJson(propertyName: string): AttrPanelPropertyType {
     const json = DynamicGetter.Ins.getAttrSetting();
     const typeConfig = json?.typeArr?.find((t: any) => t.ClassName === this._unitType);
     if (!typeConfig) {
-      return { isPoint: false, type: "" };
+      return null;
     }
-
     // 递归查找属性配置
-    const propertyConfig = this.findPropertyConfig(typeConfig.Properties, propertyName);
+    const propertyConfig = typeConfig.Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName === propertyName);
     if (!propertyConfig) {
-      return { isPoint: false, type: "" };
+      return null;
     }
-
-    // 检查 Type 是否为 point 或 pointArray
-    return { isPoint: propertyConfig.Type === "point" || propertyConfig.Type === "pointArray", type: propertyConfig.Type };
+    return propertyConfig;
   }
 
+  //===================数据条件检测========================
   //数据条件检测（为了兼容旧数据有目前条件不满足的属性的数据，需要置为defaultValue ex: unlockPoints）
   //条件只用检测第一层的（现在）
   private checkCondition(dat) {
@@ -320,19 +326,6 @@ export default class MapDrawItem extends MapDrawItemBase {
     });
 
     return resDat;
-  }
-
-  private collcetAllCondition(typeConfig: AttrCfgType) {
-    let allTargetId = new Set<string>();
-    typeConfig.Properties?.forEach(property => {
-      const condition = property.Condition;
-      const isNotEqual = condition.includes("!=");
-      const splitStr = isNotEqual ? "!=" : "=";
-      const conditionProperties = condition.split(splitStr);
-      const targetId = conditionProperties[0];
-      allTargetId.add(targetId);
-    })
-    return allTargetId;
   }
 
   private checkConditionById(typeConfig: AttrCfgType, property: AttrPanelPropertyType, curDat?) {

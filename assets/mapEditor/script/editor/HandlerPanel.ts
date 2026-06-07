@@ -7,7 +7,7 @@
 
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
-import { AttrCfgType, UnitType } from "../type/mapTypes";
+import { AttrCfgType, AttrPopDataType, UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
 import EditorSetting from "./EditorSetting";
@@ -81,6 +81,13 @@ export default class HandlerPanel extends cc.Component {
         }]
         const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
         const itemDat = excelDat[stageId];
-        EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.AttrPop, itemDat, typeJson, defalutValue, "关卡属性");
+        const attrPopData: AttrPopDataType = {
+            dat: itemDat,
+            typeJson: typeJson,
+            defaultValues: defalutValue,
+            titleName: "关卡属性",
+            unitType: "Stage"
+        }
+        EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.AttrPop, attrPopData);
     }
 }
