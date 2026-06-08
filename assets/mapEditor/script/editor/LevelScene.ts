@@ -772,16 +772,7 @@ export default class LevelScene extends cc.Component {
 
   //切换背景图片
   private async changeMapBg() {
-    //如果当前没有背景图，则创建一个
-    if (this.mapCanvasNd.childrenCount == 0) {
-      const prefab = cc.instantiate(this.magBgPrefab);
-      prefab.parent = this.mapCanvasNd;
-      prefab.setPosition(0, 0);
-      MapDrawTool.instance.setMapBgPrefab(prefab);
-    }
-    const mapBg = this.mapCanvasNd.children[0];
-    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
-    // 从 MapBgManager 获取当前地图对应的背景图数据
+    const mapBgHandler = this.getMapBgHandler();
     const mapDatName = EditorSetting.Instance.getFileInfo()?.fileName;
     const bgData = await MapBgManager.instance.loadBgByMapDta(mapDatName);
     if (!bgData) {
@@ -800,8 +791,7 @@ export default class LevelScene extends cc.Component {
     const stageId = EditorSetting.Instance.getStageId();
     const cfgDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig")[stageId];
     const mapName = cfgDat?.levelRes1 ?? "";
-    const mapBg = this.mapCanvasNd.children[0];
-    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
+    const mapBgHandler = this.getMapBgHandler();
     if (!cfgDat) {
       EventManager.instance.emit(MapEditorEvent.ShowTip, "新建关卡，请绑定地图文件！！！");
       this.onClickClear();
@@ -814,7 +804,7 @@ export default class LevelScene extends cc.Component {
       mapBgHandler?.setDefault();
       return;
     }
-    if(!CC_BUILD) return;
+    if (!CC_BUILD) return;
     const result = await window.electronAPI.readFile(EditorSetting.MapDatPath + mapName);
     if (!result.success) {
       EventManager.instance.emit(MapEditorEvent.ShowTip, "读取地图文件失败！！！");
@@ -824,6 +814,19 @@ export default class LevelScene extends cc.Component {
     }
     const jsonContent = result.content;
     await this.changeMap(jsonContent, mapName);
+  }
+
+  private getMapBgHandler(): MapBgPrefab {
+    //如果当前没有背景图，则创建一个
+    if (this.mapCanvasNd.childrenCount == 0) {
+      const prefab = cc.instantiate(this.magBgPrefab);
+      prefab.parent = this.mapCanvasNd;
+      prefab.setPosition(0, 0);
+      MapDrawTool.instance.setMapBgPrefab(prefab);
+    }
+    const mapBg = this.mapCanvasNd.children[0];
+    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
+    return mapBgHandler;
   }
 
 }
