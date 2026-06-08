@@ -19,7 +19,6 @@ import { ModeMgr } from "../frameWork/ModeMgr";
 import MapInteraction from "../item/MapInteraction";
 import MapExporter from "../item/MapExporter";
 import KeyInputHandler from "./KeyInputHandler";
-import PopManager from "./PopManager";
 import MapBgPrefab from "./MapBgPrefab";
 import { MapBgManager } from "./MapBgManager";
 import { PopUid } from "./PopConfigs";
@@ -583,7 +582,7 @@ export default class LevelScene extends cc.Component {
   }
 
   // ==================== 编辑器操作 ====================
-  
+
   //新建
   public async onClickCreate() {
     EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.CreateFilePop, {
@@ -604,14 +603,34 @@ export default class LevelScene extends cc.Component {
     await this.changeMap(result.content, result.fileName);
   }
 
+  //导入excel
   public async onClickImportExcel() {
-
+    if (!CC_BUILD) return;
+    const result = await window.electronAPI.openFileDialog();
+    if (!result.success) return;
+    const jsonObj = JSON.parse(result.content);
+    const jsonName = result.fileName.split(".")[0];
+    const path = EditorSetting.OuterJsonPath;
+    //写入json
+    window.electronAPI.writeFile(`${path}${jsonName}`, JSON.stringify(jsonObj))
+      .then(() => {
+        console.log("excel导入成功: ", jsonName);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入成功: " + jsonName);
+        //内存写入
+        DynamicGetter.Ins.setExcelJson(jsonName, jsonObj);
+      })
+      .catch((err: any) => {
+        console.error("excel导入失败: ", err);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入失败: " + err);
+      });
   }
 
+  //导出excel
   public async onCLickExportExcel() {
-
+    if (!CC_BUILD) return;
+    this._mapExporter.saveAllDiskExcels();
+    EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导出成功: ");
   }
-
 
   //保存
   public onClickSave() {

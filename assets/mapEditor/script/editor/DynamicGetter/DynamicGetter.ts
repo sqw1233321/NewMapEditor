@@ -200,6 +200,20 @@ export default class DynamicGetter extends cc.Component {
         return this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName)?.jsonAsset ?? "";
     }
 
+    public setExcelJson(jsonName: string, jsonData: any) {
+        let jsonItem = this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName);
+        if (!jsonItem) {
+            jsonItem = {
+                jsonName: jsonName,
+                jsonAsset: jsonData
+            }
+            this.allExcelJson.push(jsonItem);
+        }
+        else {
+            jsonItem.jsonAsset = jsonData;
+        }
+    }
+
     public getAllExcelJsons() {
         return this.allExcelJson;
     }

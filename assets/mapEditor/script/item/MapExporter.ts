@@ -127,6 +127,14 @@ export default class MapExporter {
     }
   }
 
+  //保存所有excel到磁盘
+  public saveAllDiskExcels() {
+    if (!CC_BUILD) return;
+    DynamicGetter.Ins.getAllExcelJsons().forEach(jsonObj => {
+      this.saveJsonToDisk(jsonObj.jsonName);
+    })
+  }
+
   //保存json到磁盘
   public saveJsonToDisk(jsonName: string) {
     if (!CC_BUILD) return;
@@ -171,6 +179,7 @@ export default class MapExporter {
     a.click();
     URL.revokeObjectURL(url);
   }
+
 }
 
 declare var require: any;
