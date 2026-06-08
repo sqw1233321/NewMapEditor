@@ -133,7 +133,7 @@ export default class AttrItem extends AttrPanelItemBase {
 
     private handleDat() {
         //当前嵌套层数是否直接显示editor
-        this._isShowEditorLayer = this._layer <= 2;
+        this._isShowEditorLayer = this._layer <= 5;
         //是否是最后一层
         this._isLastLayer = !this._cfg.Properties || this._cfg.Properties.length <= 0;
         //类型
@@ -467,7 +467,12 @@ export default class AttrItem extends AttrPanelItemBase {
         //父节点是数组
         else if (this._parentCfg && this._parentCfg.Type == AttrCfgTypeEnum.array) {
             const curIndex = Number(this._uniqueName);
-            this._parentItem.setArrayDat(true, curIndex, this._cfg.Properties[0].DefaultValue);
+            let defaultValue = this._cfg.DefaultValue;
+            //是引用类型
+            if (this._cfg.Properties) {
+                defaultValue = this._cfg.Properties[0].DefaultValue;
+            }
+            this._parentItem.setArrayDat(true, curIndex, defaultValue);
         }
     }
 

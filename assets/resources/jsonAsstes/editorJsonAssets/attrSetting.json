@@ -84,6 +84,405 @@
                             ]
                         }
                     ]
+                },
+                {
+                    "ID": "7",
+                    "Name": "战魂数量",
+                    "ClassPropertyName": "fightSoulCount",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "object",
+                    "Split": "_",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "7-1",
+                            "ClassPropertyName": "fightSoulCountMin",
+                            "Name": "下限",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        },
+                        {
+                            "ID": "7-2",
+                            "ClassPropertyName": "fightSoulCountMax",
+                            "Name": "上限",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                },
+                {
+                    "ID": "8",
+                    "Name": "可救援游魂列表",
+                    "ClassPropertyName": "soul",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "8-1",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                },
+                {
+                    "ID": "9",
+                    "Name": "救援基础id偏移",
+                    "ClassPropertyName": "addid",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "10",
+                    "Name": "解救完所有游魂获得的奖励",
+                    "ClassPropertyName": "allReward",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "_",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "10-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "&",
+                            "Properties": [
+                                {
+                                    "ID": "10-1-1",
+                                    "Name": "奖励Id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "10-1-2",
+                                    "Name": "数量",
+                                    "ClassPropertyName": "rewardCount",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "11",
+                    "Name": "关卡探索度宝箱配置",
+                    "ClassPropertyName": "exploReward",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "11-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "11-1-1",
+                                    "Name": "探索度",
+                                    "ClassPropertyName": "exploreNum",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                },
+                                {
+                                    "ID": "11-1-2",
+                                    "Name": "奖励信息",
+                                    "ClassPropertyName": "rewardInfo",
+                                    "Type": "array",
+                                    "Split": "_",
+                                    "DefaultValue": [],
+                                    "Properties": [
+                                        {
+                                            "ID": "11-1-2-1",
+                                            "Type": "object",
+                                            "DefaultValue": {},
+                                            "Split": "&",
+                                            "Properties": [
+                                                {
+                                                    "ID": "11-1-2-1-1",
+                                                    "Name": "奖励Id",
+                                                    "ClassPropertyName": "rewardId",
+                                                    "Type": "number",
+                                                    "DefaultValue": -1
+                                                },
+                                                {
+                                                    "ID": "11-1-2-1-2",
+                                                    "Name": "数量",
+                                                    "ClassPropertyName": "rewardCount",
+                                                    "Type": "number",
+                                                    "DefaultValue": 0
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "12",
+                    "Name": "最大可探索房间",
+                    "ClassPropertyName": "maxAreas",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "13",
+                    "Name": "关卡掉落物品的提示列表",
+                    "ClassPropertyName": "rewardTips",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "13-1",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                },
+                {
+                    "ID": "14",
+                    "Name": "随机分布的基础奖励",
+                    "ClassPropertyName": "items",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "14-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "14-1-1",
+                                    "Name": "物品id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "14-1-2",
+                                    "Name": "掉落数量区间",
+                                    "ClassPropertyName": "rewardCount",
+                                    "Type": "object",
+                                    "Split": "&",
+                                    "DefaultValue": {},
+                                    "Properties": [
+                                        {
+                                            "ID": "14-1-2-1",
+                                            "Name": "下限",
+                                            "Type": "number",
+                                            "ClassPropertyName": "rewardCountMin",
+                                            "DefaultValue": 0
+                                        },
+                                        {
+                                            "ID": "14-1-2-2",
+                                            "Name": "上限",
+                                            "Type": "number",
+                                            "ClassPropertyName": "rewardCountMax",
+                                            "DefaultValue": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "15",
+                    "Name": "广告房间随机分布的奖励",
+                    "ClassPropertyName": "ADItems",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "15-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "15-1-1",
+                                    "Name": "物品id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "15-1-2",
+                                    "Name": "掉落数量区间",
+                                    "ClassPropertyName": "rewardCount",
+                                    "Type": "object",
+                                    "Split": "&",
+                                    "DefaultValue": {},
+                                    "Properties": [
+                                        {
+                                            "ID": "15-1-2-1",
+                                            "Name": "下限",
+                                            "Type": "number",
+                                            "ClassPropertyName": "rewardCountMin",
+                                            "DefaultValue": 0
+                                        },
+                                        {
+                                            "ID": "15-1-2-2",
+                                            "Name": "上限",
+                                            "Type": "number",
+                                            "ClassPropertyName": "rewardCountMax",
+                                            "DefaultValue": 0
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "16",
+                    "Name": "影响技能刷出概率，通关-",
+                    "ClassPropertyName": "ifWin",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "17",
+                    "Name": "影响技能刷出概率，失败+",
+                    "ClassPropertyName": "ifLose",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "18",
+                    "Name": "同场游魂最大数量",
+                    "ClassPropertyName": "onceMaxSoul",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "19",
+                    "Name": "每一波前的准备时间",
+                    "ClassPropertyName": "preparTime",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "20",
+                    "Name": "技能全选次数",
+                    "ClassPropertyName": "allSkillTime",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "21",
+                    "Name": "刷新技能次数",
+                    "ClassPropertyName": "refreshSkillTime",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "22",
+                    "Name": "复活次数",
+                    "ClassPropertyName": "rebirthTime",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "23",
+                    "Name": "每波结束后的月亮等级",
+                    "ClassPropertyName": "moonLv",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "23-1",
+                            "Type": "number",
+                            "DefaultValue": 0
+                        }
+                    ]
+                },
+                {
+                    "ID": "24",
+                    "Name": "boss信息",
+                    "ClassPropertyName": "boss",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "object",
+                    "Split": "_",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "24-1",
+                            "Name": "出现可能性",
+                            "ClassPropertyName": "bossProbability",
+                            "Type": "number",
+                            "DefaultValue": 0
+                        },
+                        {
+                            "ID": "24-2",
+                            "Name": "bossId",
+                            "ClassPropertyName": "bossId",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        },
+                        {
+                            "ID": "24-3",
+                            "Name": "boss等级",
+                            "ClassPropertyName": "bossLevel",
+                            "Type": "number",
+                            "DefaultValue": 0
+                        },
+                        {
+                            "ID": "24-4",
+                            "Name": "出现房间",
+                            "ClassPropertyName": "bossRoom",
+                            "Type": "string",
+                            "DefaultValue": ""
+                        }
+                    ]
+                },
+                {
+                    "ID": "25",
+                    "Name": "关卡敌人信息提示列表",
+                    "ClassPropertyName": "monsterTips",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "25-1",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                },
+                {
+                    "ID": "26",
+                    "Name": "主界面动画",
+                    "ClassPropertyName": "homePageAnimation",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "number",
+                    "DefaultValue": 0
                 }
             ]
         },

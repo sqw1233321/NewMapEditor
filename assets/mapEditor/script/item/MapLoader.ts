@@ -134,12 +134,14 @@ export default class MapLoader extends cc.Component {
       // 1. 清空当前地图
       this.clear();
       // 2. 重新构建地图
-      this._mapBuilder.build({ json: json }, {
-        layerCont: this._layerCont,
-        outRoomUnitCont: this._outRoomUnitCont,
-        playerCreate: this._playerCreateNd,
-        playerExit: this._playerExitNd,
-      });
+      this.scheduleOnce(() => {
+        this._mapBuilder.build({ json: json }, {
+          layerCont: this._layerCont,
+          outRoomUnitCont: this._outRoomUnitCont,
+          playerCreate: this._playerCreateNd,
+          playerExit: this._playerExitNd,
+        });
+      })
     } catch (e) {
       console.error("[MapLoader] restoreFromJson failed:", e);
     }
@@ -522,7 +524,7 @@ export default class MapLoader extends cc.Component {
           const ax = a.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
           const bx = b.convertToWorldSpaceAR(cc.Vec2.ZERO).x;
           if (Math.abs(ax - bx) > 0.001) {
-              return ax - bx;
+            return ax - bx;
           }
           const ay = a.convertToWorldSpaceAR(cc.Vec2.ZERO).y;
           const by = b.convertToWorldSpaceAR(cc.Vec2.ZERO).y;

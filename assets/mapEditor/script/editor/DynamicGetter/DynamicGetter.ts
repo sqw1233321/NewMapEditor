@@ -204,8 +204,8 @@ export default class DynamicGetter extends cc.Component {
         return this.allExcelJson;
     }
 
-    //写入配置表
-    public writeExcelJson(writeInfo: { excelName: string, id: number, itemName: string, itemValue: any }[]) {
+    //写入excel的多个字段
+    public writeExcelJsonElements(writeInfo: { excelName: string, id: number, itemName: string, itemValue: any }[]) {
         if (!writeInfo || writeInfo.length === 0) {
             return;
         }
@@ -219,6 +219,19 @@ export default class DynamicGetter extends cc.Component {
             }
             excelJson[item.id][item.itemName] = item.itemValue;
         });
+    }
+
+    //通过key来写一条数据
+    public writeExceJsonItem(excelName, key, itemDat) {
+        if (!key) return;
+        const excelJson = this.getExcelJson(excelName);
+        if (!excelJson) {
+            return;
+        }
+        if (!excelJson[key]) {
+            excelJson[key] = {};
+        }
+        excelJson[key] = itemDat;
     }
 
     //检测房间是否重名

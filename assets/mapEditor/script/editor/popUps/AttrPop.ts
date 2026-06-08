@@ -1,14 +1,7 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
-import { NodeUtil } from "../../tool/NodeUtil";
-import { AttrCfgType, AttrCfgTypeEnum, AttrPanelPropertyType, AttrPopDataType, UnitType } from "../../type/mapTypes";
+import { AttrCfgType, AttrPanelPropertyType, AttrPopDataType, UnitType } from "../../type/mapTypes";
 import AttrItem from "../attrPrefab/AttrItem";
 import AttrPanelItemBase from "../attrPrefab/AttrPanelItemBase";
+import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import ExcelConvert from "../ExcelConvert";
 import PopBase from "../PopBase";
 
@@ -29,11 +22,13 @@ export default class AttrPop extends PopBase {
     private _typeJson: AttrCfgType;
     private _defaultValues: { className: string, value: any }[];
     private _properties: AttrPanelPropertyType[];
+    private _saveCb;
 
     private _attrNodeMap: Map<string, AttrItem> = new Map();
-    private curPropertyId = "";
 
     private _unitType: UnitType;
+
+    private _excelMainKey = "";
 
     public showPop(dat: AttrPopDataType): void {
         super.showPop();
@@ -42,13 +37,15 @@ export default class AttrPop extends PopBase {
         this._defaultValues = dat.defaultValues;
         this.popName.string = dat.titleName;
         this._unitType = dat.unitType as UnitType;
+        this._saveCb = dat.saveCb;
+        this._excelMainKey = dat.excelMainKey ?? "";
+        this._dat = ExcelConvert.addExcelStrDat(this._dat, this._excelMainKey, this._unitType);
         this.setDefault();
         this.setDefaultValue();
         this.setProperties();
     }
 
     private setDefault() {
-        this.curPropertyId = "";
         this.attrCont.removeAllChildren();
         this._attrNodeMap.clear();
     }
@@ -63,7 +60,7 @@ export default class AttrPop extends PopBase {
     }
 
     private setProperties() {
-        this._dat = ExcelConvert.convertExcelToEdit(this._dat, this._dat.id, this._unitType);
+        const eidtDat = this.convertStrToEdit(this._dat, this._unitType);
         //筛选条件属性
         this._properties = this._typeJson.Properties;
         this._properties = this.checkCondition(this._properties);
@@ -90,7 +87,7 @@ export default class AttrPop extends PopBase {
         //所有属性重新赋值
         this._properties.forEach((property, index) => {
             const curController = this._attrNodeMap.get(property.ID);
-            const dat = this._dat[`${property.ClassPropertyName}`] ?? property.DefaultValue;
+            const dat = eidtDat[`${property.ClassPropertyName}`] ?? property.DefaultValue;
             if (curController) {
                 curController.node.setSiblingIndex(index);
                 curController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, dat);
@@ -132,8 +129,8 @@ export default class AttrPop extends PopBase {
     private afterEditorCb() {
         //处理一遍数据
         this._dat = this.handleDat();
-        //将编辑数据中的excel字段值变为excel形式
-        this._dat = ExcelConvert.convertEditToExcel(this._dat, this._dat.id, this._unitType);
+        //将编辑数据转化为str数据（ex:对象格式转化为字符串）
+        this._dat = this.convertEditToStr(this._dat, this._unitType);
         this.setProperties();
     }
 
@@ -163,8 +160,59 @@ export default class AttrPop extends PopBase {
         return isNotEqual ? needValue !== targetValue : needValue === targetValue;
     }
 
+    //========================操作方法===================================
     //保存数据
     public onClickSave() {
+        const mapDat = {};
+        //筛选出地图数据
+        Object.keys(this._dat).forEach((key) => {
+            if (ExcelConvert.isPorperTyExcel(key, this._unitType)) return;
+            mapDat[key] = this._dat[key];
+        });
+        //excel数据转换
+        const exportExcelDta = ExcelConvert.getExportExcelDatByStrDat(this._dat, this._excelMainKey, this._unitType);
+        this._saveCb?.(mapDat, exportExcelDta);
         this.hidePop();
+    }
+
+
+    //===================工具方法===================================
+
+    //将str数据转化为编辑数据
+    private convertStrToEdit(dat, unitType: UnitType) {
+        let resDat = {};
+        Object.keys(dat).forEach((key) => {
+            resDat[key] = dat[key];
+        });
+        const attrJson = DynamicGetter.Ins.getAttrSetting();
+        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName == unitType);
+        if (typeJson) {
+            typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
+                if (!p.ExcelName) return;
+                const datStr = dat[p.ClassPropertyName];
+                const itemValue = ExcelConvert.parseObj(datStr, p);
+                resDat[p.ClassPropertyName] = itemValue;
+            });
+        }
+        return resDat;
+    }
+
+    //将编辑数据转化为str数据
+    private convertEditToStr(dat, unitType: UnitType) {
+        let resDat = {};
+        Object.keys(dat).forEach((key) => {
+            resDat[key] = dat[key];
+        });
+        const attrJson = DynamicGetter.Ins.getAttrSetting();
+        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName == unitType);
+        if (typeJson) {
+            typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
+                if (!p.ExcelName) return;
+                const datValue = dat[p.ClassPropertyName] ?? p.DefaultValue
+                const itemValue = ExcelConvert.objToString(datValue, p);
+                resDat[p.ClassPropertyName] = itemValue;
+            });
+        }
+        return resDat;
     }
 }

@@ -74,7 +74,7 @@ export default class MapExporter {
   private updateExcelJson(excelSetingInfo: any[]) {
     if (!excelSetingInfo || excelSetingInfo.length === 0) return;
     excelSetingInfo.forEach((item) => {
-      DynamicGetter.Ins.writeExcelJson(item);
+      DynamicGetter.Ins.writeExcelJsonElements(item);
     });
   }
 
@@ -115,7 +115,7 @@ export default class MapExporter {
     if (!excelChanges || excelChanges.length === 0) return;
     //内存写入
     excelChanges.forEach(changes => {
-      DynamicGetter.Ins.writeExcelJson(changes);
+      DynamicGetter.Ins.writeExcelJsonElements(changes);
     })
     //开始存盘
     if (CC_BUILD) {

@@ -265,7 +265,7 @@ export default class MapDrawItem extends MapDrawItemBase {
     if (type === "object") {
       resDat = {}
       property?.Properties?.forEach(p => {
-        resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(dat[p.ClassPropertyName], p);
+        resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(dat[p.ClassPropertyName] ?? p.DefaultValue, p);
       })
     }
     else if (type === "array") {

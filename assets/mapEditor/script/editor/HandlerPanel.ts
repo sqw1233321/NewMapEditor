@@ -73,7 +73,11 @@ export default class HandlerPanel extends cc.Component {
             typeJson: typeJson,
             defaultValues: defalutValue,
             titleName: "关卡属性",
-            unitType: "Stage"
+            unitType: "Stage",
+            saveCb: (mapDat, excelDat) => {
+                //回写excel数据
+                DynamicGetter.Ins.writeExcelJsonElements(excelDat);
+            }
         }
         EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.AttrPop, attrPopData);
     }

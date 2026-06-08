@@ -14,8 +14,8 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class ExcelConvert extends cc.Component {
 
-    //对当前数据中的excel数据进行转化，转化成编辑数据
-    public static handlerExcelDat(dat, uniqueKey, unitType: UnitType) {
+    //传入原始数据，并且补上属性描述中的excel数据str格式
+    public static addExcelStrDat(dat, uniqueKey, unitType: UnitType) {
         let resDat = {};
         Object.keys(dat).forEach((key) => {
             resDat[key] = dat[key];
@@ -25,17 +25,26 @@ export default class ExcelConvert extends cc.Component {
         if (typeJson) {
             typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
                 if (!p.ExcelName) return;
+                //已经有这个字段了就不覆盖了
+                if (resDat[p.ClassPropertyName]) return;
                 const excelName = p.ExcelName;
                 const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
                 if (!excelDat) return;
                 const mainKey = this.getMainKey(excelName, uniqueKey);
-                this.setExcelDat(resDat, excelDat, mainKey, p);
+                const dat = excelDat[`${mainKey}`];
+                if (!dat) return;
+                const propertyDat = dat[`${p.ClassPropertyName}`];
+                if (propertyDat == null || propertyDat == "") return;
+                //解析字段内容
+                resDat[p.ClassPropertyName] = propertyDat;
             });
         }
         return resDat;
     }
 
-    public static convertExcelToEdit(dat, uniqueKey, unitType: UnitType) {
+
+    //传入原始数据，并且补上属性描述中的excel数据，obj格式
+    public static addExcelEditDat(dat, uniqueKey, unitType: UnitType) {
         let resDat = {};
         Object.keys(dat).forEach((key) => {
             resDat[key] = dat[key];
@@ -45,35 +54,26 @@ export default class ExcelConvert extends cc.Component {
         if (typeJson) {
             typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
                 if (!p.ExcelName) return;
-                const datStr = dat[p.ClassPropertyName];
-                const itemValue = this.parseObj(datStr, p);
-                resDat[p.ClassPropertyName] = itemValue;
+                //已经有这个字段了就不覆盖了
+                if (resDat[p.ClassPropertyName]) return;
+                const excelName = p.ExcelName;
+                const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
+                if (!excelDat) return;
+                const mainKey = this.getMainKey(excelName, uniqueKey);
+                const dat = excelDat[`${mainKey}`];
+                if (!dat) return;
+                const propertyDat = dat[`${p.ClassPropertyName}`];
+                if (propertyDat == null || propertyDat == "") return;
+                //解析字段内容
+                resDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
             });
         }
         return resDat;
     }
 
-    //将编辑数据转化为excel数据
-    public static convertEditToExcel(dat, uniqueKey, unitType: UnitType) {
-        let resDat = {};
-        Object.keys(dat).forEach((key) => {
-            resDat[key] = dat[key];
-        });
-        const attrJson = DynamicGetter.Ins.getAttrSetting();
-        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName == unitType);
-        if (typeJson) {
-            typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
-                if (!p.ExcelName) return;
-                const datValue = dat[p.ClassPropertyName] ?? p.DefaultValue
-                const itemValue = this.objToString(datValue, p);
-                resDat[p.ClassPropertyName] = itemValue;
-            });
-        }
-        return resDat;
-    }
 
-    //获取导出excel数据
-    public static getExportExcelDat(exportDat, uniqueKey, unitType): { excelName: string, id: number, itemName: string, itemValue: any }[] {
+    //获取导出excel数据，传入的是编辑数据（存在引用类型）
+    public static getExportExcelDatByEditDat(exportDat, uniqueKey, unitType): { excelName: string, id: number, itemName: string, itemValue: any }[] {
         let dat = {}
         //筛选出在excel中的数据
         Object.keys(exportDat).forEach((key) => {
@@ -96,16 +96,31 @@ export default class ExcelConvert extends cc.Component {
         return resDat;
     }
 
-    private static setExcelDat(resDat, excelDat, key, p: AttrPanelPropertyType) {
-        const dat = excelDat[`${key}`];
-        if (!dat) return;
-        const propertyDat = dat[`${p.ClassPropertyName}`];
-        if (propertyDat == null || propertyDat == "") return;
-        //解析字段内容
-        resDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
+    //获取导出excel数据，传入的是str数据（不存在引用类型）
+    public static getExportExcelDatByStrDat(strDat, uniqueKey, unitType) {
+        let dat = {}
+        //筛选出在excel中的数据
+        Object.keys(strDat).forEach((key) => {
+            if (!this.isPorperTyExcel(key, unitType)) return;
+            dat[key] = strDat[key];
+        });
+        const resDat: { excelName: string, id: number, itemName: string, itemValue: any }[] = [];
+        Object.keys(dat).forEach((key) => {
+            const properTy = DynamicGetter.Ins.getAttrSetting().typeArr.find((t: AttrCfgType) => t.ClassName == unitType).Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName == key);
+            if (!properTy) return;
+            const itemValue = dat[key];
+            const mainKey = this.getMainKey(properTy.ExcelName, uniqueKey);
+            resDat.push({
+                excelName: properTy.ExcelName,
+                id: mainKey,
+                itemName: key,
+                itemValue: itemValue
+            });
+        });
+        return resDat;
     }
 
-    private static parseObj(excelStr: string, p: AttrPanelPropertyType): any {
+    static parseObj(excelStr: string, p: AttrPanelPropertyType): any {
         const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
         if (!isArr) {
             if (p.Type == AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(excelStr);
@@ -115,7 +130,7 @@ export default class ExcelConvert extends cc.Component {
         const splitSymbol = p.Split;
         if (!splitSymbol) return;
         let res;
-        const datArr = excelStr ? excelStr.split(splitSymbol) : p.DefaultValue;
+        let datArr = excelStr ? excelStr.split(splitSymbol) : [];
         if (p.Type == AttrCfgTypeEnum.array) {
             res = []
             datArr.forEach((dat) => {
@@ -124,14 +139,25 @@ export default class ExcelConvert extends cc.Component {
         }
         if (p.Type == AttrCfgTypeEnum.object) {
             res = {}
-            datArr.forEach((dat, index) => {
-                res[p.Properties[index].ClassPropertyName] = this.parseObj(dat, p.Properties[index]);
+            //字段的个数
+            const PropertyLength = p.Properties.length;
+            const diff = datArr.length - PropertyLength;
+            if (diff > 0) {
+                // 多余部分合并到最后一个字段
+                const lastDat = datArr.slice(PropertyLength - 1).join(p.Split);
+                datArr[PropertyLength - 1] = lastDat;
+                datArr = datArr.slice(0, PropertyLength);
+            }
+            //对象字段的个数
+            p.Properties.forEach((property, index) => {
+                const dat = datArr[index] ?? property.DefaultValue;
+                res[property.ClassPropertyName] = this.parseObj(dat, property);
             })
         }
         return res;
     }
 
-    private static objToString(data: any, p: AttrPanelPropertyType): any {
+    static objToString(data: any, p: AttrPanelPropertyType): any {
         const isCompositeType = p.Type === AttrCfgTypeEnum.array || p.Type === AttrCfgTypeEnum.object;
         if (!isCompositeType) {
             if (p.Type === AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(data);

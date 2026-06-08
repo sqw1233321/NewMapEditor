@@ -89,4 +89,6 @@ export interface AttrPopDataType {
     defaultValues: { className: string, value: any }[];
     titleName: string;
     unitType: string;
+    excelMainKey?:string;
+    saveCb: (mapDat,excelDat) => void
 }

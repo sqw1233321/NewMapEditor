@@ -371,11 +371,11 @@ export default class LevelScene extends cc.Component {
   }
 
   private onMouseUp(event: cc.Event.EventMouse) {
-    const worldPos = event.getLocation();
-    if (!this.isWorldPosInEditorArea(worldPos)) {
-      this._dragDat = null;
-      return;
-    }
+    // const worldPos = event.getLocation();
+    // if (!this.isWorldPosInEditorArea(worldPos)) {
+    //   this._dragDat = null;
+    //   return;
+    // }
     if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       const wasRightDown = this._isRightDown;
       this._isRightDown = false;

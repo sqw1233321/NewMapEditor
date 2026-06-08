@@ -1,10 +1,9 @@
-import { AttrCfgType, AttrCfgTypeEnum, AttrPanelPropertyType, UnitType } from "../type/mapTypes";
+import { UnitType } from "../type/mapTypes";
 import MapLoader from "./MapLoader";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
 import MapDrawP from "./MapDrawP";
 import { ReflectionMgr } from "../editor/ReflectionMgr";
 import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
-import EditorSetting from "../editor/EditorSetting";
 import ExcelConvert from "../editor/ExcelConvert";
 
 
@@ -80,7 +79,7 @@ export default class MapDrawRoom extends MapDrawItem {
         let canEditDat = dat;
         if (canEditDat) {
             //填充excel数据
-            canEditDat = ExcelConvert.handlerExcelDat(canEditDat,canEditDat["cfgId"],UnitType.Room);
+            canEditDat = ExcelConvert.addExcelEditDat(canEditDat, canEditDat["cfgId"], UnitType.Room);
             //筛选可编辑属性
             canEditDat = this.filterAttrDats(canEditDat);
         }
@@ -248,7 +247,7 @@ export default class MapDrawRoom extends MapDrawItem {
         let dat = {};
         //筛选出在地图josn中的数据
         Object.keys(exportDat).forEach((key) => {
-            if (ExcelConvert.isPorperTyExcel(key,UnitType.Room)) return;
+            if (ExcelConvert.isPorperTyExcel(key, UnitType.Room)) return;
             dat[key] = exportDat[key];
         });
         this._subDats.forEach((subDat: MapDrawItem) => {
@@ -286,7 +285,7 @@ export default class MapDrawRoom extends MapDrawItem {
     //写入相关
     public getExportExcelDat(): { excelName: string, id: number, itemName: string, itemValue: any }[] {
         const exportDat = super.getExportDat();
-        return ExcelConvert.getExportExcelDat(exportDat, this._canEditdat["cfgId"],UnitType.Room);
+        return ExcelConvert.getExportExcelDatByEditDat(exportDat, this._canEditdat["cfgId"], UnitType.Room);
     }
 
 }
