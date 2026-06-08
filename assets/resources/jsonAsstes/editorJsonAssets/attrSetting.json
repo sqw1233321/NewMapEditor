@@ -426,37 +426,45 @@
                     "Name": "boss信息",
                     "ClassPropertyName": "boss",
                     "ExcelName": "LevelBaseConfig",
-                    "Type": "object",
-                    "Split": "_",
-                    "DefaultValue": {},
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
                     "Properties": [
                         {
                             "ID": "24-1",
-                            "Name": "出现可能性",
-                            "ClassPropertyName": "bossProbability",
-                            "Type": "number",
-                            "DefaultValue": 0
-                        },
-                        {
-                            "ID": "24-2",
-                            "Name": "bossId",
-                            "ClassPropertyName": "bossId",
-                            "Type": "number",
-                            "DefaultValue": -1
-                        },
-                        {
-                            "ID": "24-3",
-                            "Name": "boss等级",
-                            "ClassPropertyName": "bossLevel",
-                            "Type": "number",
-                            "DefaultValue": 0
-                        },
-                        {
-                            "ID": "24-4",
-                            "Name": "出现房间",
-                            "ClassPropertyName": "bossRoom",
-                            "Type": "string",
-                            "DefaultValue": ""
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "24-1-1",
+                                    "Name": "出现可能性",
+                                    "ClassPropertyName": "bossProbability",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                },
+                                {
+                                    "ID": "24-1-2",
+                                    "Name": "bossId",
+                                    "ClassPropertyName": "bossId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "24-1-3",
+                                    "Name": "boss等级",
+                                    "ClassPropertyName": "bossLevel",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                },
+                                {
+                                    "ID": "24-1-4",
+                                    "Name": "出现房间",
+                                    "ClassPropertyName": "bossRoom",
+                                    "Type": "string",
+                                    "DefaultValue": ""
+                                }
+                            ]
                         }
                     ]
                 },

@@ -18,6 +18,15 @@ export default class MapBgPrefab extends cc.Component {
     private _dat;
     private _spArr: cc.SpriteFrame[][] = [];
     private _size: { width: number, height: number }
+
+    public setDefault() {
+        this._size = { width: 0, height: 0 };
+        this._spArr = []
+        this.areaCont.children.forEach(child => {
+            child.active = false;
+        });
+    }
+
     /**
      * 
      * @param dat { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[][] }

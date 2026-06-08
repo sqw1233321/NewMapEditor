@@ -13,20 +13,13 @@ export default class CreateFilePop extends PopBase {
     @property(cc.EditBox)
     fileNameEdit: cc.EditBox = null;
 
-    @property(cc.EditBox)
-    sizeX: cc.EditBox;
-
-    @property(cc.EditBox)
-    sizeY: cc.EditBox;
 
     private _dat;
 
-    public initPop(dat: { exporter: MapExporter, cb }): void {
-        super.initPop();
+    public showPop(dat: { exporter: MapExporter, cb }): void {
+        super.showPop();
         this._dat = dat;
         this.fileNameEdit.string = 'newMap';
-        this.sizeX.string = `2906`;
-        this.sizeY.string = `3654`;
     }
 
     //选择现有图片集
@@ -40,8 +33,8 @@ export default class CreateFilePop extends PopBase {
         const fileName = this.fileNameEdit.string;
         const jsonContent = JSON.stringify({
             "size": {
-                "width": this.sizeX.string,
-                "height": this.sizeY.string
+                "width": `2906`,
+                "height": `3654`
             },
             "pathPoints": [],
             "rooms": [],

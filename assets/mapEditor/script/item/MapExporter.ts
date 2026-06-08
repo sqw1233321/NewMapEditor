@@ -1,5 +1,6 @@
 import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
 import EditorSetting from "../editor/EditorSetting";
+import StageExcelConvert from "../editor/StageExcelConvert";
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapLoader from "./MapLoader";
@@ -40,11 +41,9 @@ export default class MapExporter {
     //合法性检测
     const isValid = this._mapLoaderComp.checkMapValid()
     if (!isValid) return;
-
     //外部json
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
-    this.updateExcelJson(excelJson);
     this.writeExcelObject(excelJson);
     //内部json
     const json = this._mapLoaderComp?.saveDat();
@@ -61,7 +60,6 @@ export default class MapExporter {
     //外部json
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
-    this.updateExcelJson(excelJson);
     this.writeExcelObject(excelJson);
     //内部json
     const json = this._mapLoaderComp?.saveDat();
@@ -71,12 +69,6 @@ export default class MapExporter {
     this.downloadJson();
   }
 
-  private updateExcelJson(excelSetingInfo: any[]) {
-    if (!excelSetingInfo || excelSetingInfo.length === 0) return;
-    excelSetingInfo.forEach((item) => {
-      DynamicGetter.Ins.writeExcelJsonElements(item);
-    });
-  }
 
   /** 更新内存中的 levelJson 对象 */
   private updateLevelJson(json: string) {
@@ -98,7 +90,7 @@ export default class MapExporter {
       const fileName = this._mapLoaderComp.getFileName();
       console.log("准备写入文件:", fileName);
       if (fileName) {
-        window.electronAPI.writeFile(`/mapDat/${fileName}`, json)
+        window.electronAPI.writeFile(`${EditorSetting.MapDatPath}${fileName}`, json)
           .then(() => {
             console.log("Level JSON 已保存：", fileName);
             EventManager.instance.emit(MapEditorEvent.ShowTip, "保存成功：" + fileName)
@@ -114,10 +106,16 @@ export default class MapExporter {
   //吸入excel内存对象
   private writeExcelObject(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
     if (!excelChanges || excelChanges.length === 0) return;
+    //先将关卡表的一些特殊字段置为空
+    StageExcelConvert.setDefault(EditorSetting.Instance.getStageId());
     //内存写入
     excelChanges.forEach(changes => {
       DynamicGetter.Ins.writeExcelJsonElements(changes);
     })
+    //关卡表特殊的处理
+    //关卡名写入
+    const levelName = EditorSetting.Instance.getFileInfo().fileName?.split(".")[0] ?? ""
+    DynamicGetter.Ins.writeExcelJsonElement("LevelBaseConfig", EditorSetting.Instance.getStageId(), "levelRes1", levelName);
   }
 
   //保存所有excel到磁盘

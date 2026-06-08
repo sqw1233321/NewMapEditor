@@ -106,6 +106,7 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.on(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.on(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
     EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
+    EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
 
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
@@ -155,6 +156,7 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
     EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
+    EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
 
     this._keyInputHandler?.stopListen();
 
@@ -210,14 +212,6 @@ export default class LevelScene extends cc.Component {
     const localPos = this.dragLayer.convertToNodeSpaceAR(this._dragDat.mousePos);
     const dragOffset = this._dragDat.dragOffset;
     itemDat.setPosition(localPos.add(cc.v2(dragOffset)));
-
-    const worldPos = dragDat.itemNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
-    //不在地图区域内不显示hover
-    // if (this.isWorldPosMapArea(worldPos)) {
-    //   this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
-    // } else {
-    //   this.clearHover();
-    // }
     this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
 
     // 刷新属性面板
@@ -742,7 +736,6 @@ export default class LevelScene extends cc.Component {
     EditorSetting.Instance.setAutoRename(event.isChecked);
   }
 
-
   //切换地图
   private async changeMap(jsonContent: string, fileName: string) {
     //设置当前地图数据
@@ -770,12 +763,12 @@ export default class LevelScene extends cc.Component {
     //创建地图
     const mapLoaderComp = this._mapInteraction.getMapLoaderComp();
     mapLoaderComp.createMapFromJson(jsonContent, fileName);
+    EventManager.instance.emit(MapEditorEvent.ShowTip, "地图切换成功！！！");
     //清除快照
     this._undoManager.clear();
     //更换背景
     if (CC_BUILD) await this.changeMapBg();
   }
-
 
   //切换背景图片
   private async changeMapBg() {
@@ -787,14 +780,50 @@ export default class LevelScene extends cc.Component {
       MapDrawTool.instance.setMapBgPrefab(prefab);
     }
     const mapBg = this.mapCanvasNd.children[0];
+    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
     // 从 MapBgManager 获取当前地图对应的背景图数据
     const mapDatName = EditorSetting.Instance.getFileInfo()?.fileName;
     const bgData = await MapBgManager.instance.loadBgByMapDta(mapDatName);
-    if (!bgData) return;
-    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
+    if (!bgData) {
+      mapBgHandler?.setDefault();
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "请绑定背景图！！！");
+      return;
+    }
     mapBgHandler?.init(bgData);
     const size = mapBgHandler.getSize();
     //通过背景图更新一下size
     MapTool.changeSize(cc.v2(size.width, size.height));
   }
+
+  //切换关卡
+  private async updateStageId() {
+    const stageId = EditorSetting.Instance.getStageId();
+    const cfgDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig")[stageId];
+    const mapName = cfgDat?.levelRes1 ?? "";
+    const mapBg = this.mapCanvasNd.children[0];
+    const mapBgHandler = mapBg.getComponent(MapBgPrefab);
+    if (!cfgDat) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "新建关卡，请绑定地图文件！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    if (!mapName) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "请绑定地图文件！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    if(!CC_BUILD) return;
+    const result = await window.electronAPI.readFile(EditorSetting.MapDatPath + mapName);
+    if (!result.success) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "读取地图文件失败！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    const jsonContent = result.content;
+    await this.changeMap(jsonContent, mapName);
+  }
+
 }

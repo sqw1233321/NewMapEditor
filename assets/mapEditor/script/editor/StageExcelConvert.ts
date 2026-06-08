@@ -1,7 +1,19 @@
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
+import EditorSetting from "./EditorSetting";
 
 //关卡表转化
 export default class StageExcelConvert {
+    //先将关卡表的一些字段置为空
+    static setDefault(mainKey) {
+        const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
+        const itemDat = excelDat[mainKey];
+        if (!itemDat) return;
+        const needDefaultName = ["areaItems", "baseAreaItems"];
+        needDefaultName.forEach(name => {
+            itemDat[name] = "";
+        });
+    }
+
     //excelDat转化为单个key
     static exportExcelDatToStr(mainKey, uniqueKey: number, propertyClassName: string) {
         const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
@@ -28,13 +40,60 @@ export default class StageExcelConvert {
         return resDat;
     }
 
-    static exportStrToExcelDat(strDat: string, mainKey, uniqueKey: number, propertyClassName: string) {
+    static exportStrToExcelDat(uniqueKey, propertyClassName: string, strDat) {
         const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
+        const mainKey = EditorSetting.Instance.getStageId();
         const itemDat = excelDat[mainKey];
         if (!itemDat) return;
-        const propertyDat = itemDat[propertyClassName];
-        if (!propertyDat) return;
+        let propertyDat = itemDat[propertyClassName];
+        if (!propertyDat) {
+            propertyDat = "";
+        }
         let resDat;
+        if (propertyClassName == "areaItems" || propertyClassName == "baseAreaItems") {
+            resDat = this.addUniqueKeyToProperty(uniqueKey.toString(), strDat, propertyDat);
+        }
+        else {
+            resDat = strDat;
+        }
+        return resDat;
+    }
+
+    private static addUniqueKeyToProperty(newRoomId: string, strDat: string, propertyDat: string): string {
+        if (!strDat) return propertyDat;
+        let newParts: string[] = [];
+        if (propertyDat) {
+            //删除匹配的元素（最后一个下划线包含）
+            const parts = propertyDat.split("|");
+            parts.forEach(part => {
+                const partInfo = part.split("_");
+                const partPrefix = `${partInfo[0]}_${partInfo[1]}`;
+                const partRoomIds = partInfo[2].split("&");
+                if (partRoomIds.includes(newRoomId)) {
+                    if (partRoomIds.length > 1) {
+                        newParts.push(`${partPrefix}_${partRoomIds.filter(roomId => roomId != newRoomId).join("&")}`);
+                    }
+                }
+                else newParts.push(part);
+            })
+        }
+
+        //填充
+        const strInfos = strDat.split("|");
+        strInfos.forEach(strInfo => {
+            const prefix = strInfo;  // "1_5"
+            const equalPartIndex = newParts.findIndex(part => {
+                const partInfo = part.split("_");
+                const partPrefix = `${partInfo[0]}_${partInfo[1]}`;
+                return partPrefix == prefix;
+            });
+            if (equalPartIndex != -1) {
+                newParts[equalPartIndex] = `${newParts[equalPartIndex]}&${newRoomId}`;
+            }
+            else newParts.push(`${prefix}_${newRoomId}`);
+        });
+
+        return newParts.join("|");
     }
 
 

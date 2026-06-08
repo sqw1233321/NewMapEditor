@@ -27,8 +27,8 @@ export default class ChangeBgPop extends PopBase {
 
     private _levelBgName: string = "";
 
-    public initPop(dat: {}): void {
-        super.initPop();
+    public showPop(dat: {}): void {
+        super.showPop();
         this._dat = dat;
         const curFileInfo = EditorSetting.Instance.getFileInfo();
         const mapEditorDat = MapBgManager.instance.getMapEditorDat(curFileInfo?.fileName ?? "");

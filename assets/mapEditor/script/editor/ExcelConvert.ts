@@ -31,8 +31,9 @@ export default class ExcelConvert extends cc.Component {
                 const excelName = p.ExcelName;
                 const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
                 if (!excelDat) return;
-                const mainKey = this.getMainKey(excelName, uniqueKey);
-                const dat = excelDat[`${mainKey}`];
+                const isStageExcel = this.getIsStageExcel(excelName);
+                const key = isStageExcel ? EditorSetting.Instance.getStageId() : uniqueKey;
+                const dat = excelDat[key];
                 if (!dat) return;
                 const propertyDat = dat[`${p.ClassPropertyName}`];
                 if (propertyDat == null || propertyDat == "") return;
@@ -60,15 +61,16 @@ export default class ExcelConvert extends cc.Component {
                 const excelName = p.ExcelName;
                 const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
                 if (!excelDat) return;
-                const mainKey = this.getMainKey(excelName, uniqueKey);
-                const isStageExcel = this.getIsStage(excelName);
-                const dat = excelDat[`${mainKey}`];
+                const isStageExcel = this.getIsStageExcel(excelName);
+                const key = isStageExcel ? EditorSetting.Instance.getStageId() : uniqueKey;
+                const dat = excelDat[key];
                 if (!dat) return;
                 let propertyDat = dat[`${p.ClassPropertyName}`];
                 if (propertyDat == null || propertyDat == "") return;
                 //解析字段内容
                 if (isStageExcel) {
                     //关卡表的特殊解析字段
+                    const mainKey = EditorSetting.Instance.getStageId();
                     propertyDat = StageExcelConvert.exportExcelDatToStr(mainKey, uniqueKey, p.ClassPropertyName);
                 }
                 resDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
@@ -91,10 +93,9 @@ export default class ExcelConvert extends cc.Component {
             const properTy = DynamicGetter.Ins.getAttrSetting().typeArr.find((t: AttrCfgType) => t.ClassName == unitType).Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName == key);
             if (!properTy) return;
             const itemValue = this.objToString(dat[key], properTy);
-            const mainKey = this.getMainKey(properTy.ExcelName, uniqueKey);
             resDat.push({
                 excelName: properTy.ExcelName,
-                id: mainKey,
+                id: uniqueKey,
                 itemName: key,
                 itemValue: itemValue
             });
@@ -115,10 +116,9 @@ export default class ExcelConvert extends cc.Component {
             const properTy = DynamicGetter.Ins.getAttrSetting().typeArr.find((t: AttrCfgType) => t.ClassName == unitType).Properties.find((p: AttrPanelPropertyType) => p.ClassPropertyName == key);
             if (!properTy) return;
             const itemValue = dat[key];
-            const mainKey = this.getMainKey(properTy.ExcelName, uniqueKey);
             resDat.push({
                 excelName: properTy.ExcelName,
-                id: mainKey,
+                id: uniqueKey,
                 itemName: key,
                 itemValue: itemValue
             });
@@ -192,25 +192,8 @@ export default class ExcelConvert extends cc.Component {
         return propertise.some((p: AttrPanelPropertyType) => p.ClassPropertyName == propertyClassName && p.ExcelName);
     }
 
-    //以房间还是地图id为主键
-    private static getMainKey(excelName: string, unqiueKey) {
-        const stageId = EditorSetting.Instance.getStageId();
-        //以地图id为key的表
-        const isStageExcel = this.getIsStage(excelName);
-        //地图的表
-        let mainKey = -1;
-        if (isStageExcel) {
-            mainKey = stageId;
-        }
-        //房间的表
-        else {
-            mainKey = unqiueKey;
-        }
-        return mainKey;
-    }
-
     //是否关联的是关卡表
-    private static getIsStage(excelName: string) {
+    static getIsStageExcel(excelName: string) {
         const stageKey = ["LevelBaseConfig"];
         return stageKey.includes(excelName);
     }

@@ -22,6 +22,10 @@ export default class EditorSetting {
         return "jsonAsstes/outerJsonAssets/";
     }
 
+    static get MapDatPath(){
+        return "/mapDat/";
+    }
+
     // ===================当前地图数据========================
     private _fileInfo: {
         fileName: string,
@@ -80,8 +84,6 @@ export default class EditorSetting {
     }
 
     public getStageId() {
-        //测试
-        return 3;
         return this._stageId;
     }
 

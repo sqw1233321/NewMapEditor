@@ -1,5 +1,7 @@
 import { AttrCfgDropDownType } from "../../type/mapTypes";
 import EditorSetting from "../EditorSetting";
+import ExcelConvert from "../ExcelConvert";
+import StageExcelConvert from "../StageExcelConvert";
 
 const { ccclass, property } = cc._decorator;
 
@@ -228,25 +230,31 @@ export default class DynamicGetter extends cc.Component {
             if (!excelJson) {
                 return;
             }
-            if (!excelJson[item.id]) {
-                excelJson[item.id] = {};
+            const excelName = item.excelName;
+            const isStageExcel = ExcelConvert.getIsStageExcel(excelName);
+            let resDat = item.itemValue;
+            let mainKey = item.id;
+            if (isStageExcel) {
+                mainKey = EditorSetting.Instance.getStageId();
+                resDat = StageExcelConvert.exportStrToExcelDat(item.id, item.itemName, resDat);
             }
-            excelJson[item.id][item.itemName] = item.itemValue;
+            if (!excelJson[mainKey]) {
+                excelJson[mainKey] = {};
+            }
+            excelJson[mainKey][item.itemName] = resDat;
         });
     }
 
-    //通过key来写一条数据
-    public writeExceJsonItem(excelName, key, itemDat) {
-        if (!key) return;
+    //写入一个字段
+    public writeExcelJsonElement(excelName: string, key: number, itemName: string, itemValue: any) {
         const excelJson = this.getExcelJson(excelName);
         if (!excelJson) {
             return;
         }
-        if (!excelJson[key]) {
-            excelJson[key] = {};
-        }
-        excelJson[key] = itemDat;
+        if (!excelJson[key]) excelJson[key] = {};
+        excelJson[key][itemName] = itemValue;
     }
+
 
     //检测房间是否重名
     public checkRoomDuplicate(newCfgId: number) {

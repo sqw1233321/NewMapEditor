@@ -39,12 +39,23 @@ export default class AttrPop extends PopBase {
         this._unitType = dat.unitType as UnitType;
         this._saveCb = dat.saveCb;
         this._excelMainKey = dat.excelMainKey ?? "";
+        if (!this._dat) {
+            this._dat = this.geDefaultDat(this._dat);
+        }
         this._dat = ExcelConvert.addExcelStrDat(this._dat, this._excelMainKey, this._unitType);
         this.setDefault();
         this.setDefaultValue();
         this.setProperties();
         //一开始隐藏所有sub
         this.hideAllSub();
+    }
+
+    private geDefaultDat(dat: any) {
+        let defaultDat = {};
+        this._typeJson.Properties.forEach(property => {
+            defaultDat[property.ClassPropertyName] = "";
+        })
+        return defaultDat;
     }
 
     private setDefault() {
