@@ -620,6 +620,72 @@
                 },
                 {
                     "ID": "9",
+                    "Name": "掉落的特殊物品",
+                    "ClassPropertyName": "areaItems",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "9-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "9-1-1",
+                                    "Name": "道具Id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "9-1-2",
+                                    "Name": "出现可能性",
+                                    "ClassPropertyName": "probability",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "10",
+                    "Name": "掉落的普通物品",
+                    "ClassPropertyName": "baseAreaItems",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "10-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "10-1-1",
+                                    "Name": "道具Id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "10-1-2",
+                                    "Name": "出现可能性",
+                                    "ClassPropertyName": "probability",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "11",
                     "Name": "探索后敌人等级加成",
                     "ClassPropertyName": "addLV",
                     "ExcelName": "AreaBase",
@@ -627,7 +693,7 @@
                     "DefaultValue": 0
                 },
                 {
-                    "ID": "10",
+                    "ID": "12",
                     "Name": "是否是撤离房间",
                     "ClassPropertyName": "outside",
                     "ExcelName": "AreaBase",
@@ -635,7 +701,7 @@
                     "DefaultValue": false
                 },
                 {
-                    "ID": "11",
+                    "ID": "13",
                     "Name": "是否是基础房间",
                     "ClassPropertyName": "baseArea",
                     "ExcelName": "AreaBase",

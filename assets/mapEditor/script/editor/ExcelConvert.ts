@@ -8,6 +8,7 @@
 import { AttrCfgType, UnitType, AttrPanelPropertyType, AttrCfgTypeEnum } from "../type/mapTypes";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
 import EditorSetting from "./EditorSetting";
+import StageExcelConvert from "./StageExcelConvert";
 
 const { ccclass, property } = cc._decorator;
 
@@ -60,11 +61,16 @@ export default class ExcelConvert extends cc.Component {
                 const excelDat = DynamicGetter.Ins.getExcelJson(excelName);
                 if (!excelDat) return;
                 const mainKey = this.getMainKey(excelName, uniqueKey);
+                const isStageExcel = this.getIsStage(excelName);
                 const dat = excelDat[`${mainKey}`];
                 if (!dat) return;
-                const propertyDat = dat[`${p.ClassPropertyName}`];
+                let propertyDat = dat[`${p.ClassPropertyName}`];
                 if (propertyDat == null || propertyDat == "") return;
                 //解析字段内容
+                if (isStageExcel) {
+                    //关卡表的特殊解析字段
+                    propertyDat = StageExcelConvert.exportExcelDatToStr(mainKey, uniqueKey, p.ClassPropertyName);
+                }
                 resDat[p.ClassPropertyName] = this.parseObj(propertyDat, p);
             });
         }
@@ -190,10 +196,10 @@ export default class ExcelConvert extends cc.Component {
     private static getMainKey(excelName: string, unqiueKey) {
         const stageId = EditorSetting.Instance.getStageId();
         //以地图id为key的表
-        const stageKey = ["LevelBaseConfig"];
+        const isStageExcel = this.getIsStage(excelName);
         //地图的表
         let mainKey = -1;
-        if (stageKey.includes(excelName)) {
+        if (isStageExcel) {
             mainKey = stageId;
         }
         //房间的表
@@ -201,6 +207,12 @@ export default class ExcelConvert extends cc.Component {
             mainKey = unqiueKey;
         }
         return mainKey;
+    }
+
+    //是否关联的是关卡表
+    private static getIsStage(excelName: string) {
+        const stageKey = ["LevelBaseConfig"];
+        return stageKey.includes(excelName);
     }
 
 }

@@ -45,7 +45,7 @@ export default class MapExporter {
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
     this.updateExcelJson(excelJson);
-    this.persistToDiskExcel(excelJson);
+    this.writeExcelObject(excelJson);
     //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
@@ -62,7 +62,7 @@ export default class MapExporter {
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
     this.updateExcelJson(excelJson);
-    this.persistToDiskExcel(excelJson);
+    this.writeExcelObject(excelJson);
     //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
@@ -111,20 +111,13 @@ export default class MapExporter {
     }
   }
 
-  private persistToDiskExcel(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
+  //吸入excel内存对象
+  private writeExcelObject(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
     if (!excelChanges || excelChanges.length === 0) return;
     //内存写入
     excelChanges.forEach(changes => {
       DynamicGetter.Ins.writeExcelJsonElements(changes);
     })
-    //开始存盘
-    if (CC_BUILD) {
-      console.log("开始保存excel");
-      DynamicGetter.Ins.getAllExcelJsons().forEach(jsonObj => {
-        const jsonName = jsonObj.jsonName;
-        this.saveJsonToDisk(jsonName);
-      })
-    }
   }
 
   //保存所有excel到磁盘

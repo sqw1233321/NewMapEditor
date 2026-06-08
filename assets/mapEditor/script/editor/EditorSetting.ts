@@ -10,7 +10,7 @@ export default class EditorSetting {
     private _autoRename = false;
     private _stageId: number = 0;
 
-    private _isSnapY:boolean = false;
+    private _isSnapY: boolean = false;
 
     //内部json相对路径
     static get EditorJsonPath() {
@@ -80,6 +80,8 @@ export default class EditorSetting {
     }
 
     public getStageId() {
+        //测试
+        return 3;
         return this._stageId;
     }
 
@@ -90,6 +92,6 @@ export default class EditorSetting {
 
     public getIsSnapY() {
         return this._isSnapY;
-    }   
+    }
 
 }

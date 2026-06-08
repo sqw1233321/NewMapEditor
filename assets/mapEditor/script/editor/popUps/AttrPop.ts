@@ -43,6 +43,8 @@ export default class AttrPop extends PopBase {
         this.setDefault();
         this.setDefaultValue();
         this.setProperties();
+        //一开始隐藏所有sub
+        this.hideAllSub();
     }
 
     private setDefault() {
@@ -99,6 +101,13 @@ export default class AttrPop extends PopBase {
             itemController.node.setSiblingIndex(index);
             itemController.init(property, null, 0, undefined, () => { this.afterEditorCb() }, dat);
             this._attrNodeMap.set(property.ID, itemController);
+        })
+    }
+
+    //隐藏所有sub
+    private hideAllSub() {
+        this._attrNodeMap.forEach((value, id) => {
+            value.setShowSub(false);
         })
     }
 
