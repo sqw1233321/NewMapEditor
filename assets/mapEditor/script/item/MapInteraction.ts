@@ -236,25 +236,12 @@ export default class MapInteraction {
 
   /** 清除拖拽高亮 */
   public clearDragHover(
-    dragDat: DragType,
     hoverDat: HoverType,
     hoverDrawer: any
   ): string {
-    if (dragDat) {
-      dragDat.hoverRoomId = undefined;
-      dragDat.hoverRoomName = undefined;
-      dragDat.hoverLayerNode = undefined;
-      dragDat.hoverLayerName = undefined;
-    }
     hoverDat.name = "";
     hoverDrawer?.clear();
     return "";
-  }
-
-  /** 设置节点世界坐标（保持世界位置不变） */
-  private setNodeWorldPos(node: cc.Node, worldPos: cc.Vec2) {
-    if (!node || !node.parent) return;
-    node.setPosition(node.parent.convertToNodeSpaceAR(worldPos));
   }
 
   // ==================== Shift 吸附 ====================

@@ -214,16 +214,18 @@ export default class LevelScene extends cc.Component {
 
     const worldPos = dragDat.itemNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
     //不在地图区域内不显示hover
-    if (this.isWorldPosMapArea(worldPos)) {
-      this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
-    } else {
-      this.clearHover();
-    }
+    // if (this.isWorldPosMapArea(worldPos)) {
+    //   this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+    // } else {
+    //   this.clearHover();
+    // }
+    this._mapInteraction.updateDragRoomHover(this._dragDat, this._hoverDat, this.hoverDrawer);
 
     // 刷新属性面板
     AttrMgr.instance.setTrackNd(itemDat);
     AttrMgr.instance.refreshAttrPanel();
   }
+
 
   // ==================== 鼠标事件 ====================
 
@@ -304,78 +306,7 @@ export default class LevelScene extends cc.Component {
     }
   }
 
-
-  //悬停显示
-  private handleHover(target: any, worldPos: cc.Vec2) {
-    if (!(target instanceof cc.Node)) return;
-    //不在地图区域内不显示hover
-    if (!this.isWorldPosMapArea(worldPos)) {
-      this.clearHover();
-      return;
-    }
-
-    const hoverNd = target;
-    if (hoverNd.name === this._hoverDat?.name) return;
-
-    const room = hoverNd.getComponent(MapDrawRoom);
-    let boxes: HoverType[];
-
-    const isArea = target.name.startsWith("mapArea");
-    if (room) {
-      const main = this._mapInteraction.buildHoverBoxForNode(hoverNd);
-      if (!main) {
-        this.clearHoverDat();
-        this.hoverDrawer.clear();
-        return;
-      }
-      boxes = [main];
-      const units = room.node.getComponentsInChildren(MapDrawItem);
-      for (let i = 0; i < units.length; i++) {
-        const u = units[i];
-        if (!u || !u.node || u.node === room.node) continue;
-        const h = this._mapInteraction.buildHoverBoxForNode(u.node);
-        if (h) boxes.push(h);
-      }
-    } else if (isArea) {
-      const h = this._mapInteraction.buildHoverBoxForNode(hoverNd, true);
-      if (!h) {
-        this.clearHoverDat();
-        this.hoverDrawer.clear();
-        return;
-      }
-      boxes = [h];
-    } else {
-      const h = this._mapInteraction.buildHoverBoxForNode(hoverNd);
-      if (!h) {
-        this.clearHoverDat();
-        this.hoverDrawer.clear();
-        return;
-      }
-      boxes = [h];
-    }
-
-    this._hoverDat.name = hoverNd.name;
-    this._hoverDat.worldPos = boxes[0].worldPos;
-    this._hoverDat.width = boxes[0].width;
-    this._hoverDat.height = boxes[0].height;
-
-    // 获取路径连线
-    let linkSegs: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> | undefined;
-    if (room) {
-      linkSegs = this._mapInteraction.getPathLinkWorldSegmentsForRoom(room.getRoomCfgId());
-    } else if (hoverNd.getComponent(MapDrawP)) {
-      linkSegs = this._mapInteraction.getPathLinkWorldSegmentsFromPoint(hoverNd);
-    }
-
-    this.hoverDrawer?.drawMulti(hoverNd.name, boxes, linkSegs);
-  }
-
   private onMouseUp(event: cc.Event.EventMouse) {
-    // const worldPos = event.getLocation();
-    // if (!this.isWorldPosInEditorArea(worldPos)) {
-    //   this._dragDat = null;
-    //   return;
-    // }
     if (event.getButton() === cc.Event.EventMouse.BUTTON_RIGHT) {
       const wasRightDown = this._isRightDown;
       this._isRightDown = false;
@@ -386,8 +317,6 @@ export default class LevelScene extends cc.Component {
       if (!wasLeftDown) return;
       this.handleDragEnd(event);
     }
-    //清除hover
-    this.clearHover();
   }
 
   private handleDragEnd(event: cc.Event.EventMouse) {
@@ -415,8 +344,7 @@ export default class LevelScene extends cc.Component {
     const type = itemDat.getComponent(MapDrawItem).getType();
     let targetParent: cc.Node = null;
 
-    // 计算目标父节点
-
+    // =====================计算目标父节点========================
     //特殊点如起始点，撤离点
     if (itemDat.name === "playerExit" || itemDat.name === "playerCreate") {
       targetParent = itemParent;
@@ -544,11 +472,77 @@ export default class LevelScene extends cc.Component {
 
   //清除hover
   private clearHover() {
-    this._mapInteraction.clearDragHover(this._dragDat, this._hoverDat, this.hoverDrawer);
+    this._mapInteraction.clearDragHover(this._hoverDat, this.hoverDrawer);
+  }
+
+  //================= hover提示 ===========================
+  private handleHover(target: any, worldPos: cc.Vec2) {
+    if (!(target instanceof cc.Node)) return;
+    //不在地图区域内不显示hover
+    if (!this.isWorldPosMapArea(worldPos)) {
+      this.clearHover();
+      return;
+    }
+
+    const hoverNd = target;
+    if (hoverNd.name === this._hoverDat?.name) return;
+
+    const room = hoverNd.getComponent(MapDrawRoom);
+    let boxes: HoverType[];
+
+    const isArea = target.name.startsWith("mapArea");
+    if (room) {
+      const main = this._mapInteraction.buildHoverBoxForNode(hoverNd);
+      if (!main) {
+        this.clearHoverDat();
+        this.hoverDrawer.clear();
+        return;
+      }
+      boxes = [main];
+      const units = room.node.getComponentsInChildren(MapDrawItem);
+      for (let i = 0; i < units.length; i++) {
+        const u = units[i];
+        if (!u || !u.node || u.node === room.node) continue;
+        const h = this._mapInteraction.buildHoverBoxForNode(u.node);
+        if (h) boxes.push(h);
+      }
+    } else if (isArea) {
+      const h = this._mapInteraction.buildHoverBoxForNode(hoverNd, true);
+      if (!h) {
+        this.clearHoverDat();
+        this.hoverDrawer.clear();
+        return;
+      }
+      boxes = [h];
+    } else {
+      const h = this._mapInteraction.buildHoverBoxForNode(hoverNd);
+      if (!h) {
+        this.clearHoverDat();
+        this.hoverDrawer.clear();
+        return;
+      }
+      boxes = [h];
+    }
+
+    this._hoverDat.name = hoverNd.name;
+    this._hoverDat.worldPos = boxes[0].worldPos;
+    this._hoverDat.width = boxes[0].width;
+    this._hoverDat.height = boxes[0].height;
+
+    // 获取路径连线
+    let linkSegs: Array<{ p0: cc.Vec2; p1: cc.Vec2 }> | undefined;
+    if (room) {
+      linkSegs = this._mapInteraction.getPathLinkWorldSegmentsForRoom(room.getRoomCfgId());
+    } else if (hoverNd.getComponent(MapDrawP)) {
+      linkSegs = this._mapInteraction.getPathLinkWorldSegmentsFromPoint(hoverNd);
+    }
+
+    this.hoverDrawer?.drawMulti(hoverNd.name, boxes, linkSegs);
   }
 
   // ==================== 节点操作 ====================
 
+  //删除节点
   public deleteNd() {
     const trackNd = AttrMgr.instance.getTrachNd();
     if (!trackNd || !cc.isValid(trackNd)) return;
@@ -589,7 +583,7 @@ export default class LevelScene extends cc.Component {
   }
 
   // ==================== 编辑器操作 ====================
-
+  
   //新建
   public async onClickCreate() {
     EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.CreateFilePop, {
