@@ -1,3 +1,4 @@
+import { AttrCfgType, AttrCfgTypeEnum, AttrPanelPropertyType } from "../type/mapTypes";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
 import EditorSetting from "./EditorSetting";
 
@@ -12,6 +13,29 @@ export default class StageExcelConvert {
         needDefaultName.forEach(name => {
             itemDat[name] = "";
         });
+    }
+
+    //进行一下查漏补缺
+    static fillProperties(mainKey: number) {
+        const attrJson = DynamicGetter.Ins.getAttrSetting();
+        const typeJson = attrJson.typeArr.find((t: AttrCfgType) => t.ClassName.toString() == "Stage");
+        if (!typeJson) return;
+        const excelDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig");
+        if (!excelDat[mainKey]) {
+            excelDat[mainKey] = {};
+        }
+        const itemDat = excelDat[mainKey];
+        typeJson.Properties.forEach((property: AttrPanelPropertyType) => {
+            if (!itemDat[property.ClassPropertyName]) {
+                const type = property.Type;
+                let resultDat = property.DefaultValue;
+                if (type == AttrCfgTypeEnum.object || type == AttrCfgTypeEnum.array) {
+                    resultDat = "";
+                }
+                itemDat[property.ClassPropertyName] = resultDat;
+            }
+        });
+        itemDat["id"] = mainKey;
     }
 
     //excelDat转化为单个key

@@ -16,12 +16,12 @@ export default class MapExporter {
     this._mapLoaderComp = mapLoader.getComponent(MapLoader);
   }
 
-  //==================== 新建 ====================
+  //新建地图数据
   public async createFile(fileName, jsonContent) {
     return await window.electronAPI.createFile(fileName, jsonContent);
   }
 
-  //==================== 导入 ====================
+  //导入地图数据
   public async import() {
     const filters = [{ name: 'JSON Files', extensions: ['json'] }];
     const result = await window.electronAPI.openFileDialog(filters);
@@ -70,8 +70,7 @@ export default class MapExporter {
     this.downloadJson();
   }
 
-
-  /** 更新内存中的 levelJson 对象 */
+  /** 更新内存中的地图数据*/
   private updateLevelJson(json: string) {
     const fileInfo = EditorSetting.Instance.getFileInfo();
     if (!fileInfo) return;
@@ -80,7 +79,7 @@ export default class MapExporter {
     fileInfo.fileJson = JSON.parse(json);
   }
 
-  /** 把当前 levelJson 覆盖写回 assets 下对应 json 文件（仅编辑器环境） */
+  /** 把当前地图数据覆盖写回 assets 下对应 json 文件 */
   private persistToDisk(json: string) {
     const fileInfo = EditorSetting.Instance.getFileInfo();
     if (!fileInfo) return;
@@ -108,14 +107,17 @@ export default class MapExporter {
   private writeExcelObject(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
     if (!excelChanges || excelChanges.length === 0) return;
     //先将关卡表的一些特殊字段置为空
-    StageExcelConvert.setDefault(EditorSetting.Instance.getStageId());
+    const stageId = EditorSetting.Instance.getStageId();
+    StageExcelConvert.setDefault(stageId);
     //内存写入
     excelChanges.forEach(changes => {
       DynamicGetter.Ins.writeExcelJsonElements(changes);
     })
     //关卡表特殊的处理
     //关卡名写入
-    const levelName = EditorSetting.Instance.getFileInfo().fileName?.split(".")[0] ?? ""
+    const levelName = EditorSetting.Instance.getFileInfo().fileName?.split(".")[0] ?? "";
+    //关卡表查漏补缺
+    StageExcelConvert.fillProperties(stageId);
     DynamicGetter.Ins.writeExcelJsonElement("LevelBaseConfig", EditorSetting.Instance.getStageId(), "levelRes1", levelName);
   }
 
@@ -156,7 +158,7 @@ export default class MapExporter {
       });
   }
 
-  /** 下载 JSON 文件（浏览器环境） */
+  /** 下载 JSON 文件 */
   public downloadJson(filename = "mapData.json") {
     const fileInfo = EditorSetting.Instance.getFileInfo();
     if (!fileInfo) return;
@@ -172,7 +174,7 @@ export default class MapExporter {
     URL.revokeObjectURL(url);
   }
 
-
+  //导入外部excel到编辑器内部
   public async importExcel() {
     if (!CC_BUILD) return;
     const filters = [{ name: 'JSON Files', extensions: ['json'] }];

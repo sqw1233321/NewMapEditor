@@ -44,7 +44,6 @@ export default class ExcelConvert extends cc.Component {
         return resDat;
     }
 
-
     //传入原始数据，并且补上属性描述中的excel数据，obj格式
     public static addExcelEditDat(dat, uniqueKey, unitType: UnitType) {
         let resDat = {};
@@ -78,7 +77,6 @@ export default class ExcelConvert extends cc.Component {
         }
         return resDat;
     }
-
 
     //获取导出excel数据，传入的是编辑数据（存在引用类型）
     public static getExportExcelDatByEditDat(exportDat, uniqueKey, unitType): { excelName: string, id: number, itemName: string, itemValue: any }[] {
@@ -126,6 +124,7 @@ export default class ExcelConvert extends cc.Component {
         return resDat;
     }
 
+    //str转化为obj
     static parseObj(excelStr: string, p: AttrPanelPropertyType): any {
         const isArr = p.Type == AttrCfgTypeEnum.array || p.Type == AttrCfgTypeEnum.object;
         if (!isArr) {
@@ -163,7 +162,15 @@ export default class ExcelConvert extends cc.Component {
         return res;
     }
 
+    //obj转化为str
     static objToString(data: any, p: AttrPanelPropertyType): any {
+        if (!data) {
+            const type = p.Type;
+            if (type == AttrCfgTypeEnum.object || type == AttrCfgTypeEnum.array) {
+                return "";
+            }
+            return p.DefaultValue;
+        }
         const isCompositeType = p.Type === AttrCfgTypeEnum.array || p.Type === AttrCfgTypeEnum.object;
         if (!isCompositeType) {
             if (p.Type === AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(data);

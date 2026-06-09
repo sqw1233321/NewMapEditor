@@ -3,7 +3,6 @@ import { EventManager } from "../../frameWork/EventManager";
 import MapExporter from "../../item/MapExporter";
 import PopBase from "../PopBase";
 import { PopUid } from "../PopConfigs";
-import PopManager from "../PopManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -48,7 +47,7 @@ export default class CreateFilePop extends PopBase {
             },
             "areaInfo": []
         });
-        const mapExporter = this._dat.exporter;
+        const mapExporter = this._dat.exporter as MapExporter;
         const result = await mapExporter?.createFile(fileName, jsonContent);
         if (result.success) {
             console.log('新建成功:', result.path);

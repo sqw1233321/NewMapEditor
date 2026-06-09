@@ -41,7 +41,7 @@ export default class DynamicGetter extends cc.Component {
         });
     }
 
-    //加载动态json
+    //加载所有json到内存表
     public async loadDynamicJson() {
         let loadDir;
         this.allExcelJson = [];
@@ -93,7 +93,7 @@ export default class DynamicGetter extends cc.Component {
         }
     }
 
-    //========加载引擎内部json的读写方法=========
+    //========加载编辑器内部json的读写方法=========
     //获取属性配置
     public getAttrSetting(): any {
         return this["attrSetting"];
@@ -115,7 +115,7 @@ export default class DynamicGetter extends cc.Component {
     }
 
 
-
+    //================== 一些内部json的写死的方法 =======================
     public getItemSettingByUnitType(unitType: string, uniqueType: number = -1) {
         const hasType = uniqueType >= 0;
         const settings = DynamicGetter.Ins.getItemSetting();
@@ -207,11 +207,7 @@ export default class DynamicGetter extends cc.Component {
     }
 
     //==============外部json的读写====================
-
-    public getExcelJson(jsonName: string) {
-        return this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName)?.jsonAsset ?? "";
-    }
-
+    //修改excel的内存数据
     public setExcelJson(jsonName: string, jsonData: any) {
         let jsonItem = this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName);
         if (!jsonItem) {
@@ -226,6 +222,12 @@ export default class DynamicGetter extends cc.Component {
         }
     }
 
+    //获取内存中的某个excel对象
+    public getExcelJson(jsonName: string) {
+        return this.allExcelJson.find(jsonItem => jsonItem.jsonName == jsonName)?.jsonAsset ?? "";
+    }
+
+    //获取内存中的所有excel对象
     public getAllExcelJsons() {
         return this.allExcelJson;
     }
@@ -265,7 +267,7 @@ export default class DynamicGetter extends cc.Component {
         excelJson[key][itemName] = itemValue;
     }
 
-
+    //=================== excel的检测 =============================
     //检测房间是否重名
     public checkRoomDuplicate(newCfgId: number) {
         const roomJson = this.getExcelJson("AreaBase");

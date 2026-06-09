@@ -228,7 +228,7 @@ export default class AttrPop extends PopBase {
         if (typeJson) {
             typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
                 if (!p.ExcelName) return;
-                const datValue = dat[p.ClassPropertyName] ?? p.DefaultValue
+                const datValue = dat[p.ClassPropertyName] ?? "";
                 const itemValue = ExcelConvert.objToString(datValue, p);
                 resDat[p.ClassPropertyName] = itemValue;
             });
