@@ -2,7 +2,11 @@ declare global {
     interface Window {
         electronAPI: {
             writeFile: (fileName: string, content: string) => Promise<any>;
-            openFileDialog: () => Promise<any>;
+            openFileDialog: (filters?, properties?) => Promise<any>;
+            //相对路径，绝对路径
+            copyFile: (sourcePath: string, destPath: string) => Promise<any>;
+            //相对路径的文件夹，目标绝对路径
+            copyFiles:(sourcePath: string, destPath: string) => Promise<any>;
             createFile: (fileName: string, jsonContent: string) => Promise<any>;
             readFile: (filePath: string) => Promise<any>;
             readFolder: (folderPath: string) => Promise<any>;
@@ -10,6 +14,10 @@ declare global {
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;
             loadAreaImages: (areaName: string) => Promise<{ success: boolean; images?: { name: string; data: string }[][]; error?: string }>;
+            //相对路径
+            excelToJson: (excelPath, jsonPath) => Promise<any>;
+            //相对路径
+            jsonToExcel: (jsonPath, excelPath) => Promise<any>;
         };
     }
 }

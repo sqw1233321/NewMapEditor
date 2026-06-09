@@ -5,8 +5,6 @@ import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
 import MapLoader from "./MapLoader";
 
-declare var Editor: any;
-
 /**
  * 地图数据导出器
  * 负责：JSON 导出、文件保存、下载
@@ -25,7 +23,8 @@ export default class MapExporter {
 
   //==================== 导入 ====================
   public async import() {
-    const result = await window.electronAPI.openFileDialog();
+    const filters = [{ name: 'JSON Files', extensions: ['json'] }];
+    const result = await window.electronAPI.openFileDialog(filters);
     if (result.success) {
       const mapData = JSON.parse(result.content);
       console.log('导入文件:', result.path);
@@ -45,6 +44,7 @@ export default class MapExporter {
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
     this.writeExcelObject(excelJson);
+    this.saveAllDiskExcels();
     //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
@@ -61,6 +61,7 @@ export default class MapExporter {
     const excelJson = this._mapLoaderComp?.saveExcelDat();
     if (!excelJson) return;
     this.writeExcelObject(excelJson);
+    this.saveAllDiskExcels();
     //内部json
     const json = this._mapLoaderComp?.saveDat();
     if (!json) return;
@@ -103,7 +104,7 @@ export default class MapExporter {
     }
   }
 
-  //吸入excel内存对象
+  //写入excel内存对象
   private writeExcelObject(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
     if (!excelChanges || excelChanges.length === 0) return;
     //先将关卡表的一些特殊字段置为空
@@ -119,24 +120,24 @@ export default class MapExporter {
   }
 
   //保存所有excel到磁盘
-  public saveAllDiskExcels() {
+  public saveAllDiskExcels(savePath?) {
     if (!CC_BUILD) return;
     DynamicGetter.Ins.getAllExcelJsons().forEach(jsonObj => {
-      this.saveJsonToDisk(jsonObj.jsonName);
+      this.saveJsonToDisk(jsonObj.jsonName, savePath);
     })
   }
 
   //保存json到磁盘
-  public saveJsonToDisk(jsonName: string) {
+  public saveJsonToDisk(jsonName: string, savePath?) {
     if (!CC_BUILD) return;
     let jsonObj = null;
     //外部json
-    let path = EditorSetting.OuterJsonPath;
+    let path = savePath || EditorSetting.OuterJsonPath;
     jsonObj = DynamicGetter.Ins.getExcelJson(jsonName);
     //内部json
     if (!jsonObj) {
       jsonObj = DynamicGetter.Ins[jsonName];
-      path = EditorSetting.EditorJsonPath;
+      path = savePath || EditorSetting.EditorJsonPath;
     }
     //都不是，有问题
     if (!jsonObj) {
@@ -169,6 +170,49 @@ export default class MapExporter {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+
+  public async importExcel() {
+    if (!CC_BUILD) return;
+    const filters = [{ name: 'JSON Files', extensions: ['json'] }];
+    const result = await window.electronAPI.openFileDialog(filters);
+    if (!result.success) return;
+    const jsonObj = JSON.parse(result.content);
+    const jsonName = result.fileName.split(".")[0];
+    const path = EditorSetting.OuterJsonPath;
+    //写入json
+    window.electronAPI.writeFile(`${path}${jsonName}`, JSON.stringify(jsonObj))
+      .then(() => {
+        console.log("excel导入成功: ", jsonName);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入成功: " + jsonName);
+        //内存写入
+        DynamicGetter.Ins.setExcelJson(jsonName, jsonObj);
+      })
+      .catch((err: any) => {
+        console.error("excel导入失败: ", err);
+        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入失败: " + err);
+      });
+  }
+
+  //导出excel到外部文件
+  public async exportExcel() {
+    if (!CC_BUILD) return;
+    const exportPath = DynamicGetter.Ins.getEditorSetting().excelExportPath;
+    //进行json到excel的转化，到excelAsset文件夹下
+    const excelPath = EditorSetting.ExcelPath;
+    const jsonPath = EditorSetting.OuterJsonPath;
+    //window.electronAPI.jsonToExcel(jsonPath, excelPath);
+    //复制文件到一个绝对路径
+    const result = await window.electronAPI.copyFiles(excelPath, exportPath);
+    if (!result.success) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导出失败: " + result.error);
+      console.log("excel导出失败: " + result.error);
+    }
+    else {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导出成功!!!");
+      console.log("excel导出成功");
+    }
   }
 
 }

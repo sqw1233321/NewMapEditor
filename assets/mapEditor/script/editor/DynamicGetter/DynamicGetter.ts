@@ -94,17 +94,27 @@ export default class DynamicGetter extends cc.Component {
     }
 
     //========加载引擎内部json的读写方法=========
+    //获取属性配置
     public getAttrSetting(): any {
         return this["attrSetting"];
     }
 
+    //获取机制配置
     public getItemSetting(): any {
         return this["itemSetting"];
     }
 
+    //获取下拉框
     public getDropDownSetting(): any {
         return this["dropDownSetting"];
     }
+
+    //获取编辑器配置
+    public getEditorSetting(): any {
+        return this["editorSetting"];
+    }
+
+
 
     public getItemSettingByUnitType(unitType: string, uniqueType: number = -1) {
         const hasType = uniqueType >= 0;

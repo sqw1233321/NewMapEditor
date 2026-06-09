@@ -1,12 +1,6 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { MapEditorEvent } from "../event/eventTypes";
 import { EventManager } from "../frameWork/EventManager";
+import { ModeMgr } from "../frameWork/ModeMgr";
 import { AttrCfgType, AttrPopDataType, UnitType } from "../type/mapTypes";
 import { ModeType } from "../type/types";
 import DynamicGetter from "./DynamicGetter/DynamicGetter";
@@ -80,5 +74,15 @@ export default class HandlerPanel extends cc.Component {
             }
         }
         EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.AttrPop, attrPopData);
+    }
+
+    //连线模式
+    public onClickPathLineMode() {
+        ModeMgr.instance.enterMode(ModeType.PathPointLink);
+    }
+
+    //自动命名按钮
+    public onTogAutoReanme(event) {
+        EditorSetting.Instance.setAutoRename(event.isChecked);
     }
 }

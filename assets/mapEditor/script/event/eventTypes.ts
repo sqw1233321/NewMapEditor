@@ -34,6 +34,8 @@ export enum MapEditorEvent {
     ChangeMapBg = "ChangeMapBg",
     //更换文件
     UpdateFile = "UpdateFile",
+    //保存excel文件
+    SaveExcelFile = "SaveExcelFile",
 
     //============通用相关==============
     //显示弹窗

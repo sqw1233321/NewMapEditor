@@ -107,6 +107,7 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.on(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
     EventManager.instance.on(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
     EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
+    EventManager.instance.on(MapEditorEvent.SaveExcelFile, this.onSaveExcelFile, this);
 
     // 初始化键盘输入处理
     this._keyInputHandler = new KeyInputHandler();
@@ -156,7 +157,8 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.off(MapEditorEvent.DragItem, this.startDrag, this);
     EventManager.instance.off(MapEditorEvent.ChangeMapBg, this.changeMapBg, this);
     EventManager.instance.off(MapEditorEvent.UpdateCurModeDisplay, this.updateCurModeDisplay, this);
-    EventManager.instance.on(MapEditorEvent.ChangeStage, this.updateStageId, this);
+    EventManager.instance.off(MapEditorEvent.ChangeStage, this.updateStageId, this);
+    EventManager.instance.off(MapEditorEvent.SaveExcelFile, this.onSaveExcelFile, this);
 
     this._keyInputHandler?.stopListen();
 
@@ -218,7 +220,6 @@ export default class LevelScene extends cc.Component {
     AttrMgr.instance.setTrackNd(itemDat);
     AttrMgr.instance.refreshAttrPanel();
   }
-
 
   // ==================== 鼠标事件 ====================
 
@@ -312,6 +313,7 @@ export default class LevelScene extends cc.Component {
     }
   }
 
+  //处理拖拽结束
   private handleDragEnd(event: cc.Event.EventMouse) {
     if (!this._dragDat) return;
 
@@ -463,11 +465,6 @@ export default class LevelScene extends cc.Component {
     mapLoaderComp?.rebuildPointIdsByLayer();
   }
 
-  //清除hover
-  private clearHover() {
-    this._mapInteraction.clearDragHover(this._hoverDat, this.hoverDrawer);
-  }
-
   //================= hover提示 ===========================
   private handleHover(target: any, worldPos: cc.Vec2) {
     if (!(target instanceof cc.Node)) return;
@@ -533,6 +530,11 @@ export default class LevelScene extends cc.Component {
     this.hoverDrawer?.drawMulti(hoverNd.name, boxes, linkSegs);
   }
 
+  //清除hover
+  private clearHover() {
+    this._mapInteraction.clearDragHover(this._hoverDat, this.hoverDrawer);
+  }
+
   // ==================== 节点操作 ====================
 
   //删除节点
@@ -577,6 +579,11 @@ export default class LevelScene extends cc.Component {
 
   // ==================== 编辑器操作 ====================
 
+  //打开编辑器设置界面
+  public async onCLickOpenSetting() {
+    EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.EditorSettingPop);
+  }
+
   //新建
   public async onClickCreate() {
     EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.CreateFilePop, {
@@ -591,49 +598,30 @@ export default class LevelScene extends cc.Component {
     EventManager.instance.emit(MapEditorEvent.ShowPop, PopUid.ChangeBgPop);
   }
 
-  //导入
+  //导入地图数据
   public async onClickImport() {
     const result = await this._mapExporter?.import();
     await this.changeMap(result.content, result.fileName);
   }
 
-  //导入excel
-  public async onClickImportExcel() {
-    if (!CC_BUILD) return;
-    const result = await window.electronAPI.openFileDialog();
-    if (!result.success) return;
-    const jsonObj = JSON.parse(result.content);
-    const jsonName = result.fileName.split(".")[0];
-    const path = EditorSetting.OuterJsonPath;
-    //写入json
-    window.electronAPI.writeFile(`${path}${jsonName}`, JSON.stringify(jsonObj))
-      .then(() => {
-        console.log("excel导入成功: ", jsonName);
-        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入成功: " + jsonName);
-        //内存写入
-        DynamicGetter.Ins.setExcelJson(jsonName, jsonObj);
-      })
-      .catch((err: any) => {
-        console.error("excel导入失败: ", err);
-        EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导入失败: " + err);
-      });
+  //导出地图数据
+  public onCLickExport() {
+    this._mapExporter?.export();
   }
 
-  //导出excel
-  public async onCLickExportExcel() {
-    if (!CC_BUILD) return;
-    this._mapExporter.saveAllDiskExcels();
-    EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导出成功: ");
-  }
-
-  //保存
+  //保存地图数据
   public onClickSave() {
     this._mapExporter?.save();
   }
 
-  //导出
-  public onCLickExport() {
-    this._mapExporter?.export();
+  //导入excel
+  public async onClickImportExcel() {
+    this._mapExporter.importExcel();
+  }
+
+  //导出excel到目标路径
+  public async onCLickExportExcel() {
+    this._mapExporter.exportExcel();
   }
 
   //清空
@@ -642,10 +630,7 @@ export default class LevelScene extends cc.Component {
     this._mapInteraction.getMapLoaderComp()?.clear();
   }
 
-
-
-  //TODO：===================撤销功能===================
-
+  //===================撤销功能===================
   /**
    * 保存撤销快照（供外部调用）
    */
@@ -711,11 +696,7 @@ export default class LevelScene extends cc.Component {
     this._hoverDat.name = "";
   }
 
-  // ==================== 路径线模式 ====================
-
-  public onClickPathLineMode() {
-    ModeMgr.instance.enterMode(ModeType.PathPointLink);
-  }
+  // ==================== 模式选择 ====================
 
   public updateCurModeDisplay(modeType: ModeType) {
     if (!modeType) {
@@ -732,8 +713,36 @@ export default class LevelScene extends cc.Component {
     }
   }
 
-  onTogAutoReanme(event) {
-    EditorSetting.Instance.setAutoRename(event.isChecked);
+  //============== 地图切换 ================
+
+  //切换关卡
+  private async updateStageId() {
+    const stageId = EditorSetting.Instance.getStageId();
+    const cfgDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig")[stageId];
+    const mapName = cfgDat?.levelRes1 ?? "";
+    const mapBgHandler = this.getMapBgHandler();
+    if (!cfgDat) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "新建关卡，请绑定地图文件！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    if (!mapName) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "请绑定地图文件！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    if (!CC_BUILD) return;
+    const result = await window.electronAPI.readFile(EditorSetting.MapDatPath + mapName);
+    if (!result.success) {
+      EventManager.instance.emit(MapEditorEvent.ShowTip, "读取地图文件失败！！！");
+      this.onClickClear();
+      mapBgHandler?.setDefault();
+      return;
+    }
+    const jsonContent = result.content;
+    await this.changeMap(jsonContent, mapName);
   }
 
   //切换地图
@@ -786,36 +795,7 @@ export default class LevelScene extends cc.Component {
     MapTool.changeSize(cc.v2(size.width, size.height));
   }
 
-  //切换关卡
-  private async updateStageId() {
-    const stageId = EditorSetting.Instance.getStageId();
-    const cfgDat = DynamicGetter.Ins.getExcelJson("LevelBaseConfig")[stageId];
-    const mapName = cfgDat?.levelRes1 ?? "";
-    const mapBgHandler = this.getMapBgHandler();
-    if (!cfgDat) {
-      EventManager.instance.emit(MapEditorEvent.ShowTip, "新建关卡，请绑定地图文件！！！");
-      this.onClickClear();
-      mapBgHandler?.setDefault();
-      return;
-    }
-    if (!mapName) {
-      EventManager.instance.emit(MapEditorEvent.ShowTip, "请绑定地图文件！！！");
-      this.onClickClear();
-      mapBgHandler?.setDefault();
-      return;
-    }
-    if (!CC_BUILD) return;
-    const result = await window.electronAPI.readFile(EditorSetting.MapDatPath + mapName);
-    if (!result.success) {
-      EventManager.instance.emit(MapEditorEvent.ShowTip, "读取地图文件失败！！！");
-      this.onClickClear();
-      mapBgHandler?.setDefault();
-      return;
-    }
-    const jsonContent = result.content;
-    await this.changeMap(jsonContent, mapName);
-  }
-
+  //获取背景图片nd
   private getMapBgHandler(): MapBgPrefab {
     //如果当前没有背景图，则创建一个
     if (this.mapCanvasNd.childrenCount == 0) {
@@ -827,6 +807,13 @@ export default class LevelScene extends cc.Component {
     const mapBg = this.mapCanvasNd.children[0];
     const mapBgHandler = mapBg.getComponent(MapBgPrefab);
     return mapBgHandler;
+  }
+
+  //==================文件操作=====================
+
+  //保存一个excel文件
+  private onSaveExcelFile(excelName: string) {
+    this._mapExporter.saveJsonToDisk(excelName);
   }
 
 }

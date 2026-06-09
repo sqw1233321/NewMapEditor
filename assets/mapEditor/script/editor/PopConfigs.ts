@@ -19,6 +19,7 @@ export enum PopUid {
     ChangeBgPop = "ChangeBgPop",
     //嵌套属性界面
     AttrPop = "AttrPop",
+    EditorSettingPop = "EditorSettingPop"
 }
 
 /** 打开界面方式的配置数据 */
@@ -26,4 +27,5 @@ export const PopConfig: { [key: string]: UIConfig } = {
     [PopUid.CreateFilePop]: { layer: PopLayerType.Pop, prefab: 'popUps/createFilePop', destroy: false },
     [PopUid.ChangeBgPop]: { layer: PopLayerType.Pop, prefab: 'popUps/changeBgPop', destroy: false },
     [PopUid.AttrPop]: { layer: PopLayerType.Pop, prefab: 'popUps/attrPop', destroy: false },
+    [PopUid.EditorSettingPop]: { layer: PopLayerType.Pop, prefab: 'popUps/editorSettingPop', destroy: false },
 };

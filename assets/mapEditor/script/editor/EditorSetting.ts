@@ -22,8 +22,13 @@ export default class EditorSetting {
         return "jsonAsstes/outerJsonAssets/";
     }
 
-    static get MapDatPath(){
+    static get MapDatPath() {
         return "/mapDat/";
+    }
+
+    //excel相对路径
+    static get ExcelPath() {
+        return "/excelAssets/"
     }
 
     // ===================当前地图数据========================
