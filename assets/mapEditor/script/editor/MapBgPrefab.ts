@@ -1,10 +1,3 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 import { NodeUtil } from "../tool/NodeUtil";
 
 const { ccclass, property } = cc._decorator;
@@ -16,7 +9,7 @@ export default class MapBgPrefab extends cc.Component {
     areaCont: cc.Node;
 
     private _dat;
-    private _spArr: cc.SpriteFrame[][] = [];
+    private _spArr: cc.SpriteFrame[][][] = [];
     private _size: { width: number, height: number }
 
     public setDefault() {
@@ -35,7 +28,7 @@ export default class MapBgPrefab extends cc.Component {
      * areaOffset: 区域之间的偏移量
      * sps: 背景图集
      */
-    init(dat: { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[] }) {
+    init(dat: { areaNumber: number, oneAreaSize: cc.Vec2, areaOffset: number, sps: cc.SpriteFrame[][] }) {
         if (!dat) {
             this.areaCont.children.forEach(child => {
                 child.active = false;
@@ -43,7 +36,7 @@ export default class MapBgPrefab extends cc.Component {
             return;
         }
         this._dat = dat;
-        //分成二维数组
+        //分成三维数组，各个区域_各个图块_各个层级的图片
         const count = this._dat.sps.length / dat.areaNumber;
         this._spArr = Array.from(
             { length: dat.areaNumber },
@@ -54,7 +47,7 @@ export default class MapBgPrefab extends cc.Component {
     }
 
     private setSize() {
-        const oneSpSize = this._spArr[0][0]["_originalSize"];
+        const oneSpSize = this._spArr[0][0][0]["_originalSize"];
         const row = this._dat.oneAreaSize.y;
         const col = this._dat.oneAreaSize.x;
         const oneAreaSize = new cc.Size(col * oneSpSize.width, row * oneSpSize.height);
@@ -73,7 +66,7 @@ export default class MapBgPrefab extends cc.Component {
     }
 
     private setUI() {
-        const oneSpSize = this._spArr[0][0]["_originalSize"];
+        const oneSpSize = this._spArr[0][0][0]["_originalSize"];
         const row = this._dat.oneAreaSize.y;
         const col = this._dat.oneAreaSize.x;
         const oneAreaSize = new cc.Size(col * oneSpSize.width, row * oneSpSize.height);
@@ -86,11 +79,23 @@ export default class MapBgPrefab extends cc.Component {
             bgCont.name = `mapArea_${index + 1}`;
             bgCont.targetOff(this);
             bgCont.on(cc.Node.EventType.MOUSE_DOWN, () => { }, this);
-
             bgCont.setContentSize(oneAreaSize);
-            NodeUtil.autoRefreshChildren(bgCont, this._spArr[index], (bgNd, index, bgSprite: cc.SpriteFrame) => {
+
+            const spInfos = this._spArr[index];
+            NodeUtil.autoRefreshChildren(bgCont, spInfos, (bgNd, index, spInfo: cc.SpriteFrame[]) => {
+                //分层级，第一层级
+                const firstSp = spInfo[0];
                 const sp = bgNd.getComponent(cc.Sprite);
-                sp.spriteFrame = bgSprite;
+                sp.spriteFrame = firstSp;
+                //之后的层级
+                const otherInfos = spInfo.slice(1);
+                bgNd.children.forEach((child) => {
+                    child.active = false;
+                })
+                NodeUtil.autoRefreshChildren(bgNd, otherInfos, (childNd, index, spFrame: cc.SpriteFrame) => {
+                    const sp = childNd.getComponent(cc.Sprite);
+                    sp.spriteFrame = spFrame;
+                })
             });
             bgCont.getComponent(cc.Layout).updateLayout();
         });

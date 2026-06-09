@@ -6,14 +6,14 @@ declare global {
             //相对路径，绝对路径
             copyFile: (sourcePath: string, destPath: string) => Promise<any>;
             //相对路径的文件夹，目标绝对路径
-            copyFiles:(sourcePath: string, destPath: string) => Promise<any>;
+            copyFiles: (sourcePath: string, destPath: string) => Promise<any>;
             createFile: (fileName: string, jsonContent: string) => Promise<any>;
             readFile: (filePath: string) => Promise<any>;
             readFolder: (folderPath: string) => Promise<any>;
             selectAtlasFolder: () => Promise<{ success: boolean; path?: string }>;
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;
-            loadAreaImages: (areaName: string) => Promise<{ success: boolean; images?: { name: string; data: string }[][]; error?: string }>;
+            loadAreaImages: (areaName: string) => Promise<{ success: boolean; images?: { name: string; data: string[] }[][]; error?: string }>;
             //相对路径
             excelToJson: (excelPath, jsonPath) => Promise<any>;
             //相对路径
@@ -39,7 +39,7 @@ export interface MapBgInitData {
     areaNumber: number;
     oneAreaSize: cc.Vec2;
     areaOffset: number;
-    sps: cc.SpriteFrame[];
+    sps: cc.SpriteFrame[][];
 }
 
 export class MapBgManager {
@@ -55,7 +55,7 @@ export class MapBgManager {
     private _areas: AtlasArea[] = [];
 
     /** SpriteFrame 缓存，key = area name */
-    private _spriteCache: Map<string, cc.SpriteFrame[]> = new Map();
+    private _spriteCache: Map<string, cc.SpriteFrame[][]> = new Map();
 
     public static get instance(): MapBgManager {
         if (!this._instance) {
@@ -131,7 +131,7 @@ export class MapBgManager {
         }
 
         // 预加载所有区域图片
-        let allSprites: cc.SpriteFrame[] = [];
+        let allSprites: cc.SpriteFrame[][] = [];
         allSprites = await this.preloadArea(fileName);
 
         if (allSprites.length === 0) {
@@ -159,7 +159,7 @@ export class MapBgManager {
      * 预加载某个区域的图片（通过 IPC 从主进程读取）
      * @param fileName
      */
-    public preloadArea(fileName: string): Promise<cc.SpriteFrame[]> {
+    public preloadArea(fileName: string): Promise<cc.SpriteFrame[][]> {
         return new Promise((resolve) => {
             if (this._spriteCache.has(fileName)) {
                 resolve(this._spriteCache.get(fileName)!);
@@ -174,7 +174,6 @@ export class MapBgManager {
                     return;
                 }
 
-                // 将 base64 图片转为 SpriteFrame
                 const sprites = await this.createSpriteFramesFromBase64(result.images);
                 this._spriteCache.set(fileName, sprites);
                 console.log(`[MapBgManager] 区域 "${fileName}" 加载完成，共 ${sprites.length} 张图片`);
@@ -186,38 +185,46 @@ export class MapBgManager {
     /**
      * 将 base64 图片数据转换为 SpriteFrame
      */
-    private createSpriteFramesFromBase64(images: { name: string; data: string }[][]): Promise<cc.SpriteFrame[]> {
+    private createSpriteFramesFromBase64(imageAreaInfos: { name: string; data: string[] }[][]): Promise<cc.SpriteFrame[][]> {
         return new Promise((resolve) => {
-            const frames: cc.SpriteFrame[] = [];
+            const frames: cc.SpriteFrame[][] = [];
+            //一共需要加载的图片个数
             let total = 0;
-            images.forEach(image => {
-                total += image.length;
+            imageAreaInfos.forEach(imageInfos => {
+                imageInfos.forEach(imageInfo => {
+                    const srcData = imageInfo.data;
+                    total += srcData?.length ?? 0;
+                })
             })
             if (total === 0) {
                 resolve([]);
                 return;
             }
             let tempCount = 0;
-            for (const imgGroup of images) {
-                for (const imgData of imgGroup) {
-                    const texture = new cc.Texture2D();
-                    const img = new Image();
-                    img.onload = () => {
-                        texture.initWithElement(img);
-                        const frame = new cc.SpriteFrame();
-                        frame.setTexture(texture);
-                        frame.name = imgData.name.replace(/\.(jpg|jpeg|png)$/i, '');
-                        frames.push(frame);
-                        tempCount++;
-                        if (tempCount >= total) {
+            for (const imageInfos of imageAreaInfos) {
+                for (const imageInfo of imageInfos) {
+                    const tempSpArr = []
+                    for (const srcData of imageInfo.data) {
+                        const texture = new cc.Texture2D();
+                        const img = new Image();
+                        img.onload = () => {
+                            texture.initWithElement(img);
+                            const frame = new cc.SpriteFrame();
+                            frame.setTexture(texture);
+                            frame.name = imageInfo.name.replace(/\.(jpg|jpeg|png)$/i, '');
+                            tempSpArr.push(frame);
+                            tempCount++;
+                            if (tempCount >= total) {
+                                resolve(frames);
+                            }
+                        };
+                        img.onerror = () => {
+                            console.warn(`[MapBgManager] 图片加载失败: ${imageInfo.name}`);
                             resolve(frames);
-                        }
-                    };
-                    img.onerror = () => {
-                        console.warn(`[MapBgManager] 图片加载失败: ${imgData.name}`);
-                        resolve(frames);
-                    };
-                    img.src = imgData.data;
+                        };
+                        img.src = srcData;
+                    }
+                    frames.push(tempSpArr);
                 }
             }
         });
