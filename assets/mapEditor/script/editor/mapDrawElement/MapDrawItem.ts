@@ -34,6 +34,7 @@ export default class MapDrawItem extends MapDrawItemBase {
       dat = this.getDefaultDat();
     }
     this.setSprite(type);
+    this.setSpine(type);
     this._jsonDat = dat;
     //旧的数据中可能有条件不满足的属性有值，需要筛选一下
     this._jsonDat = this.checkCondition(this._jsonDat);

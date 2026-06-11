@@ -90,5 +90,15 @@
             "showName": "恐怖游轮门",
             "exportValue": 1
         }
+    ],
+    "showType": [
+        {
+            "showName": "图片",
+            "exportValue": 0
+        },
+        {
+            "showName": "动画",
+            "exportValue": 1
+        }
     ]
 }

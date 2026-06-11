@@ -1187,26 +1187,42 @@
                 {
                     "ID": "4",
                     "Name": "触发事件名称",
-                    "ClassPropertyName": "icon",
+                    "ClassPropertyName": "triggerEvent",
                     "Type": "string",
                     "DefaultValue": ""
                 },
                 {
                     "ID": "5",
-                    "Name": "图片路径名",
-                    "ClassPropertyName": "spine",
-                    "Type": "string",
+                    "Name": "显示类型",
+                    "ClassPropertyName": "showType",
+                    "Type": "dropDownNumber",
+                    "DefaultValue": 0
+                },
+                {   
+                    "Condition": "5=0",
+                    "ID": "6",
+                    "Name": "图片路径",
+                    "ClassPropertyName": "icon",
+                    "Type": "selectFile",
                     "DefaultValue": ""
                 },
                 {
-                    "ID": "6",
+                    "Condition": "5=1",
+                    "ID": "7",
+                    "Name": "动画路径",
+                    "ClassPropertyName": "spine",
+                    "Type": "selectFile",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "8",
                     "Name": "是否是一次性",
                     "ClassPropertyName": "onlyOnce",
                     "Type": "boolean",
                     "DefaultValue": false
                 },
                 {
-                    "ID": "7",
+                    "ID": "9",
                     "Name": "自定义字段",
                     "ClassPropertyName": "params",
                     "Type": "string",
@@ -1233,16 +1249,16 @@
                 },
                 {
                     "ID": "2",
-                    "Name": "音效资源名称",
+                    "Name": "音效资源名",
                     "ClassPropertyName": "audioEffect",
-                    "Type": "string",
+                    "Type": "selectFile",
                     "DefaultValue": ""
                 },
                 {
                     "ID": "3",
-                    "Name": "动画资源名称",
+                    "Name": "动画资源名",
                     "ClassPropertyName": "spine",
-                    "Type": "string",
+                    "Type": "selectFile",
                     "DefaultValue": ""
                 },
                 {

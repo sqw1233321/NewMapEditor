@@ -11,6 +11,7 @@ declare global {
             readFile: (filePath: string) => Promise<any>;
             readFolder: (folderPath: string) => Promise<any>;
             loadSingleSprite: (relativePath) => Promise<{ success: boolean; error?; data?: string }>;
+            loadSingleSpine: (relativePath: string) => Promise<{ success: boolean; error?; json: string, png: string, atlas: string }>;
             selectAtlasFolder: () => Promise<{ success: boolean; path?: string }>;
             saveEditorMapJson: (jsonContent: string) => Promise<{ success: boolean; path?: string; error?: string }>;
             readEditorMapJson: () => Promise<{ success: boolean; content?: string; error?: string }>;

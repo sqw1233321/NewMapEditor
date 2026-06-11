@@ -24,17 +24,25 @@ export default class DynamicGetter extends cc.Component {
         DynamicGetter.Ins = this;
     }
 
-    //==========图片相关=================
+    //==========资源加载相关=================
     //获取默认图片
     public getDefaultSp(): cc.SpriteFrame {
         return this.defaultSp;
     }
 
+    //获取sprite数据
     public async getSprite(iconPath: string): Promise<cc.SpriteFrame> {
         const spriteFrame = await SpriteManager.instance.loadSprite(iconPath);
         return spriteFrame;
     }
 
+    //获取spine数据
+    public async getSpineData(iconPath: string): Promise<sp.SkeletonData> {
+        const spineData = await SpriteManager.instance.loadSpine(iconPath);
+        return spineData;
+    }
+
+    //========加载编辑器内部json的读写方法=========
     //加载所有json到内存表
     public async loadDynamicJson() {
         let loadDir;
@@ -87,7 +95,6 @@ export default class DynamicGetter extends cc.Component {
         }
     }
 
-    //========加载编辑器内部json的读写方法=========
     //获取属性配置
     public getAttrSetting(): any {
         return this["attrSetting"];

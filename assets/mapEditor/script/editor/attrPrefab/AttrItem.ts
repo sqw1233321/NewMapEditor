@@ -34,6 +34,9 @@ export default class AttrItem extends AttrPanelItemBase {
     singleSelectPoint: cc.Node;
 
     @property(cc.Node)
+    selectFileBtn: cc.Node;
+
+    @property(cc.Node)
     editBtn: cc.Node;
 
     @property(cc.Node)
@@ -149,6 +152,7 @@ export default class AttrItem extends AttrPanelItemBase {
         cc.isValid(this.singleLable.node) && (this.singleLable.node.active = false);
         cc.isValid(this.singleBool.node) && (this.singleBool.node.active = false);
         cc.isValid(this.singleSelectPoint) && (this.singleSelectPoint.active = false);
+        cc.isValid(this.selectFileBtn) && (this.selectFileBtn.active = false);
         cc.isValid(this.editBtn) && (this.editBtn.active = false);
         cc.isValid(this.addBtn) && (this.addBtn.active = false);
         cc.isValid(this.deleteBtn) && (this.deleteBtn.active = false);
@@ -222,6 +226,7 @@ export default class AttrItem extends AttrPanelItemBase {
             this.singleSelectPoint.active = this._canWrite;
         }
 
+        //下拉框
         if (this._type == AttrCfgTypeEnum.dropDownNumber || this._type == AttrCfgTypeEnum.dropDownString) {
             this.singleLable.node.active = this._canWrite;
             if (this._canWrite) {
@@ -240,6 +245,18 @@ export default class AttrItem extends AttrPanelItemBase {
                 this._dropDownNd.active = false;
             }
             this.setDropDownDat();
+        }
+
+        //选择文件
+        if (this._type == AttrCfgTypeEnum.selectFile) {
+            this.selectFileBtn.active = this._canWrite;
+            this.singleLable.node.active = true;
+            if (this._canWrite) {
+                this.singleLable.enabled = false;
+                this.singleLable.node.children[1].active = true;
+            }
+            this.dropDownBtn.active = false;
+            this.singleLable.node.children[1].getComponent(cc.Label).string = this._dat;
         }
 
         //不是最后一层，设置子项
@@ -352,6 +369,9 @@ export default class AttrItem extends AttrPanelItemBase {
         }
         if (this._type == AttrCfgTypeEnum.boolean) {
             return this.singleBool.isChecked;
+        }
+        if (this._type == AttrCfgTypeEnum.selectFile) {
+            return this._dat;
         }
         //引用类型
         let resDat;
@@ -494,7 +514,27 @@ export default class AttrItem extends AttrPanelItemBase {
         this._dropDownNd.active = !this._dropDownNd.active;
     }
 
-    //TODO:编辑按钮
-    public onClickEditBtn() {
+    //选择文件
+    public async onClickSelectPath() {
+        if (!CC_BUILD) {
+            //测试数据
+            this._dat = "yuanpan";
+            this.setUI();
+            this.onAfterEdit();
+            return;
+        }
+        const result = await window.electronAPI.openFileDialog(
+            [{ name: 'All Files', extensions: ['*'] }],
+            ['openDirectory']
+        );
+        if (result.success) {
+            const fileName = result.path.split('\\').pop() || '';
+            this._dat = fileName;
+            this.setUI();
+            this.onAfterEdit();
+        }
+        else {
+            EventManager.instance.emit(MapEditorEvent.ShowTip, "选择路径失败")
+        }
     }
 }

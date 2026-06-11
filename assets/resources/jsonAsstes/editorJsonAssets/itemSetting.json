@@ -271,19 +271,21 @@
         "ExportName": "commonControllerDatas",
         "Name": "通用控制器",
         "Color": "#00FFFF",
+        "spine": "",
         "iconSize": [
             50,
             50
         ],
         "itemSize": [
-            50,
-            50
+            70,
+            100
         ],
         "itemAnchor": [
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawCommonController"
     },
     {
         "ClassName": "Gate",
@@ -302,6 +304,7 @@
             0.5,
             0.5
         ],
-        "cameraGroupIndex": 0
+        "cameraGroupIndex": 0,
+        "script": "MapDrawGate"
     }
 ]

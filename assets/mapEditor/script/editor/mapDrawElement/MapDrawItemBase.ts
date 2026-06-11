@@ -13,10 +13,12 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MapDrawItemBase extends cc.Component {
     public itemSp: cc.Sprite = null;
+    public itemSpine: sp.Skeleton;
     protected _uniqueType: number = -1;
 
     protected onLoad(): void {
         this.itemSp = this.node.getComponent(cc.Sprite);
+        this.itemSpine = this.node.children[0]?.getComponent(sp.Skeleton);
         this.node.on(cc.Node.EventType.MOUSE_DOWN, this.onMouseDown, this);
     }
 
@@ -78,23 +80,32 @@ export default class MapDrawItemBase extends cc.Component {
     //设置初始UI
     public setDefaultUI() { }
 
-    protected async setSprite(type: UnitType) {
+    protected async setSprite(type: UnitType, icName?: string) {
         const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
-        if (setting) {
-            if (setting.Texture) {
-                const path = `texture/item/drawItem/${setting.Texture}`;
-                this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
-                this.setItemSize(setting);
-            } else {
-                this.setItemSize(setting);
-                const hexColor = setting.Color.replace('#', '');
-                const r = parseInt(hexColor.substring(0, 2), 16);
-                const g = parseInt(hexColor.substring(2, 4), 16);
-                const b = parseInt(hexColor.substring(4, 6), 16);
-                const a = hexColor.length === 8 ? parseInt(hexColor.substring(6, 8), 16) : 255;
-                this.itemSp.node.color = new cc.Color(r, g, b, a);
-            }
+        if (!setting) return;
+        let iconPath = "";
+        if (!icName && !setting.Texture) {
+            this.setItemSize(setting);
+            const hexColor = setting.Color.replace('#', '');
+            const r = parseInt(hexColor.substring(0, 2), 16);
+            const g = parseInt(hexColor.substring(2, 4), 16);
+            const b = parseInt(hexColor.substring(4, 6), 16);
+            const a = hexColor.length === 8 ? parseInt(hexColor.substring(6, 8), 16) : 255;
+            this.itemSp.node.color = new cc.Color(r, g, b, a);
+            return;
         }
+        if (icName) {
+            iconPath = icName;
+        }
+        if (setting.Texture) {
+            iconPath = setting.Texture;
+        }
+        if (!iconPath) return;
+        const path = `texture/item/drawItem/${iconPath}`;
+        const frame = await DynamicGetter.Ins.getSprite(path);
+        if (!frame) return;
+        this.itemSp.spriteFrame = frame;
+        this.setItemSize(setting);
     }
 
     private setItemSize(setting: any) {
@@ -108,6 +119,27 @@ export default class MapDrawItemBase extends cc.Component {
                 this.itemSp.node.setContentSize(oldSize.width * setting.itemScale, oldSize.height * setting.itemScale);
             }
         }
+    }
+
+    protected async setSpine(type: UnitType, spName?: string) {
+        if (!this.itemSpine) return;
+        const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
+        if (!setting) return;
+        let spineName = "";
+        if (!spName && !setting.spine) return;
+        if (spName) {
+            spineName = spName;
+        }
+        if (setting.spine) {
+            spineName = setting.spine;
+        }
+        if (!spineName) return;
+        this.itemSp.enabled = false;
+        const path = `texture/spine/${spineName}`;
+        const spineData = await DynamicGetter.Ins.getSpineData(path);
+        if (!spineData) return;
+        this.itemSpine.skeletonData = spineData;
+        this.itemSpine.setToSetupPose();
     }
 
     //=============生命周期=================
