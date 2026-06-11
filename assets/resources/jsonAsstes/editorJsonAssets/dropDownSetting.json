@@ -80,5 +80,15 @@
             "showName": "恶魔城",
             "exportValue": 20
         }
+    ],
+    "doorType": [
+        {
+            "showName": "普通门",
+            "exportValue": 0
+        },
+        {
+            "showName": "恐怖游轮门",
+            "exportValue": 1
+        }
     ]
 }

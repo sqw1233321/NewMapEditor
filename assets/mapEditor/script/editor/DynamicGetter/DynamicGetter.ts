@@ -1,3 +1,4 @@
+import SpriteManager from "../../frameWork/SpriteManager";
 import { AttrCfgDropDownType } from "../../type/mapTypes";
 import EditorSetting from "../EditorSetting";
 import ExcelConvert from "../ExcelConvert";
@@ -29,16 +30,9 @@ export default class DynamicGetter extends cc.Component {
         return this.defaultSp;
     }
 
-    public getSprite(iconPath: string): Promise<cc.SpriteFrame> {
-        return new Promise((resolve, reject) => {
-            cc.resources.load(iconPath, cc.SpriteFrame, null, (err, spriteFrame) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(spriteFrame);
-                }
-            });
-        });
+    public async getSprite(iconPath: string): Promise<cc.SpriteFrame> {
+        const spriteFrame = await SpriteManager.instance.loadSprite(iconPath);
+        return spriteFrame;
     }
 
     //加载所有json到内存表

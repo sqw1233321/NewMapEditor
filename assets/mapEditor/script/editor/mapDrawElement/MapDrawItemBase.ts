@@ -82,7 +82,7 @@ export default class MapDrawItemBase extends cc.Component {
         const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
         if (setting) {
             if (setting.Texture) {
-                const path = `texture/item/drawItem/${setting.Texture}_item`;
+                const path = `texture/item/drawItem/${setting.Texture}`;
                 this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
                 this.setItemSize(setting);
             } else {

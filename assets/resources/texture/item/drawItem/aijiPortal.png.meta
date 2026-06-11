@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "ead8ea86-3986-49d3-95a4-7a954870247d",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 282,
+  "height": 514,
+  "platformSettings": {},
+  "subMetas": {
+    "aijiPortal": {
+      "ver": "1.0.6",
+      "uuid": "85461673-7f26-4f8e-9629-a9e34a836345",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "ead8ea86-3986-49d3-95a4-7a954870247d",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 17,
+      "offsetY": 6,
+      "trimX": 69,
+      "trimY": 48,
+      "width": 178,
+      "height": 406,
+      "rawWidth": 282,
+      "rawHeight": 514,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

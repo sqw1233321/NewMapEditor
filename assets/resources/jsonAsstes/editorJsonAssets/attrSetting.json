@@ -503,7 +503,7 @@
                     "ClassPropertyName": "name",
                     "ExcelName": "AreaBase",
                     "Type": "string",
-                    "DefaultValue": "无用之人"
+                    "DefaultValue": "空房间"
                 },
                 {
                     "ID": "1",
@@ -588,8 +588,8 @@
                 },
                 {
                     "ID": "8",
-                    "Name": "怪物信息",
-                    "ClassPropertyName": "startMonster",
+                    "Name": "第一轮怪物信息",
+                    "ClassPropertyName": "monsterTurn1",
                     "ExcelName": "AreaMonster",
                     "Split": "|",
                     "Type": "array",
@@ -628,11 +628,11 @@
                 },
                 {
                     "ID": "9",
-                    "Name": "掉落的特殊物品",
-                    "ClassPropertyName": "areaItems",
-                    "ExcelName": "LevelBaseConfig",
-                    "Type": "array",
+                    "Name": "其它轮次怪物信息",
+                    "ClassPropertyName": "startMonster",
+                    "ExcelName": "AreaMonster",
                     "Split": "|",
+                    "Type": "array",
                     "DefaultValue": [],
                     "Properties": [
                         {
@@ -643,17 +643,24 @@
                             "Properties": [
                                 {
                                     "ID": "9-1-1",
-                                    "Name": "道具Id",
-                                    "ClassPropertyName": "rewardId",
+                                    "Name": "怪物Id",
+                                    "ClassPropertyName": "monsterId",
                                     "Type": "number",
                                     "DefaultValue": -1
                                 },
                                 {
                                     "ID": "9-1-2",
-                                    "Name": "出现可能性",
-                                    "ClassPropertyName": "probability",
+                                    "Name": "数量",
+                                    "ClassPropertyName": "monsterCount",
                                     "Type": "number",
                                     "DefaultValue": 0
+                                },
+                                {
+                                    "ID": "9-1-3",
+                                    "Name": "初始等级",
+                                    "ClassPropertyName": "monsterLv",
+                                    "Type": "number",
+                                    "DefaultValue": 1
                                 }
                             ]
                         }
@@ -661,11 +668,11 @@
                 },
                 {
                     "ID": "10",
-                    "Name": "掉落的普通物品",
-                    "ClassPropertyName": "baseAreaItems",
-                    "ExcelName": "LevelBaseConfig",
-                    "Type": "array",
+                    "Name": "boss信息",
+                    "ClassPropertyName": "boss",
+                    "ExcelName": "AreaMonster",
                     "Split": "|",
+                    "Type": "array",
                     "DefaultValue": [],
                     "Properties": [
                         {
@@ -676,13 +683,67 @@
                             "Properties": [
                                 {
                                     "ID": "10-1-1",
+                                    "Name": "boss的Id",
+                                    "ClassPropertyName": "bossId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "10-1-2",
+                                    "Name": "boss等级",
+                                    "ClassPropertyName": "bossLv",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                },
+                                {
+                                    "ID": "10-1-3",
+                                    "Name": "波次id",
+                                    "ClassPropertyName": "bossWaveId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "10-1-4",
+                                    "Name": "刷新id",
+                                    "ClassPropertyName": "bossRefreshId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "10-1-5",
+                                    "Name": "波次等级",
+                                    "ClassPropertyName": "bossWaveLv",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "11",
+                    "Name": "掉落的特殊物品",
+                    "ClassPropertyName": "areaItems",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "11-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "11-1-1",
                                     "Name": "道具Id",
                                     "ClassPropertyName": "rewardId",
                                     "Type": "number",
                                     "DefaultValue": -1
                                 },
                                 {
-                                    "ID": "10-1-2",
+                                    "ID": "11-1-2",
                                     "Name": "出现可能性",
                                     "ClassPropertyName": "probability",
                                     "Type": "number",
@@ -693,7 +754,40 @@
                     ]
                 },
                 {
-                    "ID": "11",
+                    "ID": "12",
+                    "Name": "掉落的普通物品",
+                    "ClassPropertyName": "baseAreaItems",
+                    "ExcelName": "LevelBaseConfig",
+                    "Type": "array",
+                    "Split": "|",
+                    "DefaultValue": [],
+                    "Properties": [
+                        {
+                            "ID": "12-1",
+                            "Type": "object",
+                            "DefaultValue": {},
+                            "Split": "_",
+                            "Properties": [
+                                {
+                                    "ID": "12-1-1",
+                                    "Name": "道具Id",
+                                    "ClassPropertyName": "rewardId",
+                                    "Type": "number",
+                                    "DefaultValue": -1
+                                },
+                                {
+                                    "ID": "12-1-2",
+                                    "Name": "出现可能性",
+                                    "ClassPropertyName": "probability",
+                                    "Type": "number",
+                                    "DefaultValue": 0
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "ID": "13",
                     "Name": "探索后敌人等级加成",
                     "ClassPropertyName": "addLV",
                     "ExcelName": "AreaBase",
@@ -701,7 +795,7 @@
                     "DefaultValue": 0
                 },
                 {
-                    "ID": "12",
+                    "ID": "14",
                     "Name": "是否是撤离房间",
                     "ClassPropertyName": "outside",
                     "ExcelName": "AreaBase",
@@ -709,7 +803,7 @@
                     "DefaultValue": false
                 },
                 {
-                    "ID": "13",
+                    "ID": "15",
                     "Name": "是否是基础房间",
                     "ClassPropertyName": "baseArea",
                     "ExcelName": "AreaBase",
@@ -760,6 +854,13 @@
                     "Name": "血量",
                     "ClassPropertyName": "hp",
                     "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "3",
+                    "Name": "门的类型",
+                    "ClassPropertyName": "doorType",
+                    "Type": "dropDownNumber",
                     "DefaultValue": 0
                 }
             ]
@@ -913,6 +1014,14 @@
             "ClassName": "Portal",
             "Properties": [
                 {
+                    "ID": "0",
+                    "Condition": "1=5",
+                    "Name": "传送门ID",
+                    "ClassPropertyName": "id",
+                    "Type": "number",
+                    "DefaultValue": -1
+                },
+                {
                     "ID": "1",
                     "Name": "传送门类型",
                     "ClassPropertyName": "portalType",
@@ -922,6 +1031,7 @@
                 },
                 {
                     "ID": "2",
+                    "Condition": "1!=5",
                     "Name": "连接点id",
                     "ClassPropertyName": "linkId",
                     "Type": "point",
@@ -929,13 +1039,21 @@
                 },
                 {
                     "ID": "3",
+                    "Condition": "1=5",
+                    "Name": "连接传送门id",
+                    "ClassPropertyName": "linkPortalId",
+                    "Type": "number",
+                    "DefaultValue": -1
+                },
+                {
+                    "ID": "4",
                     "Name": "偏移x",
                     "ClassPropertyName": "offsetX",
                     "Type": "number",
                     "DefaultValue": 0
                 },
                 {
-                    "ID": "4",
+                    "ID": "5",
                     "Name": "辅助动画点",
                     "ClassPropertyName": "animPIds",
                     "Type": "pointArray",
@@ -958,6 +1076,204 @@
         {
             "ClassName": "Lava",
             "Properties": []
+        },
+        {
+            "ClassName": "MultiPortalController",
+            "Properties": [
+                {
+                    "ID": "1",
+                    "Name": "传送门组",
+                    "ClassPropertyName": "groups",
+                    "Type": "object",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "1-1",
+                            "Name": "传送门id1",
+                            "ClassPropertyName": "start",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        },
+                        {
+                            "ID": "1-2",
+                            "Name": "传送门id2",
+                            "ClassPropertyName": "end",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "ClassName": "CommonController",
+            "Properties": [
+                {
+                    "ID": "0",
+                    "Name": "控制器id",
+                    "ClassPropertyName": "id",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "1",
+                    "Name": "传送门组",
+                    "ClassPropertyName": "groups",
+                    "Type": "object",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "1-1",
+                            "Name": "传送门id1",
+                            "ClassPropertyName": "start",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        },
+                        {
+                            "ID": "1-2",
+                            "Name": "传送门id2",
+                            "ClassPropertyName": "end",
+                            "Type": "number",
+                            "DefaultValue": -1
+                        }
+                    ]
+                },
+                {
+                    "ID": "2",
+                    "Name": "尺寸",
+                    "ClassPropertyName": "size",
+                    "Type": "object",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "2-1",
+                            "Name": "宽",
+                            "ClassPropertyName": "width",
+                            "Type": "number",
+                            "DefaultValue": 700
+                        },
+                        {
+                            "ID": "2-2",
+                            "Name": "高",
+                            "ClassPropertyName": "height",
+                            "Type": "number",
+                            "DefaultValue": 320
+                        }
+                    ]
+                },
+                {
+                    "ID": "3",
+                    "Name": "检测区域大小",
+                    "ClassPropertyName": "keySize",
+                    "Type": "object",
+                    "DefaultValue": {},
+                    "Properties": [
+                        {
+                            "ID": "2-1",
+                            "Name": "宽",
+                            "ClassPropertyName": "width",
+                            "Type": "number",
+                            "DefaultValue": 700
+                        },
+                        {
+                            "ID": "2-2",
+                            "Name": "高",
+                            "ClassPropertyName": "height",
+                            "Type": "number",
+                            "DefaultValue": 320
+                        }
+                    ]
+                },
+                {
+                    "ID": "4",
+                    "Name": "触发事件名称",
+                    "ClassPropertyName": "icon",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "5",
+                    "Name": "图片路径名",
+                    "ClassPropertyName": "spine",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "6",
+                    "Name": "是否是一次性",
+                    "ClassPropertyName": "onlyOnce",
+                    "Type": "boolean",
+                    "DefaultValue": false
+                },
+                {
+                    "ID": "7",
+                    "Name": "自定义字段",
+                    "ClassPropertyName": "params",
+                    "Type": "string",
+                    "DefaultValue": ""
+                }
+            ]
+        },
+        {
+            "ClassName": "Gate",
+            "Properties": [
+                {
+                    "ID": "0",
+                    "Name": "闸门id",
+                    "ClassPropertyName": "id",
+                    "Type": "number",
+                    "DefaultValue": 0
+                },
+                {
+                    "ID": "1",
+                    "Name": "锁定点",
+                    "ClassPropertyName": "lockPoint",
+                    "Type": "point",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "2",
+                    "Name": "音效资源名称",
+                    "ClassPropertyName": "audioEffect",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "3",
+                    "Name": "动画资源名称",
+                    "ClassPropertyName": "spine",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "5",
+                    "Name": "运行动画名称",
+                    "ClassPropertyName": "openAnimName",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "6",
+                    "Name": "打开状态动画名称",
+                    "ClassPropertyName": "openDefaultAnimName",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "7",
+                    "Name": "关闭状态动画名称",
+                    "ClassPropertyName": "closeDefaultAnimName",
+                    "Type": "string",
+                    "DefaultValue": ""
+                },
+                {
+                    "ID": "8",
+                    "Name": "接收控制器事件",
+                    "ClassPropertyName": "closeDefaultAnimName",
+                    "Type": "string",
+                    "DefaultValue": ""
+                }
+            ]
         }
     ]
 }

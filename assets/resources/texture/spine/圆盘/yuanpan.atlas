@@ -1,0 +1,90 @@
+
+yuanpan.png
+size: 267,166
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+ypa
+  rotate: true
+  xy: 0, 22
+  size: 144, 147
+  orig: 144, 147
+  offset: 0, 0
+  index: -1
+ypb
+  rotate: false
+  xy: 0, 3
+  size: 30, 17
+  orig: 30, 17
+  offset: 0, 0
+  index: -1
+ypc
+  rotate: false
+  xy: 32, 4
+  size: 30, 16
+  orig: 30, 16
+  offset: 0, 0
+  index: -1
+ypd
+  rotate: false
+  xy: 262, 9
+  size: 5, 5
+  orig: 5, 5
+  offset: 0, 0
+  index: -1
+ype
+  rotate: false
+  xy: 262, 16
+  size: 5, 12
+  orig: 5, 12
+  offset: 0, 0
+  index: -1
+ypf
+  rotate: true
+  xy: 236, 30
+  size: 30, 29
+  orig: 30, 29
+  offset: 0, 0
+  index: -1
+ypg
+  rotate: false
+  xy: 238, 126
+  size: 22, 40
+  orig: 22, 40
+  offset: 0, 0
+  index: -1
+yph
+  rotate: false
+  xy: 238, 74
+  size: 21, 50
+  orig: 21, 50
+  offset: 0, 0
+  index: -1
+ypi
+  rotate: true
+  xy: 64, 7
+  size: 13, 31
+  orig: 13, 31
+  offset: 0, 0
+  index: -1
+ypj
+  rotate: false
+  xy: 149, 5
+  size: 85, 55
+  orig: 85, 55
+  offset: 0, 0
+  index: -1
+ypk
+  rotate: false
+  xy: 236, 0
+  size: 24, 28
+  orig: 24, 28
+  offset: 0, 0
+  index: -1
+ypl
+  rotate: false
+  xy: 149, 62
+  size: 87, 104
+  orig: 87, 104
+  offset: 0, 0
+  index: -1

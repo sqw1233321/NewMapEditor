@@ -51,7 +51,7 @@ export default class PrefabPanelItem extends cc.Component {
         }
 
         if (dat.Texture) {
-            const path = `texture/item/prefabIcon/${dat.Texture}_icon`;
+            const path = `texture/item/prefabIcon/${dat.Texture}`;
             this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
         } else {
             this.itemSp.spriteFrame = this.defaultSprite;
@@ -82,6 +82,7 @@ export default class PrefabPanelItem extends cc.Component {
         if (event.getButton() !== cc.Event.EventMouse.BUTTON_LEFT) return;
         // 生成一个实例，放在面板同一父节点下，交给 LevelScene.startDrag 统一接管
         const itemNd = cc.instantiate(this.mapDrawPrefab);
+        itemNd.name = this._dat.Name;
         itemNd.parent = this.node.parent;
         const anchorInfo = DynamicGetter.Ins.getItemAnchor(this._type);
         itemNd.setAnchorPoint(anchorInfo[0], anchorInfo[1]);

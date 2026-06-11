@@ -45,7 +45,7 @@
     {
         "ClassName": "Door",
         "ExportName": "doors",
-        "Texture": "door",
+        "Texture": "door.png",
         "InRoom": true,
         "Name": "门",
         "iconScale": 0.4,
@@ -58,7 +58,7 @@
     {
         "ClassName": "Ladder",
         "ExportName": "ladders",
-        "Texture": "ladder",
+        "Texture": "ladder.png",
         "InRoom": true,
         "Name": "梯子",
         "iconScale": 0.5,
@@ -93,7 +93,7 @@
     {
         "ClassName": "SearchPoint",
         "ExportName": "searchItemDatas",
-        "Texture": "searchItem",
+        "Texture": "searchItem.png",
         "Name": "搜索点",
         "InRoom": true,
         "iconScale": 0.7,
@@ -107,7 +107,7 @@
     {
         "ClassName": "SurviveDat",
         "ExportName": "survivorDatas",
-        "Texture": "survive",
+        "Texture": "survive.png",
         "Name": "游魂",
         "InRoom": true,
         "iconScale": 0.15,
@@ -121,7 +121,7 @@
     {
         "ClassName": "FightSoul",
         "ExportName": "fightSoulDatas",
-        "Texture": "fightSoul",
+        "Texture": "fightSoul.jpg",
         "Name": "战魂",
         "InRoom": true,
         "iconScale": 0.12,
@@ -158,7 +158,7 @@
         "uniqueType": 1,
         "ExportName": "portalDatas",
         "Name": "掉落传送门",
-        "Texture": "dropProtal",
+        "Texture": "dropProtal.png",
         "iconScale": 0.3,
         "itemScale": 1,
         "itemAnchor": [
@@ -173,7 +173,7 @@
         "uniqueType": 2,
         "ExportName": "portalDatas",
         "Name": "船",
-        "Texture": "ship",
+        "Texture": "ship.png",
         "iconScale": 0.25,
         "itemScale": 1,
         "itemAnchor": [
@@ -187,7 +187,7 @@
         "ClassName": "Portal",
         "uniqueType": 3,
         "ExportName": "portalDatas",
-        "Texture": "aijiPortal",
+        "Texture": "aijiPortal.png",
         "Name": "埃及传送门",
         "iconScale": 0.18,
         "itemScale": 0.3,
@@ -203,7 +203,7 @@
         "uniqueType": 4,
         "ExportName": "portalDatas",
         "Name": "玛雅传送门",
-        "Texture": "mayaPortal",
+        "Texture": "mayaPortal.png",
         "iconScale": 0.3,
         "itemScale": 0.7,
         "itemAnchor": [
@@ -218,7 +218,7 @@
         "ExportName": "sluiceGateDatas",
         "Color": "#FF0000",
         "Name": "岩浆开关",
-        "Texture": "switch",
+        "Texture": "switch.png",
         "iconScale": 0.5,
         "itemScale": 0.8,
         "itemAnchor": [
@@ -240,6 +240,63 @@
         "itemSize": [
             100,
             200
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "MultiPortalController",
+        "ExportName": "multiPortalDatas",
+        "Name": "双向传送门控制组件",
+        "Color": "#FADA5E",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "CommonController",
+        "ExportName": "commonControllerDatas",
+        "Name": "通用控制器",
+        "Color": "#00FFFF",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Gate",
+        "ExportName": "gateDatas",
+        "Name": "闸门",
+        "Color": "#A52A2A",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            50,
+            50
         ],
         "itemAnchor": [
             0.5,

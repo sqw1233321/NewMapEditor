@@ -1,8 +1,6 @@
 import MapBgPrefab from "../editor/MapBgPrefab";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
-import MapTool from "../tool/MapTool";
-import { UnitType } from "../type/mapTypes";
-import { MapDrawDat, MapDrawDatType, MapDrawDatPathPoint, MapDrawDatRoom, MapDrawDatPortalData, MapDrawDatCableData, MapDrawDatStoneData } from "./MapDrawDat";
+import { MapDrawDat,  MapDrawDatPathPoint, MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
 import { MapDrawTool } from "./MapDrawTool";

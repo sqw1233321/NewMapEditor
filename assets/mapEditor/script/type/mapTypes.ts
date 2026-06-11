@@ -72,8 +72,8 @@ export enum AttrCfgTypeEnum {
     //下拉框
     dropDownNumber = "dropDownNumber",
     dropDownString = "dropDownString",
-    //按钮打开弹窗
-    openPop = "openPop",
+    //打开选择弹窗
+    selectFile = "selectFile",
 }
 
 //下拉框属性规范
@@ -89,6 +89,6 @@ export interface AttrPopDataType {
     defaultValues: { className: string, value: any }[];
     titleName: string;
     unitType: string;
-    excelMainKey?:string;
-    saveCb: (mapDat,excelDat) => void
+    excelMainKey?: string;
+    saveCb: (mapDat, excelDat) => void
 }

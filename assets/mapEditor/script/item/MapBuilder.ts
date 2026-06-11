@@ -214,11 +214,12 @@ export default class MapBuilder {
           const classCtor = ReflectionMgr.getMapDrawClass(type);
           const uniqueType = classCtor["getUniqueType"]?.(dat) ?? -1;
           const itemNd = cc.instantiate(this.mapDrawItemPrefab);
+          const itemJson = DynamicGetter.Ins.getItemSettingByUnitType(type, uniqueType);
           const anchor = DynamicGetter.Ins.getItemAnchor(type);
           const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
           itemNd.setAnchorPoint(anchor[0], anchor[1]);
           itemNd.groupIndex = groupIndex;
-          itemNd.name = `Item${key}`;
+          itemNd.name = itemJson.Name;
           itemNd.parent = roomNd.getChildByName("unitCont");
           const pos = dat["pos"];
           if (pos) {
@@ -248,9 +249,10 @@ export default class MapBuilder {
         const itemNd = cc.instantiate(this.mapDrawItemPrefab);
         const anchor = DynamicGetter.Ins.getItemAnchor(type);
         const groupIndex = DynamicGetter.Ins.getGroupIndex(type);
+        const itemJson = DynamicGetter.Ins.getItemSettingByUnitType(type, uniqueType);
         itemNd.setAnchorPoint(anchor[0], anchor[1]);
         itemNd.groupIndex = groupIndex;
-        itemNd.name = `${type}`;
+        itemNd.name = itemJson.Name;
         itemNd.parent = outRoomUnitCont;
         const pos = dat["pos"];
         if (pos) {
