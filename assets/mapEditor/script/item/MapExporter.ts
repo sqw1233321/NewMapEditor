@@ -104,13 +104,12 @@ export default class MapExporter {
   }
 
   //写入excel内存对象
-  private writeExcelObject(excelChanges: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
-    if (!excelChanges || excelChanges.length === 0) return;
+  private writeExcelObject(excelWriteInfo: { excelName: string, id: number, itemName: string, itemValue: any }[][]) {
     //先将关卡表的一些特殊字段置为空
     const stageId = EditorSetting.Instance.getStageId();
     StageExcelConvert.setDefault(stageId);
     //内存写入
-    excelChanges.forEach(changes => {
+    excelWriteInfo?.forEach(changes => {
       DynamicGetter.Ins.writeExcelJsonElements(changes);
     })
     //关卡表特殊的处理
@@ -204,9 +203,11 @@ export default class MapExporter {
     //进行json到excel的转化，到excelAsset文件夹下
     const excelPath = EditorSetting.ExcelPath;
     const jsonPath = EditorSetting.OuterJsonPath;
+    //todo:把jsonPath下的文件转化为excel然后存到excelPath里面
     //window.electronAPI.jsonToExcel(jsonPath, excelPath);
     //复制文件到一个绝对路径
-    const result = await window.electronAPI.copyFiles(excelPath, exportPath);
+    //TODO:现在先用jsonPath，完成了上面的todo之后换成excelPath
+    const result = await window.electronAPI.copyFiles(jsonPath, exportPath);
     if (!result.success) {
       EventManager.instance.emit(MapEditorEvent.ShowTip, "excel导出失败: " + result.error);
       console.log("excel导出失败: " + result.error);

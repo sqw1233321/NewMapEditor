@@ -44,8 +44,10 @@ export default class MapSerializer {
     const size = this.collectSize();
     const pathPoints = this.collectPathPoints();
     const rooms = this.collectRooms();
-    const playerCreatePos = this.collectPlayerPos(this._getPlayerCreate());
-    const playerExitPos = this.collectPlayerPos(this._getPlayerExit());
+    const playerCreateNd = this._getPlayerCreate();
+    const playerExitNd = this._getPlayerExit();
+    const playerCreatePos = this.collectPlayerPos(playerCreateNd);
+    const playerExitPos = this.collectPlayerPos(playerExitNd);
     const outDat = {
       "size": size,
       pathPoints,
@@ -55,8 +57,10 @@ export default class MapSerializer {
     };
     //补充机制字段
     this.collectOutRoomUnits(outDat);
-    //设置areaInfo
+    //区域相关信息
     outDat["areaInfo"] = this.collectAreaInfo();
+    outDat["areaOffset"] = this.collectAreaOffset();
+    outDat["createArea"] = this.collectCreateArea(playerCreateNd);
     mapDat.setDat(outDat);
     return mapDat.createJson();
   }
@@ -78,17 +82,14 @@ export default class MapSerializer {
   }
 
   // ==================== 收集方法 ====================
-
-
+  //收集路径点
   private collectPathPoints(): MapDrawDatPathPoint[] {
     const pathPoints = [];
     const pointMap = this._getPathPoints();
-
     pointMap.forEach((point) => {
       if (!point || !cc.isValid(point)) return;
       pathPoints.push(point.addComponentSafe(MapDrawP).getExportDat());
     });
-
     // 按层号和本地ID排序
     pathPoints.sort((a, b) => {
       const ma = /^P(\d+)_(\d+)$/.exec(a.id || "");
@@ -103,10 +104,10 @@ export default class MapSerializer {
       }
       return String(a.id || "").localeCompare(String(b.id || ""));
     });
-
     return pathPoints;
   }
 
+  //收集房间
   private collectRooms(): MapDrawDatRoom[] {
     const rooms = [];
     const roomNodeMap = this._getRoomNodes();
@@ -118,6 +119,7 @@ export default class MapSerializer {
     return rooms;
   }
 
+  //收集房间外物品
   private collectOutRoomUnits(outDat: any) {
     const outRoomUnits = this._getOutRoomUnits();
     outRoomUnits.children.forEach((unit) => {
@@ -129,11 +131,13 @@ export default class MapSerializer {
     });
   }
 
+  //收集特殊节点
   private collectPlayerPos(playerNd: cc.Node): { x: number; y: number } {
     if (!playerNd) return { x: 0, y: 0 };
     return playerNd.addComponentSafe(MapDrawItem).getPos();
   }
 
+  //收集地图size信息
   private collectSize() {
     let res = { width: 0, height: 0 };
     const prefab = MapDrawTool.instance.getMapBgPrefab()
@@ -146,7 +150,7 @@ export default class MapSerializer {
     return res;
   }
 
-  //area信息（ex:[5,8]）
+  //收集区域信息
   private collectAreaInfo(): number[] {
     let res = [];
     const prefab = MapDrawTool.instance.getMapBgPrefab()
@@ -158,5 +162,25 @@ export default class MapSerializer {
       res.push(Number(key));
     })
     return res;
+  }
+
+  //收集区域偏移信息
+  private collectAreaOffset() {
+    const prefab = MapDrawTool.instance.getMapBgPrefab()
+    if (!prefab) return 0;
+    const handler = prefab.getComponent(MapBgPrefab);
+    if (!handler) return 0;
+    return handler.getAreaOffset();
+  }
+
+  //收集创建区域信息
+  private collectCreateArea(playerCreateNd: cc.Node) {
+    const prefab = MapDrawTool.instance.getMapBgPrefab();
+    if (!prefab) return 1;
+    const handler = prefab.getComponent(MapBgPrefab);
+    if (!handler) return 1;
+    const worldPos = playerCreateNd.convertToWorldSpaceAR(cc.v2(0, 0));
+    const areaNum = handler.getAreaNumberByWorldPos(worldPos);
+    return areaNum;
   }
 }

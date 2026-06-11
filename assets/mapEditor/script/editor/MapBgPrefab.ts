@@ -65,6 +65,10 @@ export default class MapBgPrefab extends cc.Component {
         return this._size;
     }
 
+    public getAreaOffset() {
+        return this._dat?.areaOffset ?? 4000;
+    }
+
     private setUI() {
         const oneSpSize = this._spArr[0][0][0]["_originalSize"];
         const row = this._dat.oneAreaSize.y;
@@ -125,6 +129,20 @@ export default class MapBgPrefab extends cc.Component {
             areaInfo += `${start}${curLayerMax}`;
         })
         return areaInfo;
+    }
+
+    //传入一个世界坐标获取他的区域id
+    public getAreaNumberByWorldPos(worldPos: cc.Vec2) {
+        const cont = this.areaCont;
+        for (let i = 0; i < cont.children.length; i++) {
+            const areaNd = cont.children[i];
+            const areaRect = areaNd.getBoundingBoxToWorld();
+            const isInArea = areaRect.contains(worldPos);
+            if (isInArea) {
+                return i + 1;
+            }
+        }
+        return 1;
     }
 
 }
