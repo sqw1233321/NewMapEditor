@@ -285,6 +285,10 @@ export default class MapDrawRoom extends MapDrawItem {
     //写入相关
     public getExportExcelDat(): { excelName: string, id: number, itemName: string, itemValue: any }[] {
         const exportDat = super.getExportDat();
+        //特殊处理，广告房一定是1。
+        if (exportDat["unlockType"] === 12) {
+            exportDat["unlockNeed"] = 1;
+        }
         return ExcelConvert.getExportExcelDatByEditDat(exportDat, this._canEditdat["cfgId"], UnitType.Room);
     }
 
