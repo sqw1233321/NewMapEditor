@@ -121,7 +121,8 @@ export default class SpriteManager extends Singleton<SpriteManager> {
                 texture.handleLoadedTexture();
 
                 // 从 atlas 第一行拿到纹理名，存入 texture cache
-                const textureName = atlas.split('\n')[0].trim();
+                const lines = atlas.split('\n').filter(l => l.trim().length > 0);
+                const textureName = lines[0].trim();
                 const skeletonData = new sp.SkeletonData();
                 skeletonData.skeletonJson = json;
                 skeletonData.atlasText = atlas;
