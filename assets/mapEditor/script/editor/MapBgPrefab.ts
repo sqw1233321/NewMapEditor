@@ -1,4 +1,6 @@
+import MapTool from "../tool/MapTool";
 import { NodeUtil } from "../tool/NodeUtil";
+import EditorSetting from "./EditorSetting";
 
 const { ccclass, property } = cc._decorator;
 
@@ -114,14 +116,22 @@ export default class MapBgPrefab extends cc.Component {
         let areaInfo = "";
         const cont = this.areaCont;
         if (cont.children.length <= 1) return areaInfo;
+        const scale = EditorSetting.Instance.getMapScale();
         cont.children.forEach((areaNd, index) => {
             let start = "_";
             if (!areaInfo) start = "";
             let curLayerMax = 0;
+            const areaWorldPos = areaNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+            const areaPos = MapTool.converWorldPosToMapPos(areaWorldPos);
+            const areaSize = areaNd.getContentSize();
+            const areaRect = new cc.Rect(areaPos.x, areaPos.y, areaSize.width * scale, areaSize.height * scale);
             layerNodeMap.forEach((layerNd, layerNo) => {
-                //layerNd是否与areaNd相交
-                const layerRect = layerNd.getBoundingBoxToWorld();
-                const areaRect = areaNd.getBoundingBoxToWorld();
+                const layerWorldPos = layerNd.convertToWorldSpaceAR(cc.Vec2.ZERO);
+                const layerPos = MapTool.converWorldPosToMapPos(layerWorldPos);
+                const layerSize = layerNd.getContentSize();
+                const width = layerSize.width * scale;
+                const height = layerSize.height * scale;
+                const layerRect = new cc.Rect(layerPos.x + width / 2, layerPos.y + height / 2, width, height);
                 if (layerRect.intersects(areaRect)) {
                     curLayerMax = Math.max(layerNo, curLayerMax);
                 }
