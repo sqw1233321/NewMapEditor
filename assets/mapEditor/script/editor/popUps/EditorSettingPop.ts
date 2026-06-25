@@ -10,6 +10,9 @@ export default class EditorSettingPop extends PopBase {
     @property(cc.EditBox)
     exportSelectPath: cc.EditBox;
 
+    @property(cc.Toggle)
+    saveMashismToggle: cc.Toggle;
+
     public showPop(): void {
         super.showPop();
         this.setUI();
@@ -17,6 +20,7 @@ export default class EditorSettingPop extends PopBase {
 
     private setUI() {
         this.exportSelectPath.string = DynamicGetter.Ins.getEditorSetting()["excelExportPath"] ?? "";
+        this.saveMashismToggle.isChecked = DynamicGetter.Ins.getEditorSetting()["saveMashism"] ?? false;
     }
 
     public async onClickSelectPath() {
@@ -37,4 +41,12 @@ export default class EditorSettingPop extends PopBase {
             EventManager.instance.emit(MapEditorEvent.ShowTip, "选择路径失败")
         }
     }
+
+    public onClickSaveMashism() {
+        DynamicGetter.Ins.getEditorSetting()["saveMashism"] = this.saveMashismToggle.isChecked;
+        //存盘
+        EventManager.instance.emit(MapEditorEvent.SaveExcelFile, "editorSetting");
+        this.setUI();
+    }
+    
 }

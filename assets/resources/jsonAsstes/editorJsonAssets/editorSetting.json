@@ -1,1 +1,4 @@
-{"excelExportPath":"D:\\fork\\dzafx_config\\excel"}
+{
+    "excelExportPath": "D:\\fork\\dzafx_config\\excel",
+    "saveMashism": true
+}

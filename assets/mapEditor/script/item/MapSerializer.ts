@@ -1,6 +1,8 @@
+import DynamicGetter from "../editor/DynamicGetter/DynamicGetter";
+import EditorSetting from "../editor/EditorSetting";
 import MapBgPrefab from "../editor/MapBgPrefab";
 import MapDrawItem from "../editor/mapDrawElement/MapDrawItem";
-import { MapDrawDat,  MapDrawDatPathPoint, MapDrawDatRoom } from "./MapDrawDat";
+import { MapDrawDat, MapDrawDatPathPoint, MapDrawDatRoom } from "./MapDrawDat";
 import MapDrawP from "./MapDrawP";
 import MapDrawRoom from "./MapDrawRoom";
 import { MapDrawTool } from "./MapDrawTool";
@@ -53,8 +55,15 @@ export default class MapSerializer {
       playerCreatePos,
       playerExitPos
     };
+    const isSaveMashism = DynamicGetter.Ins.getEditorSetting()["saveMashism"] ?? false;
+    //保留机制字段
+    if (isSaveMashism) {
+      this.useOldOutRoomUnits(outDat);
+    }
     //补充机制字段
-    this.collectOutRoomUnits(outDat);
+    else {
+      this.collectOutRoomUnits(outDat);
+    }
     //区域相关信息
     outDat["areaInfo"] = this.collectAreaInfo();
     outDat["areaOffset"] = this.collectAreaOffset();
@@ -115,6 +124,19 @@ export default class MapSerializer {
     });
     rooms.sort((a, b) => (a.cfgId || 0) - (b.cfgId || 0));
     return rooms;
+  }
+
+  //使用导入的时候的outRoom数据
+  private useOldOutRoomUnits(outDat: any) {
+    const oldDat = EditorSetting.Instance.getOldFileInfo();
+    const oldObj = JSON.parse(oldDat.fileJson);
+    const filterName = [
+      "size", "pathPoints", "rooms", "playerCreatePos", "playerExitPos", "areaInfo", "areaOffset", "createArea"
+    ]
+    Object.keys(oldObj).forEach((key: any) => {
+      if (filterName.includes(key)) return;
+      outDat[key] = oldObj[key];
+    });
   }
 
   //收集房间外物品

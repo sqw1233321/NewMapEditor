@@ -37,6 +37,12 @@ export default class EditorSetting {
         fileJson: string
     }
 
+    //保留一份刚导入时的json数据
+    private _oldFileInfo: {
+        fileName: string,
+        fileJson: string
+    }
+
     static get Instance(): EditorSetting {
         if (!EditorSetting._ins) {
             EditorSetting._ins = new EditorSetting();
@@ -75,10 +81,27 @@ export default class EditorSetting {
         fileJson: string
     }) {
         this._fileInfo = fileInfo;
+        //保留一下刚刚导入时的数据
+        this.setOldFileInfo(fileInfo)
     }
 
     public getFileInfo() {
         return this._fileInfo;
+    }
+
+    public setOldFileInfo(fileInfo: {
+        fileName: string,
+        fileJson: string
+    }) {
+        if (!fileInfo) return;
+        this._oldFileInfo = {
+            fileName: fileInfo.fileName,
+            fileJson: fileInfo.fileJson
+        }
+    }
+
+    public getOldFileInfo() {
+        return this._oldFileInfo;
     }
 
 
