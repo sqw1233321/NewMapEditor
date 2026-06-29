@@ -190,9 +190,14 @@ export default class AttrItem extends AttrPanelItemBase {
                     if (!this._canWrite) this.singleLable.node.children[1].active = true;
                     this.singleLable.string = this._dat;
                     break;
-                case AttrCfgTypeEnum.boolean:
+                case AttrCfgTypeEnum.booleanType:
                     this.singleBool.node.active = true;
                     this.singleBool.isChecked = this._dat;
+                    this.singleBool.enabled = this._canWrite;
+                    break;
+                case AttrCfgTypeEnum.booleanNumber:
+                    this.singleBool.node.active = true;
+                    this.singleBool.isChecked = this._dat == 1;
                     this.singleBool.enabled = this._canWrite;
                     break;
                 case AttrCfgTypeEnum.point:
@@ -367,8 +372,11 @@ export default class AttrItem extends AttrPanelItemBase {
             const dat = this._dropDownNd?.getComponent(AttrItemDropDown)?.getDat();
             return dat?.exportValue ?? "";
         }
-        if (this._type == AttrCfgTypeEnum.boolean) {
+        if (this._type == AttrCfgTypeEnum.booleanType) {
             return this.singleBool.isChecked;
+        }
+        if (this._type == AttrCfgTypeEnum.booleanNumber) {
+            return this.singleBool.isChecked ? 1 : 0;
         }
         if (this._type == AttrCfgTypeEnum.selectFile) {
             return this._dat;

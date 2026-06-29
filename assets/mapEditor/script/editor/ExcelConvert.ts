@@ -130,7 +130,8 @@ export default class ExcelConvert extends cc.Component {
         if (!isArr) {
             if (p.Type == AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(excelStr);
             if (p.Type == AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return excelStr;
-            if (p.Type == AttrCfgTypeEnum.boolean) return Number(excelStr) == 1;
+            if (p.Type == AttrCfgTypeEnum.booleanType) return excelStr == "true";
+            if (p.Type == AttrCfgTypeEnum.booleanNumber) return Number(excelStr) == 1;
         }
         const splitSymbol = p.Split;
         if (!splitSymbol) return;
@@ -175,7 +176,8 @@ export default class ExcelConvert extends cc.Component {
         if (!isCompositeType) {
             if (p.Type === AttrCfgTypeEnum.number || p.Type == AttrCfgTypeEnum.dropDownNumber) return Number(data);
             if (p.Type === AttrCfgTypeEnum.string || p.Type == AttrCfgTypeEnum.dropDownString) return data;
-            if (p.Type === AttrCfgTypeEnum.boolean) return data === "true";
+            if (p.Type === AttrCfgTypeEnum.booleanType) return data === true;
+            if (p.Type === AttrCfgTypeEnum.booleanNumber) return Number(data);
         }
         if (p.Type === AttrCfgTypeEnum.array) {
             const subP = p.Properties[0];

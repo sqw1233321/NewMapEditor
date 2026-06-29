@@ -64,7 +64,8 @@ export enum AttrCfgPermissionsEnum {
 export enum AttrCfgTypeEnum {
     string = "string",
     number = "number",
-    boolean = "boolean",
+    booleanType = "booleanType",
+    booleanNumber = "booleanNumber",
     array = "array",
     object = "object",
     point = "point",
