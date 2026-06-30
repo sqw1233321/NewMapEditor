@@ -1,6 +1,6 @@
 import MapDrawP from "../../item/MapDrawP";
 import { MapDrawTool } from "../../item/MapDrawTool";
-import { AttrCfgType, AttrCfgTypes, AttrPanelPropertyType, UnitType } from "../../type/mapTypes";
+import { AttrCfgType, AttrCfgTypeEnum, AttrCfgTypes, AttrPanelPropertyType, UnitType } from "../../type/mapTypes";
 import DynamicGetter from "../DynamicGetter/DynamicGetter";
 import { ReflectionMgr } from "../ReflectionMgr";
 import MapDrawItemBase from "./MapDrawItemBase";
@@ -33,8 +33,9 @@ export default class MapDrawItem extends MapDrawItemBase {
     if (!dat) {
       dat = this.getDefaultDat();
     }
-    this.setSprite(type);
-    this.setSpine(type);
+    const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
+    if (!setting.Spine) this.setSprite(type);
+    else this.setSpine(type);
     this._jsonDat = dat;
     //旧的数据中可能有条件不满足的属性有值，需要筛选一下
     this._jsonDat = this.checkCondition(this._jsonDat);
@@ -91,6 +92,8 @@ export default class MapDrawItem extends MapDrawItemBase {
       typeJson.Properties.forEach((p: AttrPanelPropertyType) => {
         //将点的node转化为id
         resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(this._canEditdat[p.ClassPropertyName], p);
+        //去掉文件后缀名
+        resDat[p.ClassPropertyName] = this.handleFileFix(resDat[p.ClassPropertyName], p);
       });
     }
     return resDat;
@@ -228,7 +231,6 @@ export default class MapDrawItem extends MapDrawItemBase {
     return resDat;
   }
 
-
   //点的node转化为str
   private pointMapDatToStrDat(dat: any) {
     const resDat = {};
@@ -244,7 +246,7 @@ export default class MapDrawItem extends MapDrawItemBase {
 
   private pointMapDatToStrDatResucr(dat, property: AttrPanelPropertyType) {
     const type = property.Type;
-    if (type === "point") {
+    if (type === AttrCfgTypeEnum.point) {
       const pointNd = dat as cc.Node;
       if (pointNd && cc.isValid(pointNd)) {
         return pointNd.getComponent(MapDrawP)?.getId() ?? "";
@@ -252,7 +254,7 @@ export default class MapDrawItem extends MapDrawItemBase {
       else {
         return "";
       }
-    } else if (type === "pointArray") {
+    } else if (type === AttrCfgTypeEnum.pointArray) {
       const resultDat = [];
       const pointNds = dat as cc.Node[];
       pointNds?.forEach((pNd: cc.Node) => {
@@ -261,15 +263,14 @@ export default class MapDrawItem extends MapDrawItemBase {
       });
       return resultDat;
     }
-
     let resDat = dat;
-    if (type === "object") {
+    if (type === AttrCfgTypeEnum.object) {
       resDat = {}
       property?.Properties?.forEach(p => {
         resDat[p.ClassPropertyName] = this.pointMapDatToStrDatResucr(dat[p.ClassPropertyName] ?? p.DefaultValue, p);
       })
     }
-    else if (type === "array") {
+    else if (type === AttrCfgTypeEnum.array) {
       resDat = []
       dat?.forEach((datItem) => {
         const res = this.pointMapDatToStrDatResucr(datItem, property?.Properties?.[0]);
@@ -280,9 +281,20 @@ export default class MapDrawItem extends MapDrawItemBase {
     return resDat;
   }
 
+  //处理文件后缀名
+  private handleFileFix(dat, property: AttrPanelPropertyType) {
+    const type = property.Type;
+    let resDat = dat;
+    //去掉后缀名
+    if (type == AttrCfgTypeEnum.selectFile || type == AttrCfgTypeEnum.selectFolder) {
+      resDat = dat.split(".")[0];
+    }
+    //其余的不动
+    return resDat;
+  }
 
   /**
-  * 检查属性是否为 point 或 pointArray 类型
+  * 查找attr配置
   */
   private findPropertyJson(propertyName: string): AttrPanelPropertyType {
     const json = DynamicGetter.Ins.getAttrSetting();
@@ -343,7 +355,6 @@ export default class MapDrawItem extends MapDrawItemBase {
     //不管什么类型都转化为string，就能直接比较了（感觉会有问题呢）
     return isNotEqual ? needValue !== targetValue : needValue === targetValue;
   }
-
 }
 
 ReflectionMgr.registerClass('MapDrawItem', MapDrawItem);
