@@ -53,6 +53,7 @@
             0.5,
             0
         ],
+        "script": "MapDrawDoor",
         "cameraGroupIndex": 0
     },
     {
@@ -107,28 +108,36 @@
     {
         "ClassName": "SurviveDat",
         "ExportName": "survivorDatas",
-        "Texture": "survive.png",
+        "Spine": "survive/xingcunzhe_f",
         "Name": "游魂",
         "InRoom": true,
-        "iconScale": 0.15,
-        "itemScale": 0.25,
+        "iconScale": 0.25,
+        "itemScale": 0.35,
         "itemAnchor": [
             0.5,
             0
+        ],
+        "iconOffset": [
+            0,
+            -35
         ],
         "cameraGroupIndex": 0
     },
     {
         "ClassName": "FightSoul",
         "ExportName": "fightSoulDatas",
-        "Texture": "fightSoul.jpg",
+        "Spine": "fightSoul/hy",
         "Name": "战魂",
         "InRoom": true,
-        "iconScale": 0.12,
-        "itemScale": 0.2,
+        "iconScale": 0.55,
+        "itemScale": 1,
         "itemAnchor": [
             0.5,
             0
+        ],
+        "iconOffset": [
+            0,
+            -35
         ],
         "cameraGroupIndex": 0
     },
@@ -148,7 +157,7 @@
         ],
         "itemAnchor": [
             0.5,
-            0.5
+            0
         ],
         "cameraGroupIndex": 0,
         "script": "MapDrawPortal"
@@ -271,7 +280,7 @@
         "ExportName": "commonControllerDatas",
         "Name": "通用控制器",
         "Color": "#00FFFF",
-        "spine": "",
+        "Spine": "",
         "iconSize": [
             50,
             50
@@ -297,8 +306,8 @@
             50
         ],
         "itemSize": [
-            50,
-            50
+            70,
+            70
         ],
         "itemAnchor": [
             0.5,
@@ -306,5 +315,91 @@
         ],
         "cameraGroupIndex": 0,
         "script": "MapDrawGate"
+    },
+    {
+        "ClassName": "Scooter",
+        "ExportName": "scooterDatas",
+        "Name": "滑轮车",
+        "Texture": "scooter.png",
+        "iconScale": 0.076,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Rock",
+        "ExportName": "rockDatas",
+        "Name": "落石",
+        "Texture": "rock.png",
+        "iconScale": 0.3,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "ControllerPortal",
+        "ExportName": "controllerPortal",
+        "Name": "控制器传送门",
+        "Color": "#A52A2A",
+        "iconSize": [
+            50,
+            50
+        ],
+        "itemSize": [
+            70,
+            70
+        ],
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Quiver",
+        "ExportName": "quiverDatas",
+        "Name": "飞箭",
+        "Spine": "quiver/jian",
+        "AnimationName": "attack",
+        "iconScale": 0.3,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.230844,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "SpinningAxe",
+        "ExportName": "spinningAxeDatas",
+        "Name": "旋斧",
+        "Spine": "spineAxe/fuzi",
+        "AnimationName": "loop",
+        "iconScale": 0.3,
+        "itemScale": 0.7,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
+    },
+    {
+        "ClassName": "Cable",
+        "ExportName": "cableDatas",
+        "Name": "电梯",
+        "Texture": "cable.png",
+        "iconScale": 0.076,
+        "itemScale": 1,
+        "itemAnchor": [
+            0.5,
+            0.5
+        ],
+        "cameraGroupIndex": 0
     }
 ]

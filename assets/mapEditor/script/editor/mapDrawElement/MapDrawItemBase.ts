@@ -83,7 +83,9 @@ export default class MapDrawItemBase extends cc.Component {
     protected async setSprite(type: UnitType, icName?: string) {
         const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
         if (!setting) return;
+        if (setting.Texture != "" && !setting.Texture) return;
         let iconPath = "";
+        //使用默认图片
         if (!icName && !setting.Texture) {
             this.setItemSize(setting);
             const hexColor = setting.Color.replace('#', '');
@@ -94,21 +96,29 @@ export default class MapDrawItemBase extends cc.Component {
             this.itemSp.node.color = new cc.Color(r, g, b, a);
             return;
         }
+        //使用传入图片
         if (icName) {
+            this.setItemSize();
             iconPath = icName;
+            this.itemSp.node.color = cc.Color.WHITE;
         }
+        //使用配置图片
         if (setting.Texture) {
+            this.setItemSize(setting);
             iconPath = setting.Texture;
+            this.itemSp.node.color = cc.Color.WHITE;
         }
         if (!iconPath) return;
-        const path = `texture/item/drawItem/${iconPath}`;
-        const frame = await DynamicGetter.Ins.getSprite(path);
+        const frame = await DynamicGetter.Ins.getSprite(iconPath);
         if (!frame) return;
         this.itemSp.spriteFrame = frame;
-        this.setItemSize(setting);
     }
 
-    private setItemSize(setting: any) {
+    private setItemSize(setting?: any) {
+        if (!setting) {
+            this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
+            return;
+        }
         if (setting.itemSize) {
             this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
             this.itemSp.node.setContentSize(setting.itemSize[0], setting.itemSize[1]);
@@ -125,21 +135,30 @@ export default class MapDrawItemBase extends cc.Component {
         if (!this.itemSpine) return;
         const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
         if (!setting) return;
+        if (!spName && !setting.Spine) return;
         let spineName = "";
-        if (!spName && !setting.spine) return;
         if (spName) {
             spineName = spName;
         }
-        if (setting.spine) {
-            spineName = setting.spine;
+        if (setting.Spine) {
+            spineName = setting.Spine;
         }
         if (!spineName) return;
         this.itemSp.enabled = false;
-        const path = `texture/spine/${spineName}`;
-        const spineData = await DynamicGetter.Ins.getSpineData(path);
+        const spineData = await DynamicGetter.Ins.getSpineData(spineName);
         if (!spineData) return;
         this.itemSpine.skeletonData = spineData;
         this.itemSpine.setToSetupPose();
+        if (setting.AnimationName) {
+            this.itemSpine.setAnimation(0, setting.AnimationName, true);
+        }
+        this.setAnimItemSize(setting);
+    }
+
+    private setAnimItemSize(setting: any) {
+        if (setting.itemScale) {
+            this.itemSpine.node.setScale(setting.itemScale, setting.itemScale);
+        }
     }
 
     //=============生命周期=================

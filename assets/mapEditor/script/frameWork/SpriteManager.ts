@@ -75,9 +75,10 @@ export default class SpriteManager extends Singleton<SpriteManager> {
         let spineData: sp.SkeletonData;
         if (!CC_BUILD) {
             // debug 模式：去掉后缀
-            const arr = relativePath.split("/");
-            const fileName = arr[arr.length - 1];
-            const resourcePath = `${relativePath}/${fileName}`;
+            // const arr = relativePath.split("/");
+            // const fileName = arr[arr.length - 1];
+            // const resourcePath = `${relativePath}/${fileName}`;
+            const resourcePath = relativePath;
             spineData = await new Promise<sp.SkeletonData>((resolve, reject) => {
                 // 注意：加载的是 sp.SkeletonData，不是 sp.Skeleton
                 cc.resources.load(resourcePath, sp.SkeletonData, (err, result) => {

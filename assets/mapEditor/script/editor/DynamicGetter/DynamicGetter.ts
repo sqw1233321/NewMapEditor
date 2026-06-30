@@ -31,14 +31,17 @@ export default class DynamicGetter extends cc.Component {
     }
 
     //获取sprite数据
-    public async getSprite(iconPath: string): Promise<cc.SpriteFrame> {
-        const spriteFrame = await SpriteManager.instance.loadSprite(iconPath);
+    public async getSprite(iconPath: string,isDraw = true): Promise<cc.SpriteFrame> {
+        const folderName = isDraw ? "drawItem" : "prefabIcon";
+        const path = `texture/item/${folderName}/${iconPath}`;
+        const spriteFrame = await SpriteManager.instance.loadSprite(path);
         return spriteFrame;
     }
 
     //获取spine数据
-    public async getSpineData(iconPath: string): Promise<sp.SkeletonData> {
-        const spineData = await SpriteManager.instance.loadSpine(iconPath);
+    public async getSpineData(spinePath: string): Promise<sp.SkeletonData> {
+        const path = `texture/spine/${spinePath}`
+        const spineData = await SpriteManager.instance.loadSpine(path);
         return spineData;
     }
 

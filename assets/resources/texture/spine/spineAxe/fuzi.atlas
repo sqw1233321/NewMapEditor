@@ -1,0 +1,41 @@
+
+fuzi.png
+size: 1108,459
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fz
+  rotate: false
+  xy: 443, 41
+  size: 445, 418
+  orig: 445, 420
+  offset: 0, 1
+  index: -1
+fza
+  rotate: false
+  xy: 890, 138
+  size: 96, 95
+  orig: 96, 95
+  offset: 0, 0
+  index: -1
+fzb
+  rotate: true
+  xy: 0, 38
+  size: 421, 441
+  orig: 421, 441
+  offset: 0, 0
+  index: -1
+fzc
+  rotate: false
+  xy: 890, 235
+  size: 218, 224
+  orig: 218, 224
+  offset: 0, 0
+  index: -1
+hx
+  rotate: false
+  xy: 443, 0
+  size: 527, 39
+  orig: 527, 39
+  offset: 0, 0
+  index: -1

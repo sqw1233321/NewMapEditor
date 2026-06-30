@@ -253,7 +253,7 @@ export default class AttrItem extends AttrPanelItemBase {
         }
 
         //选择文件
-        if (this._type == AttrCfgTypeEnum.selectFile) {
+        if (this._type == AttrCfgTypeEnum.selectFolder || this._type == AttrCfgTypeEnum.selectFile) {
             this.selectFileBtn.active = this._canWrite;
             this.singleLable.node.active = true;
             if (this._canWrite) {
@@ -377,6 +377,9 @@ export default class AttrItem extends AttrPanelItemBase {
         }
         if (this._type == AttrCfgTypeEnum.booleanNumber) {
             return this.singleBool.isChecked ? 1 : 0;
+        }
+        if (this._type == AttrCfgTypeEnum.selectFolder) {
+            return this._dat;
         }
         if (this._type == AttrCfgTypeEnum.selectFile) {
             return this._dat;
@@ -531,13 +534,26 @@ export default class AttrItem extends AttrPanelItemBase {
             this.onAfterEdit();
             return;
         }
+
+        let filters = [{ name: 'Directory', extensions: ['*'] }];
+        let openType = ['openDirectory'];
+        if (this._type == AttrCfgTypeEnum.selectFolder) {
+            filters = [{ name: 'Directory', extensions: ['*'] }];
+            openType = ['openDirectory'];
+        }
+        if (this._type == AttrCfgTypeEnum.selectFile) {
+            filters = [{ name: 'File', extensions: ['png', 'jpg', 'jpeg', 'json'] }];
+            openType = ['openFile'];
+        }
+
         const result = await window.electronAPI.openFileDialog(
-            [{ name: 'All Files', extensions: ['*'] }],
-            ['openDirectory']
+            filters,
+            openType
         );
+
         if (result.success) {
-            const fileName = result.path.split('\\').pop() || '';
-            this._dat = fileName;
+            const filePath = result.path;
+            this._dat = filePath;
             this.setUI();
             this.onAfterEdit();
         }

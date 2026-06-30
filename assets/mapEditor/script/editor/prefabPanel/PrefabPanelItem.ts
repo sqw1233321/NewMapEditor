@@ -18,6 +18,9 @@ export default class PrefabPanelItem extends cc.Component {
     @property(cc.Sprite)
     itemSp: cc.Sprite;
 
+    @property(sp.Skeleton)
+    animSp: sp.Skeleton;
+
     @property(cc.Label)
     itemName: cc.Label;
 
@@ -40,27 +43,57 @@ export default class PrefabPanelItem extends cc.Component {
         this._type = dat.ClassName as UnitType;
         this.itemName.string = dat.Name;
 
-        if (dat.iconSize) {
-            this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-            this.itemSp.node.setContentSize(dat.iconSize[0], dat.iconSize[1]);
-            this.itemSp.node.scale = 1;
+        this.itemSp.node.active = false;
+        this.animSp.node.active = false;
+        const isSpine = dat.Spine;
+        //图片
+        if (!isSpine) {
+            this.itemSp.node.active = true;
+            //图标大小
+            if (dat.iconSize) {
+                this.itemSp.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+                this.itemSp.node.setContentSize(dat.iconSize[0], dat.iconSize[1]);
+                this.itemSp.node.scale = 1;
+            }
+            else {
+                this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
+                this.itemSp.node.scale = dat.iconScale ?? 1;
+            }
+            //图标
+            if (dat.Texture) {
+                this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(dat.Texture, false);
+            }
+            //默认图标
+            else {
+                this.itemSp.spriteFrame = this.defaultSprite;
+                const hexColor = dat.Color.replace('#', '');
+                const r = parseInt(hexColor.substring(0, 2), 16);
+                const g = parseInt(hexColor.substring(2, 4), 16);
+                const b = parseInt(hexColor.substring(4, 6), 16);
+                const a = hexColor.length === 8 ? parseInt(hexColor.substring(6, 8), 16) : 255;
+                this.itemSp.node.color = new cc.Color(r, g, b, a);
+            }
         }
+        //动画
         else {
-            this.itemSp.sizeMode = cc.Sprite.SizeMode.RAW;
-            this.itemSp.node.scale = dat.iconScale ?? 1;
+            this.animSp.node.active = true;
+            this.animSp.skeletonData = await DynamicGetter.Ins.getSpineData(dat.Spine);
+            //图标大小
+            if (dat.iconSize) {
+                this.animSp.node.setContentSize(dat.iconSize[0], dat.iconSize[1]);
+                this.animSp.node.scale = 1;
+            }
+            else {
+                this.animSp.node.scale = dat.iconScale ?? 1;
+            }
+            if(dat.AnimationName){
+                this.animSp.setAnimation(0, dat.AnimationName, true);
+            }
         }
 
-        if (dat.Texture) {
-            const path = `texture/item/prefabIcon/${dat.Texture}`;
-            this.itemSp.spriteFrame = await DynamicGetter.Ins.getSprite(path);
-        } else {
-            this.itemSp.spriteFrame = this.defaultSprite;
-            const hexColor = dat.Color.replace('#', '');
-            const r = parseInt(hexColor.substring(0, 2), 16);
-            const g = parseInt(hexColor.substring(2, 4), 16);
-            const b = parseInt(hexColor.substring(4, 6), 16);
-            const a = hexColor.length === 8 ? parseInt(hexColor.substring(6, 8), 16) : 255;
-            this.itemSp.node.color = new cc.Color(r, g, b, a);
+        const drawNd = isSpine ? this.animSp.node : this.itemSp.node;
+        if (dat.iconOffset) {
+            drawNd.setPosition(dat.iconOffset[0], dat.iconOffset[1]);
         }
     }
 

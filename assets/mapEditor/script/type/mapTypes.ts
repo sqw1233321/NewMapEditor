@@ -74,6 +74,7 @@ export enum AttrCfgTypeEnum {
     dropDownNumber = "dropDownNumber",
     dropDownString = "dropDownString",
     //打开选择弹窗
+    selectFolder = "selectFolder",
     selectFile = "selectFile",
 }
 

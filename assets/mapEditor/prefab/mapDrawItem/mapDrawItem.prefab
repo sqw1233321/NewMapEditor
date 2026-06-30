@@ -160,7 +160,7 @@
     "_preCacheMode": 0,
     "_cacheMode": 0,
     "loop": true,
-    "premultipliedAlpha": true,
+    "premultipliedAlpha": false,
     "timeScale": 1,
     "_accTime": 0,
     "_playCount": 0,

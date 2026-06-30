@@ -100,5 +100,15 @@
             "showName": "动画",
             "exportValue": 1
         }
+    ],
+    "orientation": [
+        {
+            "showName": "向左",
+            "exportValue": 0
+        },
+        {
+            "showName": "向右",
+            "exportValue": 1
+        }
     ]
 }
