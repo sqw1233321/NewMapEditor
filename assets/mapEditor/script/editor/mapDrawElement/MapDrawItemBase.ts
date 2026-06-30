@@ -83,7 +83,6 @@ export default class MapDrawItemBase extends cc.Component {
     protected async setSprite(type: UnitType, icName?: string) {
         const setting = DynamicGetter.Ins.getItemSettingByUnitType(type, this._uniqueType);
         if (!setting) return;
-        if (setting.Texture != "" && !setting.Texture) return;
         let iconPath = "";
         //使用默认图片
         if (!icName && !setting.Texture) {

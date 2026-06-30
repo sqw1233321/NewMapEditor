@@ -93,7 +93,7 @@ export default class SpriteManager extends Singleton<SpriteManager> {
         } else {
             // build 模式：通过 electronAPI 加载（需要返回 base64 的 SkeletonData）
             const result = await window.electronAPI.loadSingleSpine(relativePath);
-            if (!result.success) {
+            if (!result || !result.success) {
                 EventManager.instance.emit(MapEditorEvent.ShowTip, `动画加载失败: ${relativePath}`);
             }
             else {

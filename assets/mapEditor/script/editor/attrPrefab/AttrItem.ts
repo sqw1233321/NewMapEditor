@@ -256,12 +256,9 @@ export default class AttrItem extends AttrPanelItemBase {
         if (this._type == AttrCfgTypeEnum.selectFolder || this._type == AttrCfgTypeEnum.selectFile) {
             this.selectFileBtn.active = this._canWrite;
             this.singleLable.node.active = true;
-            if (this._canWrite) {
-                this.singleLable.enabled = false;
-                this.singleLable.node.children[1].active = true;
-            }
+            this.singleLable.enabled = this._canWrite;
+            this.singleLable.string = this._dat;
             this.dropDownBtn.active = false;
-            this.singleLable.node.children[1].getComponent(cc.Label).string = this._dat;
         }
 
         //不是最后一层，设置子项
@@ -552,7 +549,10 @@ export default class AttrItem extends AttrPanelItemBase {
         );
 
         if (result.success) {
-            const filePath = result.path;
+            let filePath = result.path;
+            const keyword = "gui";
+            const index = filePath.indexOf(keyword);
+            if (index != -1) filePath = filePath.substring(index);
             this._dat = filePath;
             this.setUI();
             this.onAfterEdit();
